@@ -1,4 +1,4 @@
-package dev.jxmen.cs_ai_interviewer
+package dev.jxmen.cs.ai.interviewer
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

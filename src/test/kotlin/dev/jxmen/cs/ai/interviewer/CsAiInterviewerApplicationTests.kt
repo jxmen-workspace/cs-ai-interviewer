@@ -1,13 +1,11 @@
-package dev.jxmen.cs_ai_interviewer
+package dev.jxmen.cs.ai.interviewer
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
 class CsAiInterviewerApplicationTests {
-
-	@Test
-	fun contextLoads() {
-	}
-
+    @Test
+    fun contextLoads() {
+    }
 }
