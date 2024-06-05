@@ -1,0 +1,61 @@
+name: Deploy
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+        shell: bash
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+        shell: bash
+
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYY-MM-DDTHH-mm-ss
+          utcOffset: "+09:00"
+
+      - name: Get Tag Name
+        id: get_tag_name
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Get Short SHA
+        id: get_short_sha
+        run: echo "SHA=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      # NOTE: jar task를 비활성화 했기 때문에, plain jar가 생성되지 않아 cp *.jar 실행 시 app.jar 파일이 생성된다.
+      - name: Generate deployment package
+        run: |
+          mkdir -p deploy
+          cp build/libs/*.jar deploy/application.jar
+          cp Procfile deploy/Procfile
+          cp -r .ebextensions deploy/.ebextensions
+          cp -r .platform deploy/.platform
+          cd deploy && zip -r deploy.zip .
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: ${{ secrets.EB_APP_NAME }}
+          environment_name: ${{ secrets.EB_ENV_NAME }}
+          version_label: github-action-${{steps.current-time.outputs.formattedTime}}-${{ steps.get_tag_name.outputs.TAG }}-${{ steps.get_short_sha.outputs.SHA }}
+          region: ap-northeast-2 # 한국으로 region 변경
+          deployment_package: deploy/deploy.zip
+          wait_for_environment_recovery: 300 # 30초는 너무 짧아 300초로 변경
