@@ -41,3 +41,6 @@ out/
 
 ### Http Client ENVS ###
 http-client.private.env.json
+
+### Act Env File ###
+my.secrets
