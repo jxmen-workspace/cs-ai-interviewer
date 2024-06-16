@@ -6,6 +6,8 @@ plugins {
     kotlin("jvm") version "1.9.24"
     kotlin("plugin.spring") version "1.9.24"
     id("com.epages.restdocs-api-spec") version "0.17.1"
+
+    id("org.jetbrains.kotlin.plugin.jpa") version "2.0.0" // auto generate no args constructor
 }
 
 group = "dev.jxmen"
