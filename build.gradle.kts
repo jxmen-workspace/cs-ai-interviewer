@@ -20,6 +20,7 @@ repositories {
 }
 
 val epagesVersion = "0.17.1"
+val mockkVersion = "1.13.11"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -40,6 +41,7 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
+    testImplementation("io.mockk:mockk:$mockkVersion")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
