@@ -5,10 +5,9 @@ import jakarta.persistence.Entity
 import org.hibernate.annotations.Comment
 
 @Entity
-class Subject : BaseEntity() {
+class Subject(
     @Comment("제목")
-    lateinit var title: String
-
+    val title: String,
     @Comment("질문")
-    lateinit var question: String
-}
+    val question: String,
+) : BaseEntity()
