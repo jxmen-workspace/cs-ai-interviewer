@@ -23,6 +23,7 @@ repositories {
 
 val epagesVersion = "0.17.1"
 val mockkVersion = "1.13.11"
+val kotestVersion = "5.8.1"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -44,6 +45,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
     testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
@@ -58,7 +61,7 @@ kotlin {
 tasks.withType<Test> {
     useJUnitPlatform()
 
-    finalizedBy("openapi3")
+    finalizedBy("openapi3") // TODO: 꼭 필요한지 체크
     finalizedBy("copyOasToSwagger")
 }
 
