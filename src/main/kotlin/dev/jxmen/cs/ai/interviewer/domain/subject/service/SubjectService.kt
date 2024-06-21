@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class SubjectService(
     private val subjectRepository: SubjectRepository,
-) {
+) : SubjectUseCase {
     @Transactional(readOnly = true)
-    fun getSubjectsByCategory(cateStr: String): List<Subject> {
+    override fun getSubjectsByCategory(cateStr: String): List<Subject> {
         val subjectCategory = SubjectCategory.fromString(cateStr)
 
         return this.subjectRepository.findByCategory(subjectCategory)

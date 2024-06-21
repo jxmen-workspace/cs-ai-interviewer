@@ -4,7 +4,7 @@ import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.jxmen.cs.ai.interviewer.domain.subject.api.SubjectApi
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
-import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectService
+import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -23,7 +23,7 @@ import org.springframework.util.LinkedMultiValueMap
 @WebMvcTest(SubjectApi::class)
 class SubjectApiTest :
     DescribeSpec({
-        val stubService = StubSubjectService(createDummySubjectRepository())
+        val stubSubjectUseCase = StubSubjectUseCase()
 
         /**
          * without junit5 on spring rest docs, `ManualRestDocs` to generate api spec
@@ -37,7 +37,7 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(stubService))
+                    .standaloneSetup(SubjectApi(stubSubjectUseCase))
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
                     .build()
 
@@ -52,7 +52,7 @@ class SubjectApiTest :
             it("should return 200 with subject list") {
                 val expectResponse =
                     ListDataResponse(
-                        stubService.getSubjectsByCategory("os").map {
+                        stubSubjectUseCase.getSubjectsByCategory("os").map {
                             SubjectResponse(
                                 title = it.title,
                                 question = it.question,
@@ -88,17 +88,10 @@ class SubjectApiTest :
         private val objectMapper = ObjectMapper()
 
         fun toJson(res: Any): String = objectMapper.writeValueAsString(res)
-
-        fun createDummySubjectRepository(): SubjectRepository =
-            object : SubjectRepository {
-                override fun findByCategory(category: SubjectCategory): List<Subject> = emptyList()
-            }
     }
 }
 
-class StubSubjectService(
-    subjectRepository: SubjectRepository,
-) : SubjectService(subjectRepository) {
+class StubSubjectUseCase : SubjectUseCase {
     override fun getSubjectsByCategory(cateStr: String): List<Subject> =
         listOf(
             Subject(

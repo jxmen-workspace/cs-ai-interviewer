@@ -1,7 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.domain.subject.api
 
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
-import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectService
+import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/subjects")
 class SubjectApi(
-    private val subjectService: SubjectService,
+    private val subjectUseCase: SubjectUseCase,
 ) {
     @GetMapping
     fun getSubjects(
@@ -20,7 +20,7 @@ class SubjectApi(
     ): ResponseEntity<ListDataResponse<SubjectResponse>> {
         val response =
             ListDataResponse(
-                subjectService.getSubjectsByCategory(cateStr).map {
+                subjectUseCase.getSubjectsByCategory(cateStr).map {
                     SubjectResponse(
                         title = it.title,
                         question = it.question,
