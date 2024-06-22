@@ -7,7 +7,6 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
@@ -20,7 +19,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
 import org.springframework.util.LinkedMultiValueMap
 
-@WebMvcTest(SubjectApi::class)
 class SubjectApiTest :
     DescribeSpec({
         val stubSubjectUseCase = StubSubjectUseCase()
