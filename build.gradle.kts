@@ -49,6 +49,10 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.1.0") {
+        exclude(group = "com.github.waffle", module = "waffle-jna")
+    }
 }
 
 kotlin {

@@ -5,6 +5,9 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: none
+  h2:
+    console:
+      enabled: false
 
 ---
 spring.config.activate.on-profile: local, default
@@ -33,3 +36,22 @@ logging:
     org:
       hibernate:
         SQL: DEBUG
+
+---
+spring.config.activate.on-profile: prod
+
+spring:
+  datasource:
+    name: cs-ai-interviewer
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: false
+    show-sql: false
+  flyway:
+    enabled: true
