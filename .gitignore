@@ -47,3 +47,6 @@ my.secrets
 
 ### ToDo File ###
 todo.md
+
+### Env File (for intellij) ###
+.env
