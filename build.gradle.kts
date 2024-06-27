@@ -5,10 +5,13 @@ plugins {
     id("io.spring.dependency-management") version "1.1.5"
     kotlin("jvm") version "1.9.24"
     kotlin("plugin.spring") version "1.9.24"
+    id("com.epages.restdocs-api-spec") version "0.17.1"
+
+    id("org.jetbrains.kotlin.plugin.jpa") version "2.0.0" // auto generate no args constructor
 }
 
 group = "dev.jxmen"
-version = "0.0.1-SNAPSHOT"
+version = "0.2.0-SNAPSHOT" // NOTE: snapshot은 개발 중인 버전을 의미
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -18,16 +21,42 @@ repositories {
     mavenCentral()
 }
 
+val epagesVersion = "0.17.1"
+val mockkVersion = "1.13.11"
+val kotestVersion = "5.8.1"
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+    // database
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-mysql")
+    implementation("com.h2database:h2")
+
+    /**
+     * https://mvnrepository.com/artifact/com.epages/restdocs-api-spec-mockmvc
+     */
+    implementation("com.epages:restdocs-api-spec:$epagesVersion")
+    implementation("com.epages:restdocs-api-spec-mockmvc:$epagesVersion")
+    implementation("com.epages:restdocs-api-spec-openapi3-generator:$epagesVersion")
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
+    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.1.0") {
+        exclude(group = "com.github.waffle", module = "waffle-jna")
+    }
 }
 
 kotlin {
@@ -39,6 +68,9 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+
+    finalizedBy("openapi3") // TODO: 꼭 필요한지 체크
+    finalizedBy("copyOasToSwagger")
 }
 
 tasks.jar {
@@ -47,4 +79,21 @@ tasks.jar {
 
 tasks.bootJar {
     archiveFileName.set("app.jar")
+}
+
+openapi3 {
+    setServer("http://localhost:8080")
+
+    format = "yaml"
+}
+
+tasks.register<Copy>("copyOasToSwagger") {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "openapi 파일 정적 경로에 복사"
+
+    delete("src/main/resources/static/swagger-ui/openapi3.yaml") // 기존 OAS 파일 삭제
+    from(layout.buildDirectory.file("api-spec/openapi3.yaml")) // 복제할 OAS 파일 지정
+    into("src/main/resources/static/swagger-ui/.") // 타겟 디렉터리로 파일 복제
+
+    dependsOn("openapi3") // openapi3 Task가 먼저 실행되도록 설정
 }
