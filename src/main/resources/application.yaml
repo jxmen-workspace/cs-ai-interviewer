@@ -8,6 +8,8 @@ spring:
   h2:
     console:
       enabled: false
+  flyway:
+    enabled: false
 
 ---
 spring.config.activate.on-profile: local, default
