@@ -12,7 +12,7 @@ class SubjectService(
 ) : SubjectUseCase {
     @Transactional(readOnly = true)
     override fun getSubjectsByCategory(cateStr: String): List<Subject> {
-        val subjectCategory = SubjectCategory.fromString(cateStr)
+        val subjectCategory = SubjectCategory.valueOf(cateStr.uppercase())
 
         return this.subjectRepository.findByCategory(subjectCategory)
     }

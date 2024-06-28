@@ -3,6 +3,7 @@ package dev.jxmen.cs.ai.interviewer.domain.subject.service
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectRepository
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 
@@ -13,8 +14,9 @@ class SubjectServiceTest :
         describe("getSubjectsByCategory") {
             context("만약 카테고리가 잘못된 값이라면") {
                 it("IllegalArgumentException을 던져야 한다") {
-                    runCatching { subjectService.getSubjectsByCategory("dsa1") }
-                        .exceptionOrNull() shouldBe IllegalArgumentException("No such enum constant dsa1")
+                    shouldThrow<IllegalArgumentException> {
+                        subjectService.getSubjectsByCategory("dsa1")
+                    }
                 }
             }
             context("만약 카테고리가 올바른 값이라면") {
