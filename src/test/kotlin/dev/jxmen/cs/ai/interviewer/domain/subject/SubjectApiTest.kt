@@ -91,11 +91,11 @@ class SubjectApiTest :
 
 class StubSubjectUseCase : SubjectUseCase {
     override fun getSubjectsByCategory(cateStr: String): List<Subject> =
-        listOf(
-            Subject(
-                title = "os-title-1",
-                question = "os-question-1",
-                category = SubjectCategory.OS,
-            ),
-        )
+        when (cateStr) {
+            "dsa" -> listOf(Subject(title = "DSA", question = "What is DSA?", category = SubjectCategory.DSA))
+            "network" -> listOf(Subject(title = "NETWORK", question = "What is Network?", category = SubjectCategory.NETWORK))
+            "database" -> listOf(Subject(title = "DATABASE", question = "What is Database?", category = SubjectCategory.DATABASE))
+            "os" -> listOf(Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS))
+            else -> throw IllegalArgumentException("No such enum constant $cateStr")
+        }
 }

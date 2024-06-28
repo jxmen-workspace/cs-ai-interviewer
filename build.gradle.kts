@@ -66,17 +66,17 @@ kotlin {
     }
 }
 
+val copyOasToSwaggerTask = "copyOasToSwagger"
+
 tasks.withType<Test> {
     useJUnitPlatform()
 
-    finalizedBy("copyOasToSwagger")
+    finalizedBy(copyOasToSwaggerTask)
 }
 
 tasks.jar {
     enabled = false // plain jar 파일 생성 비활성화
 }
-
-val copyOasToSwaggerTask = "copyOasToSwagger"
 
 tasks.bootJar {
     dependsOn("openapi3") // openapi3 Task가 먼저 실행되도록 설정

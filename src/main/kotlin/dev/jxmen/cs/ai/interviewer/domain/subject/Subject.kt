@@ -2,6 +2,7 @@ package dev.jxmen.cs.ai.interviewer.domain.subject
 
 import dev.jxmen.cs.ai.interviewer.domain.BaseEntity
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -26,6 +27,7 @@ class Subject(
     @Column(nullable = false)
     val question: String,
     @Enumerated(value = EnumType.STRING)
+    @Convert(converter = SubjectCategoryConverter::class)
     @Comment("카테고리")
     val category: SubjectCategory,
 ) : BaseEntity()
