@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "dev.jxmen"
-version = "0.2.2-SNAPSHOT" // NOTE: snapshot은 개발 중인 버전을 의미
+version = "0.2.3-SNAPSHOT" // NOTE: snapshot은 개발 중인 버전을 의미
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
