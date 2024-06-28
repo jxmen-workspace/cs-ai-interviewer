@@ -69,7 +69,6 @@ kotlin {
 tasks.withType<Test> {
     useJUnitPlatform()
 
-    finalizedBy("openapi3") // TODO: 꼭 필요한지 체크
     finalizedBy("copyOasToSwagger")
 }
 
@@ -77,7 +76,15 @@ tasks.jar {
     enabled = false // plain jar 파일 생성 비활성화
 }
 
+val copyOasToSwaggerTask = "copyOasToSwagger"
+
 tasks.bootJar {
+    dependsOn("openapi3") // openapi3 Task가 먼저 실행되도록 설정
+
+    from(layout.buildDirectory.file("api-spec/openapi3.yaml")) {
+        into("BOOT-INF/classes/static/swagger-ui")
+    }
+
     archiveFileName.set("app.jar")
 }
 
@@ -87,13 +94,13 @@ openapi3 {
     format = "yaml"
 }
 
-tasks.register<Copy>("copyOasToSwagger") {
+tasks.register<Copy>(copyOasToSwaggerTask) {
+    dependsOn("openapi3") // openapi3 Task가 먼저 실행되도록 설정
+
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     description = "openapi 파일 정적 경로에 복사"
 
     delete("src/main/resources/static/swagger-ui/openapi3.yaml") // 기존 OAS 파일 삭제
     from(layout.buildDirectory.file("api-spec/openapi3.yaml")) // 복제할 OAS 파일 지정
     into("src/main/resources/static/swagger-ui/.") // 타겟 디렉터리로 파일 복제
-
-    dependsOn("openapi3") // openapi3 Task가 먼저 실행되도록 설정
 }
