@@ -21,8 +21,10 @@ class SubjectServiceTest :
         describe("getSubjectsByCategory") {
             context("만약 카테고리가 잘못된 값이라면") {
                 it("IllegalArgumentException을 던져야 한다") {
-                    shouldThrow<IllegalArgumentException> {
-                        subjectService.getSubjectsByCategory("dsa1")
+                    listOf("dsa1", "", " ", "  ").forEach {
+                        shouldThrow<IllegalArgumentException> {
+                            subjectService.getSubjectsByCategory(it)
+                        }
                     }
                 }
             }
