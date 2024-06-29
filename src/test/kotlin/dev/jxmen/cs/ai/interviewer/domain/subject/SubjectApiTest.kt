@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import dev.jxmen.cs.ai.interviewer.domain.subject.api.SubjectApi
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
+import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
@@ -53,38 +54,70 @@ class SubjectApiTest :
         }
 
         describe("GET /api/subjects") {
-            it("should return 200 with subject list") {
-                val expectResponse =
-                    ListDataResponse(
-                        stubSubjectUseCase.getSubjectsByCategory("os").map {
-                            SubjectResponse(
-                                id = it.id,
-                                title = it.title,
-                                category = it.category,
-                            )
-                        },
-                    )
-                val queryParams = LinkedMultiValueMap<String, String>().apply { add("category", "os") }
+            context("존재하는 카테고리 주제 목록 조회 요청 시") {
+                it("200 상태코드와 주제 목록을 응답한다.") {
+                    val expectResponse =
+                        ListDataResponse(
+                            stubSubjectUseCase.getSubjectsByCategory("os").map {
+                                SubjectResponse(
+                                    id = it.id,
+                                    title = it.title,
+                                    category = it.category,
+                                )
+                            },
+                        )
+                    val queryParams = LinkedMultiValueMap<String, String>().apply { add("category", "os") }
 
-                mockMvc
-                    .perform(get("/api/subjects").queryParams(queryParams))
-                    .andExpect(status().isOk)
-                    .andExpect(content().json(toJson(expectResponse)))
-                    .andDo(
-                        document(
-                            identifier = "get-subjects",
-                            description = "주제 목록 조회",
-                            snippets =
-                                arrayOf(
-                                    responseFields(
-                                        fieldWithPath("data").description("데이터"),
-                                        fieldWithPath("data[].id").description("주제 식별자"),
-                                        fieldWithPath("data[].title").description("제목"),
-                                        fieldWithPath("data[].category").description("카테고리"),
+                    mockMvc
+                        .perform(get("/api/subjects").queryParams(queryParams))
+                        .andExpect(status().isOk)
+                        .andExpect(content().json(toJson(expectResponse)))
+                        .andDo(
+                            document(
+                                identifier = "get-subjects",
+                                description = "주제 목록 조회",
+                                snippets =
+                                    arrayOf(
+                                        responseFields(
+                                            fieldWithPath("data").description("데이터"),
+                                            fieldWithPath("data[].id").description("주제 식별자"),
+                                            fieldWithPath("data[].title").description("제목"),
+                                            fieldWithPath("data[].category").description("카테고리"),
+                                        ),
                                     ),
-                                ),
-                        ),
-                    )
+                            ),
+                        )
+                }
+            }
+
+            context("존재하지 않는 카테고리 주제 목록 조회 요청 시") {
+                it("400를 응답한다.") {
+                    val queryParams = LinkedMultiValueMap<String, String>().apply { add("category", "not_exist") }
+
+                    mockMvc
+                        .perform(get("/api/subjects").queryParams(queryParams))
+                        .andExpect(status().isBadRequest)
+                        .andDo(
+                            document(
+                                identifier = "get-subjects-not-found",
+                                description = "주제 목록 조회 실패",
+                            ),
+                        )
+                }
+            }
+
+            context("카테고리 파라미터가 없는 요청일 경우") {
+                it("400을 응답한다.") {
+                    mockMvc
+                        .perform(get("/api/subjects"))
+                        .andExpect(status().isBadRequest)
+                        .andDo(
+                            document(
+                                identifier = "get-subjects-bad-request",
+                                description = "주제 목록 조회 실패",
+                            ),
+                        )
+                }
             }
         }
 
@@ -155,7 +188,7 @@ class StubSubjectUseCase : SubjectUseCase {
             "network" -> listOf(Subject(title = "NETWORK", question = "What is Network?", category = SubjectCategory.NETWORK))
             "database" -> listOf(Subject(title = "DATABASE", question = "What is Database?", category = SubjectCategory.DATABASE))
             "os" -> listOf(Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS))
-            else -> throw IllegalArgumentException("No such enum constant $cateStr")
+            else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
         }
 
     override fun getSubjectByCategory(id: Long): Subject {
