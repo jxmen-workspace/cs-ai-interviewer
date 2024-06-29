@@ -5,6 +5,8 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.datatest.WithDataTestName
+import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.Page
@@ -14,37 +16,50 @@ import org.springframework.data.repository.query.FluentQuery
 import java.util.Optional
 import java.util.function.Function
 
+/**
+ * kotest custom test name (empty test name is not allowed.)
+ *
+ * https://kotest.io/docs/framework/datatesting/custom-test-names.html#withdatatestname
+ */
+data class TestCase(
+    val input: String,
+) : WithDataTestName {
+    override fun dataTestName() = "test case - '$input'"
+}
+
 class SubjectServiceTest :
     DescribeSpec({
         val subjectService = SubjectService(StubSubjectRepository())
 
         describe("getSubjectsByCategory") {
-            context("만약 카테고리가 잘못된 값이라면") {
-                it("IllegalArgumentException을 던져야 한다") {
-                    listOf("dsa1", "", " ", "  ").forEach {
-                        shouldThrow<IllegalArgumentException> {
-                            subjectService.getSubjectsByCategory(it)
-                        }
+            context("만약 카테고리가 잘못된 값이라면 IllegalArgumentException을 던진다") {
+                withData(
+                    listOf(
+                        TestCase("dsa1"),
+                        TestCase(""),
+                        TestCase(" "),
+                        TestCase("  "),
+                    ),
+                ) { tc ->
+                    shouldThrow<IllegalArgumentException> {
+                        subjectService.getSubjectsByCategory(tc.input)
                     }
                 }
             }
-            context("만약 카테고리가 올바른 값이라면") {
-                it("해당 카테고리의 주제를 반환해야 한다") {
-                    val categories =
-                        listOf(
-                            Pair("dsa", SubjectCategory.DSA),
-                            Pair("network", SubjectCategory.NETWORK),
-                            Pair("database", SubjectCategory.DATABASE),
-                            Pair("os", SubjectCategory.OS),
-                        )
-
-                    categories.forEach { (categoryStr, categoryEnum) ->
-                        val subjectsByCategory = subjectService.getSubjectsByCategory(categoryStr)
-                        subjectsByCategory.size shouldBe 1
-                        with(subjectsByCategory[0]) {
-                            title shouldBe categoryEnum.name
-                            category shouldBe categoryEnum
-                        }
+            context("만약 카테고리가 올바른 값이라면 해당 카테고리의 주제를 반환한다.") {
+                withData(
+                    listOf(
+                        TestCase("dsa"),
+                        TestCase("network"),
+                        TestCase("database"),
+                        TestCase("os"),
+                    ),
+                ) { tc ->
+                    val subjectsByCategory = subjectService.getSubjectsByCategory(tc.input)
+                    subjectsByCategory.size shouldBe 1
+                    with(subjectsByCategory[0]) {
+                        title shouldBe tc.input.uppercase()
+                        category shouldBe SubjectCategory.valueOf(tc.input.uppercase())
                     }
                 }
             }
