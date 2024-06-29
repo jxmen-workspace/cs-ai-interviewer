@@ -1,10 +1,12 @@
 package dev.jxmen.cs.ai.interviewer.domain.subject.api
 
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -30,5 +32,21 @@ class SubjectApi(
             )
 
         return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/{id}")
+    fun getSubject(
+        @PathVariable("id") id: String,
+    ): ResponseEntity<SubjectDetailResponse> {
+        val subject = subjectUseCase.getSubjectByCategory(id.toLong())
+
+        return ResponseEntity.ok(
+            SubjectDetailResponse(
+                id = subject.id,
+                category = subject.category,
+                title = subject.title,
+                question = subject.question,
+            ),
+        )
     }
 }

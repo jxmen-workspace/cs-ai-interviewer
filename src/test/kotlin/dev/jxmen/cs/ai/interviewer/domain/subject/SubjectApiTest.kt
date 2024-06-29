@@ -3,13 +3,17 @@ package dev.jxmen.cs.ai.interviewer.domain.subject
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.jxmen.cs.ai.interviewer.domain.subject.api.SubjectApi
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
+import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectUseCase
+import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
+import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
 import org.springframework.test.web.servlet.MockMvc
@@ -29,6 +33,7 @@ class SubjectApiTest :
          * https://docs.spring.io/spring-restdocs/docs/current/reference/htmlsingle/#getting-started-documentation-snippets-setup-manual
          */
         val manualRestDocumentation = ManualRestDocumentation()
+        val controllerAdvice = GlobalControllerAdvice()
 
         lateinit var mockMvc: MockMvc
 
@@ -36,6 +41,7 @@ class SubjectApiTest :
             mockMvc =
                 MockMvcBuilders
                     .standaloneSetup(SubjectApi(stubSubjectUseCase))
+                    .setControllerAdvice(controllerAdvice)
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
                     .build()
 
@@ -81,6 +87,55 @@ class SubjectApiTest :
                     )
             }
         }
+
+        describe("GET /api/subjects/{id}") {
+            context("존재하는 주제 조회 시") {
+                it("should return 200 with subject") {
+                    val subject = stubSubjectUseCase.getSubjectByCategory(1L)
+                    val expectResponse =
+                        SubjectDetailResponse(
+                            id = subject.id,
+                            category = subject.category,
+                            title = subject.title,
+                            question = subject.question,
+                        )
+
+                    mockMvc
+                        .perform(get("/api/subjects/1"))
+                        .andExpect(status().isOk)
+                        .andExpect(content().json(toJson(expectResponse)))
+                        .andDo(
+                            document(
+                                identifier = "get-subject-success",
+                                description = "주제 상세 조회",
+                                snippets =
+                                    arrayOf(
+                                        responseFields(
+                                            fieldWithPath("id").description("주제 식별자").type(JsonFieldType.NUMBER),
+                                            fieldWithPath("title").description("제목").type(JsonFieldType.STRING),
+                                            fieldWithPath("category").description("카테고리").type(JsonFieldType.STRING),
+                                            fieldWithPath("question").description("질문").type(JsonFieldType.STRING),
+                                        ),
+                                    ),
+                            ),
+                        )
+                }
+            }
+
+            context("존재하지 않는 주제 조회 시") {
+                it("404를 응답한다.") {
+                    mockMvc
+                        .perform(get("/api/subjects/${StubSubjectUseCase.NOT_FOUND_ID}"))
+                        .andExpect(status().isNotFound)
+                        .andDo(
+                            document(
+                                identifier = "get-subject-not-found",
+                                description = "주제 상세 조회 실패",
+                            ),
+                        )
+                }
+            }
+        }
     }) {
     companion object {
         private val objectMapper = ObjectMapper()
@@ -90,6 +145,10 @@ class SubjectApiTest :
 }
 
 class StubSubjectUseCase : SubjectUseCase {
+    companion object {
+        val NOT_FOUND_ID = 10000L
+    }
+
     override fun getSubjectsByCategory(cateStr: String): List<Subject> =
         when (cateStr) {
             "dsa" -> listOf(Subject(title = "DSA", question = "What is DSA?", category = SubjectCategory.DSA))
@@ -98,4 +157,10 @@ class StubSubjectUseCase : SubjectUseCase {
             "os" -> listOf(Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS))
             else -> throw IllegalArgumentException("No such enum constant $cateStr")
         }
+
+    override fun getSubjectByCategory(id: Long): Subject {
+        if (id == NOT_FOUND_ID) throw SubjectNotFoundException(100L)
+
+        return Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS)
+    }
 }
