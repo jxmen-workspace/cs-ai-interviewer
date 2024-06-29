@@ -22,6 +22,7 @@ class SubjectApi(
             ListDataResponse(
                 subjectUseCase.getSubjectsByCategory(cateStr).map {
                     SubjectResponse(
+                        id = it.id,
                         title = it.title,
                         question = it.question,
                         category = it.category,
