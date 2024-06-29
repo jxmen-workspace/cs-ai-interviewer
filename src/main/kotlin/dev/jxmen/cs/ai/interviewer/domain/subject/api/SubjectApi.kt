@@ -24,7 +24,6 @@ class SubjectApi(
                     SubjectResponse(
                         id = it.id,
                         title = it.title,
-                        question = it.question,
                         category = it.category,
                     )
                 },
