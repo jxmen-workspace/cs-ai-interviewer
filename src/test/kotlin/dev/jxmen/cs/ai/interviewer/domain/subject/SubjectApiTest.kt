@@ -54,7 +54,6 @@ class SubjectApiTest :
                             SubjectResponse(
                                 id = it.id,
                                 title = it.title,
-                                question = it.question,
                                 category = it.category,
                             )
                         },
@@ -75,7 +74,6 @@ class SubjectApiTest :
                                         fieldWithPath("data").description("데이터"),
                                         fieldWithPath("data[].id").description("주제 식별자"),
                                         fieldWithPath("data[].title").description("제목"),
-                                        fieldWithPath("data[].question").description("질문"),
                                         fieldWithPath("data[].category").description("카테고리"),
                                     ),
                                 ),
