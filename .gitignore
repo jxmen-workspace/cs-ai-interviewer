@@ -50,3 +50,6 @@ todo.md
 
 ### Env File (for intellij) ###
 .env
+
+### data file ###
+data.csv
