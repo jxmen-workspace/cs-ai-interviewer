@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.domain.subject.dto
+package dev.jxmen.cs.ai.interviewer.domain.subject.dto.response
 
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 
