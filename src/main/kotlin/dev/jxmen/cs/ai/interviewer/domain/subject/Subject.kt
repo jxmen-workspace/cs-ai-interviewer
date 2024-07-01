@@ -21,14 +21,16 @@ import org.hibernate.annotations.Comment
     ],
 )
 class Subject(
-    @Column(nullable = false)
+
+    @Column(nullable = false, unique = true)
     @Comment("제목")
     val title: String,
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     @Comment("질문")
     val question: String,
 
+    @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     @Convert(converter = SubjectCategoryConverter::class)
     @Comment("카테고리")
