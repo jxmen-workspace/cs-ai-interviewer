@@ -80,7 +80,7 @@ tasks.jar {
 }
 
 tasks.bootJar {
-    dependsOn("openapi3") // openapi3 Task가 먼저 실행되도록 설정
+    dependsOn("openapi3") // openapi3.yaml 파일이 먼저 생성되도록 설정
 
     from(layout.buildDirectory.file("api-spec/openapi3.yaml")) {
         into("BOOT-INF/classes/static/swagger-ui")
