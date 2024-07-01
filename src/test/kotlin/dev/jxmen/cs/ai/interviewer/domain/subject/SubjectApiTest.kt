@@ -124,7 +124,7 @@ class SubjectApiTest :
         describe("GET /api/subjects/{id}") {
             context("존재하는 주제 조회 시") {
                 it("should return 200 with subject") {
-                    val subject = stubSubjectQuery.getSubjectByCategory(1L)
+                    val subject = stubSubjectQuery.getSubjectById(1L)
                     val expectResponse =
                         SubjectDetailResponse(
                             id = subject.id,
@@ -191,7 +191,7 @@ class StubSubjectQuery : SubjectQuery {
             else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
         }
 
-    override fun getSubjectByCategory(id: Long): Subject {
+    override fun getSubjectById(id: Long): Subject {
         if (id == NOT_FOUND_ID) throw SubjectNotFoundException(100L)
 
         return Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS)
