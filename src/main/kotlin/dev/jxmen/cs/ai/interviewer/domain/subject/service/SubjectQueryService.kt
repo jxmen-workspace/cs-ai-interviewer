@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class SubjectService(
+class SubjectQueryService(
     private val subjectRepository: SubjectRepository,
-) : SubjectUseCase {
+) : SubjectQuery {
     @Transactional(readOnly = true)
     override fun getSubjectsByCategory(cateStr: String): List<Subject> {
         val subjectCategory = SubjectCategory.valueOf(cateStr.uppercase())

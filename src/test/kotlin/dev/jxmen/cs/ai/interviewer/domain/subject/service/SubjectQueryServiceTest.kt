@@ -27,9 +27,9 @@ data class TestCase(
     override fun dataTestName() = "test case - '$input'"
 }
 
-class SubjectServiceTest :
+class SubjectQueryServiceTest :
     DescribeSpec({
-        val subjectService = SubjectService(StubSubjectRepository())
+        val subjectQueryService = SubjectQueryService(StubSubjectRepository())
 
         describe("getSubjectsByCategory") {
             context("만약 카테고리가 잘못된 값이라면 IllegalArgumentException을 던진다") {
@@ -42,7 +42,7 @@ class SubjectServiceTest :
                     ),
                 ) { tc ->
                     shouldThrow<IllegalArgumentException> {
-                        subjectService.getSubjectsByCategory(tc.input)
+                        subjectQueryService.getSubjectsByCategory(tc.input)
                     }
                 }
             }
@@ -55,7 +55,7 @@ class SubjectServiceTest :
                         TestCase("os"),
                     ),
                 ) { tc ->
-                    val subjectsByCategory = subjectService.getSubjectsByCategory(tc.input)
+                    val subjectsByCategory = subjectQueryService.getSubjectsByCategory(tc.input)
                     subjectsByCategory.size shouldBe 1
                     with(subjectsByCategory[0]) {
                         title shouldBe tc.input.uppercase()

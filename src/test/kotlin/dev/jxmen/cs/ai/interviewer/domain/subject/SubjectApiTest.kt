@@ -7,7 +7,7 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
-import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectUseCase
+import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
@@ -26,7 +26,7 @@ import org.springframework.util.LinkedMultiValueMap
 
 class SubjectApiTest :
     DescribeSpec({
-        val stubSubjectUseCase = StubSubjectUseCase()
+        val stubSubjectQuery = StubSubjectQuery()
 
         /**
          * without junit5 on spring rest docs, `ManualRestDocs` to generate api spec
@@ -41,7 +41,7 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(stubSubjectUseCase))
+                    .standaloneSetup(SubjectApi(stubSubjectQuery))
                     .setControllerAdvice(controllerAdvice)
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
                     .build()
@@ -58,7 +58,7 @@ class SubjectApiTest :
                 it("200 상태코드와 주제 목록을 응답한다.") {
                     val expectResponse =
                         ListDataResponse(
-                            stubSubjectUseCase.getSubjectsByCategory("os").map {
+                            stubSubjectQuery.getSubjectsByCategory("os").map {
                                 SubjectResponse(
                                     id = it.id,
                                     title = it.title,
@@ -124,7 +124,7 @@ class SubjectApiTest :
         describe("GET /api/subjects/{id}") {
             context("존재하는 주제 조회 시") {
                 it("should return 200 with subject") {
-                    val subject = stubSubjectUseCase.getSubjectByCategory(1L)
+                    val subject = stubSubjectQuery.getSubjectByCategory(1L)
                     val expectResponse =
                         SubjectDetailResponse(
                             id = subject.id,
@@ -158,7 +158,7 @@ class SubjectApiTest :
             context("존재하지 않는 주제 조회 시") {
                 it("404를 응답한다.") {
                     mockMvc
-                        .perform(get("/api/subjects/${StubSubjectUseCase.NOT_FOUND_ID}"))
+                        .perform(get("/api/subjects/${StubSubjectQuery.NOT_FOUND_ID}"))
                         .andExpect(status().isNotFound)
                         .andDo(
                             document(
@@ -177,7 +177,7 @@ class SubjectApiTest :
     }
 }
 
-class StubSubjectUseCase : SubjectUseCase {
+class StubSubjectQuery : SubjectQuery {
     companion object {
         val NOT_FOUND_ID = 10000L
     }
