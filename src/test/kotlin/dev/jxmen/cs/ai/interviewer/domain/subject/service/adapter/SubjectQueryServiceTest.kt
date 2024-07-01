@@ -3,6 +3,8 @@ package dev.jxmen.cs.ai.interviewer.domain.subject.service.adapter
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectQueryRepository
+import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
+import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.WithDataTestName
@@ -18,7 +20,7 @@ import java.util.Optional
 data class TestCase(
     val input: String,
 ) : WithDataTestName {
-    override fun dataTestName() = "test case - '$input'"
+    override fun dataTestName() = "case - '$input'"
 }
 
 class SubjectQueryServiceTest :
@@ -58,9 +60,33 @@ class SubjectQueryServiceTest :
                 }
             }
         }
+
+        describe("getSubjectById") {
+            context("존재하는 id라면") {
+                it("발견한 주제를 리턴한다.") {
+                    shouldNotThrow<SubjectNotFoundException> {
+                        val subject = subjectQueryService.getSubjectById(1L)
+                        subject.title shouldBe "OS"
+                        subject.question shouldBe "What is OS?"
+                        subject.category shouldBe SubjectCategory.OS
+                    }
+                }
+            }
+            context("존재하지 않는 id라면") {
+                it("SubjectNotFoundException 예외를 던진다") {
+                    shouldThrow<SubjectNotFoundException> {
+                        subjectQueryService.getSubjectById(StubSubjectQueryRepository.NOT_EXIST_ID)
+                    }
+                }
+            }
+        }
     })
 
 class StubSubjectQueryRepository : SubjectQueryRepository {
+    companion object {
+        const val NOT_EXIST_ID = -1L
+    }
+
     override fun findByCategory(category: SubjectCategory): List<Subject> =
         when (category) {
             SubjectCategory.DSA ->
@@ -81,5 +107,13 @@ class StubSubjectQueryRepository : SubjectQueryRepository {
                 )
         }
 
-    override fun findById(id: Long): Optional<Subject> = Optional.empty()
+    override fun findById(id: Long): Optional<Subject> {
+        if (NOT_EXIST_ID == id) {
+            return Optional.empty()
+        }
+
+        return Optional.of(
+            Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS),
+        )
+    }
 }
