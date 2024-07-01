@@ -2,19 +2,19 @@ package dev.jxmen.cs.ai.interviewer.global
 
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
-import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectRepository
+import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class DatabaseInitializer(
-    private val subjectRepository: SubjectRepository,
+    private val subjectCommandRepository: SubjectCommandRepository,
 ) {
     private val logger = LoggerFactory.getLogger(DatabaseInitializer::class.java)
 
     fun initData() {
         logger.info("Initializing data")
-        subjectRepository.saveAll(getSubjects())
+        subjectCommandRepository.saveAll(getSubjects())
         logger.info("Data initialized")
     }
 
