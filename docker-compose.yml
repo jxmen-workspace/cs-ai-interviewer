@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MARIADB_DATABASE: cs-ai
+      MARIADB_USER: root
+      MARIADB_PASSWORD: password
+      MARIADB_ROOT_PASSWORD: password
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    ports:
+      - 3306:3306

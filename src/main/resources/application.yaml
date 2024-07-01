@@ -40,6 +40,33 @@ logging:
         SQL: DEBUG
 
 ---
+spring.config.activate.on-profile: dev
+
+spring:
+  datasource:
+    name: cs-ai-interviewer
+    url: jdbc:mariadb://localhost:3306/cs-ai
+    username: root
+    password: password
+    driver-class-name: org.mariadb.jdbc.Driver
+  flyway:
+    enabled: true # NOTE: dev profile is set to enable flyway
+  jpa:
+    hibernate:
+      ddl-auto: validate # NOTE: dev profile is set to `validate`
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    show-sql: true
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+
+---
 spring.config.activate.on-profile: prod
 
 spring:
@@ -49,11 +76,11 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
+  flyway:
+    enabled: true
   jpa:
     properties:
       hibernate:
         show_sql: false
         format_sql: false
     show-sql: false
-  flyway:
-    enabled: true
