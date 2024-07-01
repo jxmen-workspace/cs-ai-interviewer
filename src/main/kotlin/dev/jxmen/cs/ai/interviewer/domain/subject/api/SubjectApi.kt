@@ -1,7 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.domain.subject.api
 
-import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectDetailResponse
-import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectDetailResponse
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import org.springframework.http.ResponseEntity

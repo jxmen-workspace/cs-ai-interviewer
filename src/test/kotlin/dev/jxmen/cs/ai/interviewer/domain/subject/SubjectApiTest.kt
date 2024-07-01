@@ -3,8 +3,8 @@ package dev.jxmen.cs.ai.interviewer.domain.subject
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.jxmen.cs.ai.interviewer.domain.subject.api.SubjectApi
-import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectDetailResponse
-import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectDetailResponse
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectQuery
