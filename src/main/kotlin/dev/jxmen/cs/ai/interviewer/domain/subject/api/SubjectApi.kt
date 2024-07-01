@@ -38,7 +38,7 @@ class SubjectApi(
     fun getSubject(
         @PathVariable("id") id: String,
     ): ResponseEntity<SubjectDetailResponse> {
-        val subject = subjectQuery.getSubjectByCategory(id.toLong())
+        val subject = subjectQuery.getSubjectById(id.toLong())
 
         return ResponseEntity.ok(
             SubjectDetailResponse(

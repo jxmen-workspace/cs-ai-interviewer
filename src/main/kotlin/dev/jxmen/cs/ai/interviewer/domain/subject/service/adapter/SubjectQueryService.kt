@@ -20,8 +20,7 @@ class SubjectQueryService(
     }
 
     @Transactional(readOnly = true)
-    override fun getSubjectByCategory(id: Long): Subject =
-        this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundException(id)
+    override fun getSubjectById(id: Long): Subject = this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundException(id)
 }
 
 fun SubjectQueryRepository.findByIdOrNull(id: Long): Subject? = this.findById(id).orElse(null)
