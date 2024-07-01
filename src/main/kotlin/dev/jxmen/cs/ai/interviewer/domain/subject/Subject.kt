@@ -13,6 +13,7 @@ import org.hibernate.annotations.Comment
 /**
  * 주제
  */
+@Suppress("ktlint:standard:no-blank-line-in-list")
 @Entity
 @Table(
     uniqueConstraints = [
@@ -20,12 +21,14 @@ import org.hibernate.annotations.Comment
     ],
 )
 class Subject(
+    @Column(nullable = false)
     @Comment("제목")
-    @Column(nullable = false)
     val title: String,
-    @Comment("질문")
+
     @Column(nullable = false)
+    @Comment("질문")
     val question: String,
+
     @Enumerated(value = EnumType.STRING)
     @Convert(converter = SubjectCategoryConverter::class)
     @Comment("카테고리")
