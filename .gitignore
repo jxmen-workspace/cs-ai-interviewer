@@ -39,17 +39,10 @@ out/
 ### Kotlin ###
 .kotlin
 
-### Http Client ENVS ###
+### My Custom Files ###
 http-client.private.env.json
-
-### Act Env File ###
 my.secrets
-
-### ToDo File ###
 todo.md
-
-### Env File (for intellij) ###
 .env
-
-### data file ###
 data.csv
+mysql_data/
