@@ -7,7 +7,7 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
-import dev.jxmen.cs.ai.interviewer.domain.subject.service.SubjectQuery
+import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
