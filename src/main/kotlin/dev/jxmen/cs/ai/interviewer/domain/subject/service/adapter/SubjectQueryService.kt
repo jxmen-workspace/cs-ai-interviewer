@@ -1,9 +1,10 @@
-package dev.jxmen.cs.ai.interviewer.domain.subject.service
+package dev.jxmen.cs.ai.interviewer.domain.subject.service.adapter
 
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
+import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectQuery
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

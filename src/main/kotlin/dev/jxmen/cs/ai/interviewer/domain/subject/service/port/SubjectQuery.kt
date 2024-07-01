@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.domain.subject.service
+package dev.jxmen.cs.ai.interviewer.domain.subject.service.port
 
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 
