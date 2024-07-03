@@ -24,10 +24,9 @@ class SubjectService(
         val chats = chatQuery.findBySubjectAndUserSessionId(command.subject, command.userSessionId)
 
         // 2. API 호출해서 다음 질문과 점수 받아오기
-        logger.info("requesting answer to apiClient - sessionId: ${command.userSessionId}")
         val apiResponse = aiApiClient.requestAnswer(command.subject, command.answer, chats)
         logger.info(
-            "api request success. userSessionId: ${command.userSessionId}, nextQuestion: ${apiResponse.nextQuestion}, score: ${apiResponse.score}",
+            "api answer request success. userSessionId: ${command.userSessionId}, nextQuestion: ${apiResponse.nextQuestion}, score: ${apiResponse.score}",
         )
 
         // 3. 기존 답변과 다음 질문 저장
