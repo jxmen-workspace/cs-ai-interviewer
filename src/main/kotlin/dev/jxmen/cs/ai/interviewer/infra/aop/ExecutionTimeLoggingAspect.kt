@@ -15,7 +15,9 @@ class ExecutionTimeLoggingAspect {
     @Pointcut(
         "within(dev.jxmen.cs.ai.interviewer.domain..*.service.adapter..*) || within(dev.jxmen.cs.ai.interviewer.external.adapter..*)",
     )
-    fun adapterMethods() {}
+    fun adapterMethods() {
+        // Pointcut - do nothing here
+    }
 
     @Around("adapterMethods()")
     fun logExecutionTime(proceedingJoinPoint: ProceedingJoinPoint): Any? {
