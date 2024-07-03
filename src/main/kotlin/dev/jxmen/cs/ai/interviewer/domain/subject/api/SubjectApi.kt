@@ -1,12 +1,20 @@
 package dev.jxmen.cs.ai.interviewer.domain.subject.api
 
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.request.SubjectAnswerRequest
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectResponse
+import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectQuery
+import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -15,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/subjects")
 class SubjectApi(
     private val subjectQuery: SubjectQuery,
+    private val subjectUseCase: SubjectUseCase,
 ) {
     @GetMapping
     fun getSubjects(
@@ -48,5 +57,24 @@ class SubjectApi(
                 question = subject.question,
             ),
         )
+    }
+
+    @PostMapping("/{id}/answer")
+    fun answerSubject(
+        @PathVariable("id") id: String,
+        @RequestBody @Valid req: SubjectAnswerRequest,
+        httpServletRequest: HttpServletRequest,
+    ): ResponseEntity<SubjectAnswerResponse> {
+        val subject = subjectQuery.getSubjectById(id.toLong())
+        val res =
+            subjectUseCase.answer(
+                CreateSubjectAnswerCommand(
+                    subject = subject,
+                    answer = req.answer,
+                    userSessionId = httpServletRequest.session.id,
+                ),
+            )
+
+        return ResponseEntity.status(201).body(res)
     }
 }

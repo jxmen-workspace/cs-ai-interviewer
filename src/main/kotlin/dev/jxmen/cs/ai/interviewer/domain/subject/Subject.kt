@@ -35,4 +35,12 @@ class Subject(
     @Convert(converter = SubjectCategoryConverter::class)
     @Comment("카테고리")
     val category: SubjectCategory,
-) : BaseEntity()
+) : BaseEntity() {
+    constructor(id: Long, title: String, question: String, category: SubjectCategory) : this(
+        title = title,
+        question = question,
+        category = category,
+    ) {
+        super.id = id
+    }
+}
