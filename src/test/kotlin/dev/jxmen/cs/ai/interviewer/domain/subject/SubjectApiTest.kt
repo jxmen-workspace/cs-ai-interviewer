@@ -3,17 +3,23 @@ package dev.jxmen.cs.ai.interviewer.domain.subject
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.jxmen.cs.ai.interviewer.domain.subject.api.SubjectApi
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.request.SubjectAnswerRequest
+import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
+import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectQuery
+import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
+import org.springframework.http.MediaType
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post
 import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
@@ -27,6 +33,7 @@ import org.springframework.util.LinkedMultiValueMap
 class SubjectApiTest :
     DescribeSpec({
         val stubSubjectQuery = StubSubjectQuery()
+        val stubSubjectUseCase = StubSubjectUseCase()
 
         /**
          * without junit5 on spring rest docs, `ManualRestDocs` to generate api spec
@@ -41,7 +48,7 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(stubSubjectQuery))
+                    .standaloneSetup(SubjectApi(stubSubjectQuery, stubSubjectUseCase))
                     .setControllerAdvice(controllerAdvice)
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
                     .build()
@@ -124,7 +131,7 @@ class SubjectApiTest :
         describe("GET /api/subjects/{id}") {
             context("존재하는 주제 조회 시") {
                 it("should return 200 with subject") {
-                    val subject = stubSubjectQuery.getSubjectById(1L)
+                    val subject = stubSubjectQuery.getSubjectById(StubSubjectQuery.EXIST_SUBJECT_ID)
                     val expectResponse =
                         SubjectDetailResponse(
                             id = subject.id,
@@ -169,6 +176,93 @@ class SubjectApiTest :
                 }
             }
         }
+
+        describe("POST /api/subjects/{id}/answer 요청은") {
+
+            context("존재하는 주제에 대한 답변 요청 시") {
+                it("201 상태코드와 재질문이 포함된 응답을 반환한다.") {
+                    val subjectId = StubSubjectQuery.EXIST_SUBJECT_ID
+                    val req = SubjectAnswerRequest(answer = "answer")
+                    val expectResponse = SubjectAnswerResponse(nextQuestion = "What is OS? (answer: answer)", score = 50)
+
+                    val perform =
+                        mockMvc.perform(
+                            post("/api/subjects/$subjectId/answer")
+                                .content(toJson(req))
+                                .contentType(MediaType.APPLICATION_JSON),
+                        )
+
+                    perform
+                        .andExpect(status().isCreated)
+                        .andExpect(content().json(toJson(expectResponse)))
+                        .andDo(
+                            document(
+                                identifier = "post-subject-answer",
+                                description = "주제 답변 요청",
+                                snippets =
+                                    arrayOf(
+                                        responseFields(
+                                            fieldWithPath("nextQuestion").description("다음 질문").type(JsonFieldType.STRING),
+                                            fieldWithPath("score").description("답변에 대한 점수").type(JsonFieldType.NUMBER),
+                                        ),
+                                    ),
+                            ),
+                        )
+                }
+            }
+
+            context("답변이 10번을 넘겼을 경우") {
+                // TODO: it - 400을 응답한다 추가하기
+            }
+
+            context("존재하지 않는 주제에 대한 답변 요청 시") {
+                it("404를 응답한다.") {
+                    val subjectId = StubSubjectQuery.NOT_FOUND_ID
+                    val req = SubjectAnswerRequest(answer = "answer")
+
+                    val perform =
+                        mockMvc
+                            .perform(
+                                post("/api/subjects/$subjectId/answer")
+                                    .content(toJson(req))
+                                    .contentType(MediaType.APPLICATION_JSON),
+                            )
+
+                    perform
+                        .andExpect(status().isNotFound)
+                        .andDo(
+                            document(
+                                identifier = "post-subject-answer-not-found",
+                                description = "존재하지 않는 답변 요청",
+                            ),
+                        )
+                }
+            }
+
+            context("답변이 없는 요청 시") {
+                it("400를 응답한다.") {
+                    val subjectId = StubSubjectQuery.EXIST_SUBJECT_ID
+                    val req = SubjectAnswerRequest(answer = "")
+
+                    val perform =
+                        mockMvc
+                            .perform(
+                                post("/api/subjects/$subjectId/answer")
+                                    .content(toJson(req))
+                                    .contentType(MediaType.APPLICATION_JSON),
+                            )
+
+                    perform
+                        .andExpect(status().isBadRequest)
+                        .andDo(
+                            document(
+                                identifier = "post-subject-answer-bad-request",
+                                description = "답변이 없는 요청",
+                            ),
+                        )
+                }
+            }
+        }
     }) {
     companion object {
         private val objectMapper = ObjectMapper()
@@ -179,6 +273,7 @@ class SubjectApiTest :
 
 class StubSubjectQuery : SubjectQuery {
     companion object {
+        val EXIST_SUBJECT_ID = 1L
         val NOT_FOUND_ID = 10000L
     }
 
@@ -191,9 +286,15 @@ class StubSubjectQuery : SubjectQuery {
             else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
         }
 
-    override fun getSubjectById(id: Long): Subject {
-        if (id == NOT_FOUND_ID) throw SubjectNotFoundException(100L)
+    override fun getSubjectById(id: Long): Subject =
+        when (id) {
+            EXIST_SUBJECT_ID -> Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS)
+            NOT_FOUND_ID -> throw SubjectNotFoundException(id)
+            else -> throw SubjectNotFoundException(id)
+        }
+}
 
-        return Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS)
-    }
+class StubSubjectUseCase : SubjectUseCase {
+    override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse =
+        SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
 }
