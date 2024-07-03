@@ -33,7 +33,7 @@ class Chat(
     @Comment("채팅 내용")
     val message: String,
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Comment("점수")
     val score: Int? = null,
 
