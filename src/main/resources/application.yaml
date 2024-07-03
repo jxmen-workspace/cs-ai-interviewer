@@ -11,6 +11,9 @@ spring:
   flyway:
     enabled: false
 
+claude:
+  api-key: ${CLAUDE_API_KEY}
+
 ---
 spring.config.activate.on-profile: local, default
 

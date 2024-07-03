@@ -44,5 +44,6 @@ http-client.private.env.json
 my.secrets
 todo.md
 .env
+.env.dev
 data.csv
 mysql_data/
