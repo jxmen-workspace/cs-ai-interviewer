@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.domain.chat.service.adpater
+package dev.jxmen.cs.ai.interviewer.domain.chat.service.adapter
 
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatQueryRepository

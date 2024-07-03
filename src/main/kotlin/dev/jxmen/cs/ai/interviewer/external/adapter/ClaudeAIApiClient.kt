@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.external.adpater
+package dev.jxmen.cs.ai.interviewer.external.adapter
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
