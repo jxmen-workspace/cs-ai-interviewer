@@ -8,10 +8,10 @@ class SubjectCategoryConverter : AttributeConverter<SubjectCategory, String> {
     /**
      * SubjectCategory -> String
      */
-    override fun convertToDatabaseColumn(attribute: SubjectCategory?): String? = attribute?.name?.uppercase()
+    override fun convertToDatabaseColumn(attribute: SubjectCategory): String = attribute.name.lowercase()
 
     /**
      * String -> SubjectCategory
      */
-    override fun convertToEntityAttribute(dbData: String?): SubjectCategory? = if (dbData == null) null else SubjectCategory.valueOf(dbData)
+    override fun convertToEntityAttribute(dbData: String): SubjectCategory = SubjectCategory.valueOf(dbData.uppercase())
 }
