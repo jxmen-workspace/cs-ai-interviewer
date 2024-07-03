@@ -11,7 +11,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.Lob
-import jakarta.persistence.OneToOne
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.Comment
 
@@ -19,7 +19,8 @@ import org.hibernate.annotations.Comment
 @Entity
 @Table(indexes = [Index(name = "idx_subject_userSessionId", columnList = "subject_id,userSessionId")])
 class Chat(
-    @OneToOne(fetch = FetchType.LAZY)
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id")
     @Comment("주제")
     val subject: Subject,
