@@ -42,5 +42,5 @@ class Chat(
     @Enumerated(EnumType.STRING)
     @Convert(converter = ChatTypeConverter::class)
     @Comment("채팅 유형")
-    val chatType: ChatType,
+    val chatType: ChatType, // TODO: type으로 이름 변경
 ) : BaseEntity()
