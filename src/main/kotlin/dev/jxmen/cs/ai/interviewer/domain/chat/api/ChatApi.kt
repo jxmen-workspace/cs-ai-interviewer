@@ -22,8 +22,8 @@ class ChatApi(
         @Param("subjectId") subjectId: String,
     ): ResponseEntity<ListDataResponse<ChatMessageResponse>> {
         val userSessionId = httpSession.id
-        val subject = subjectQuery.getSubjectById(subjectId.toLong())
 
+        val subject = subjectQuery.findById(subjectId.toLong())
         val messages =
             chatQuery.findBySubjectAndUserSessionId(
                 subject = subject,

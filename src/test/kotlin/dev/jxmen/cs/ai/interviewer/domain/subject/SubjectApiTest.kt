@@ -65,7 +65,7 @@ class SubjectApiTest :
                 it("200 상태코드와 주제 목록을 응답한다.") {
                     val expectResponse =
                         ListDataResponse(
-                            stubSubjectQuery.getSubjectsByCategory("os").map {
+                            stubSubjectQuery.findBySubject("os").map {
                                 SubjectResponse(
                                     id = it.id,
                                     title = it.title,
@@ -131,7 +131,7 @@ class SubjectApiTest :
         describe("GET /api/subjects/{id}") {
             context("존재하는 주제 조회 시") {
                 it("should return 200 with subject") {
-                    val subject = stubSubjectQuery.getSubjectById(StubSubjectQuery.EXIST_SUBJECT_ID)
+                    val subject = stubSubjectQuery.findById(StubSubjectQuery.EXIST_SUBJECT_ID)
                     val expectResponse =
                         SubjectDetailResponse(
                             id = subject.id,
@@ -277,7 +277,7 @@ class StubSubjectQuery : SubjectQuery {
         val NOT_FOUND_ID = 10000L
     }
 
-    override fun getSubjectsByCategory(cateStr: String): List<Subject> =
+    override fun findBySubject(cateStr: String): List<Subject> =
         when (cateStr) {
             "dsa" -> listOf(Subject(title = "DSA", question = "What is DSA?", category = SubjectCategory.DSA))
             "network" -> listOf(Subject(title = "NETWORK", question = "What is Network?", category = SubjectCategory.NETWORK))
@@ -286,7 +286,7 @@ class StubSubjectQuery : SubjectQuery {
             else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
         }
 
-    override fun getSubjectById(id: Long): Subject =
+    override fun findById(id: Long): Subject =
         when (id) {
             EXIST_SUBJECT_ID -> Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS)
             NOT_FOUND_ID -> throw SubjectNotFoundException(id)

@@ -93,11 +93,11 @@ class StubSubjectQuery : SubjectQuery {
         const val EXIST_SUBJECT_ID = 1L
     }
 
-    override fun getSubjectsByCategory(cateStr: String): List<Subject> {
+    override fun findBySubject(cateStr: String): List<Subject> {
         TODO("Not yet implemented")
     }
 
-    override fun getSubjectById(id: Long): Subject {
+    override fun findById(id: Long): Subject {
         if (id != EXIST_SUBJECT_ID) throw SubjectNotFoundException(id)
 
         return Subject(

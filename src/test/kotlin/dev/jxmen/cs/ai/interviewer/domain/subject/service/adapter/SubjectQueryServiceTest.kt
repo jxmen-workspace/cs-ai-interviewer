@@ -38,7 +38,7 @@ class SubjectQueryServiceTest :
                     ),
                 ) { tc ->
                     shouldThrow<IllegalArgumentException> {
-                        subjectQueryService.getSubjectsByCategory(tc.input)
+                        subjectQueryService.findBySubject(tc.input)
                     }
                 }
             }
@@ -51,7 +51,7 @@ class SubjectQueryServiceTest :
                         TestCase("os"),
                     ),
                 ) { tc ->
-                    val subjectsByCategory = subjectQueryService.getSubjectsByCategory(tc.input)
+                    val subjectsByCategory = subjectQueryService.findBySubject(tc.input)
                     subjectsByCategory.size shouldBe 1
                     with(subjectsByCategory[0]) {
                         title shouldBe tc.input.uppercase()
@@ -65,7 +65,7 @@ class SubjectQueryServiceTest :
             context("존재하는 id라면") {
                 it("발견한 주제를 리턴한다.") {
                     shouldNotThrow<SubjectNotFoundException> {
-                        val subject = subjectQueryService.getSubjectById(1L)
+                        val subject = subjectQueryService.findById(1L)
                         subject.title shouldBe "OS"
                         subject.question shouldBe "What is OS?"
                         subject.category shouldBe SubjectCategory.OS
@@ -75,7 +75,7 @@ class SubjectQueryServiceTest :
             context("존재하지 않는 id라면") {
                 it("SubjectNotFoundException 예외를 던진다") {
                     shouldThrow<SubjectNotFoundException> {
-                        subjectQueryService.getSubjectById(StubSubjectQueryRepository.NOT_EXIST_ID)
+                        subjectQueryService.findById(StubSubjectQueryRepository.NOT_EXIST_ID)
                     }
                 }
             }
