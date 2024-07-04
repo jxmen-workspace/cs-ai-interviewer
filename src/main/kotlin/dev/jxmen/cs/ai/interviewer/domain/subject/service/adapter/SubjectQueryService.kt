@@ -13,14 +13,14 @@ class SubjectQueryService(
     private val subjectQueryRepository: SubjectQueryRepository,
 ) : SubjectQuery {
     @Transactional(readOnly = true)
-    override fun getSubjectsByCategory(cateStr: String): List<Subject> {
+    override fun findBySubject(cateStr: String): List<Subject> {
         val subjectCategory = SubjectCategory.valueOf(cateStr.uppercase())
 
         return this.subjectQueryRepository.findByCategory(subjectCategory)
     }
 
     @Transactional(readOnly = true)
-    override fun getSubjectById(id: Long): Subject = this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundException(id)
+    override fun findById(id: Long): Subject = this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundException(id)
 }
 
 fun SubjectQueryRepository.findByIdOrNull(id: Long): Subject? = this.findById(id).orElse(null)

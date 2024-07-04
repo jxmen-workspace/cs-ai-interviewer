@@ -31,7 +31,7 @@ class SubjectApi(
     ): ResponseEntity<ListDataResponse<SubjectResponse>> {
         val response =
             ListDataResponse(
-                subjectQuery.getSubjectsByCategory(cateStr).map {
+                subjectQuery.findBySubject(cateStr).map {
                     SubjectResponse(
                         id = it.id,
                         title = it.title,
@@ -47,7 +47,7 @@ class SubjectApi(
     fun getSubject(
         @PathVariable("id") id: String,
     ): ResponseEntity<SubjectDetailResponse> {
-        val subject = subjectQuery.getSubjectById(id.toLong())
+        val subject = subjectQuery.findById(id.toLong())
 
         return ResponseEntity.ok(
             SubjectDetailResponse(
@@ -65,7 +65,7 @@ class SubjectApi(
         @RequestBody @Valid req: SubjectAnswerRequest,
         httpServletRequest: HttpServletRequest,
     ): ResponseEntity<SubjectAnswerResponse> {
-        val subject = subjectQuery.getSubjectById(id.toLong())
+        val subject = subjectQuery.findById(id.toLong())
         val res =
             subjectUseCase.answer(
                 CreateSubjectAnswerCommand(
