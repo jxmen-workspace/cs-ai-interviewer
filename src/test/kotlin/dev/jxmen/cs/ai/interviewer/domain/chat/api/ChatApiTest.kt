@@ -19,6 +19,7 @@ import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
@@ -34,7 +35,7 @@ class ChatApiTest :
         lateinit var mockMvc: MockMvc
 
         beforeEach {
-            val mockHttpSession = CustomMockHttpSession(StubChatQuery.EXIST_USER_SESSION_ID)
+            val mockHttpSession = SetSessionIdMockHttpSession(StubChatQuery.EXIST_USER_SESSION_ID)
 
             mockMvc =
                 MockMvcBuilders
@@ -79,10 +80,73 @@ class ChatApiTest :
                         )
                 }
             }
+
+            context("subjectId가 존재하지 않을 경우") {
+
+                it("404 NOT_FOUND를 반환한다") {
+                    mockMvc
+                        .perform(
+                            get(
+                                "/api/chat/messages?subjectId=999",
+                            ).cookie(Cookie("JSESSIONID", StubChatQuery.EXIST_USER_SESSION_ID)),
+                        ).andExpect(status().isNotFound)
+                        .andDo(
+                            document(
+                                identifier = "get-chat-message-not-found",
+                                description = "존재하지 않는 주제 조회",
+                            ),
+                        )
+                }
+            }
+
+            context("세션 값이 존재하지 않을 경우") {
+                it("200 응답과 빈 배열을 응답한다") {
+                    // 세션 값이 없는 것을 테스트 하기 위해 MockMvc를 새로 생성
+                    val emptyMockHttpSessionMockMvc =
+                        MockMvcBuilders
+                            .standaloneSetup(ChatApi(MockHttpSession(), stubSubjectQuery, stubChatQuery))
+                            .setControllerAdvice(controllerAdvice)
+                            .apply<StandaloneMockMvcBuilder>(
+                                MockMvcRestDocumentation.documentationConfiguration(
+                                    manualRestDocumentation,
+                                ),
+                            ).build()
+                    val notExistSessionIdHttpSessionMockMvc =
+                        MockMvcBuilders
+                            .standaloneSetup(
+                                ChatApi(
+                                    SetSessionIdMockHttpSession(StubChatQuery.NOT_EXIST_USER_SESSION_ID),
+                                    stubSubjectQuery,
+                                    stubChatQuery,
+                                ),
+                            ).setControllerAdvice(controllerAdvice)
+                            .apply<StandaloneMockMvcBuilder>(
+                                MockMvcRestDocumentation.documentationConfiguration(
+                                    manualRestDocumentation,
+                                ),
+                            ).build()
+
+                    listOf(emptyMockHttpSessionMockMvc, notExistSessionIdHttpSessionMockMvc).forEach {
+                        it
+                            .perform(
+                                get(
+                                    "/api/chat/messages?subjectId=${StubSubjectQuery.EXIST_SUBJECT_ID}",
+                                ),
+                            ).andExpect(status().isOk)
+                            .andExpect(jsonPath("$.data").isEmpty())
+                            .andDo(
+                                document(
+                                    identifier = "get-chat-message-unauthorized",
+                                    description = "세션 값이 존재하지 않을 경우",
+                                ),
+                            )
+                    }
+                }
+            }
         }
     })
 
-class CustomMockHttpSession(
+class SetSessionIdMockHttpSession(
     private val customSessionId: String,
 ) : MockHttpSession() {
     override fun getId(): String = customSessionId
@@ -111,6 +175,7 @@ class StubSubjectQuery : SubjectQuery {
 class StubChatQuery : ChatQuery {
     companion object {
         const val EXIST_USER_SESSION_ID = "1"
+        const val NOT_EXIST_USER_SESSION_ID = "10000"
     }
 
     override fun findBySubjectAndUserSessionId(
