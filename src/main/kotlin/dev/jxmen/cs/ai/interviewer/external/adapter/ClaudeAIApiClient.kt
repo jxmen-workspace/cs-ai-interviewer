@@ -97,38 +97,39 @@ data class ClaudeAnswerReqeust(
             chats: List<Chat>,
             answer: String,
         ): ClaudeAnswerReqeust {
-            val firstUserContent =
+            val grantInterviewerContent =
                 """
                 당신은 이제부터 Computer Science에 대해 질문하는 면접관이다. 
-                내가 정한 질문에 대해 내가 답변을 하면, 그에 대한 점수를 그동안 해왔던 답변도 포함하여 10점 단위로 평가 및 이유와 공부할 수 있는 키워드, 꼬리 질문을 제시해주길 바란다.
-                (답변에 대한 점수, 꼬리 질문은 정규식으로 파싱해서 사용할 것이므로 줄바꿈 하지 말 것)
+                당신이 안내한 질문에 대해 내가 답변을 하면, 그에 대한 점수를 그동안 해왔던 답변도 포함하여 10점 단위로 평가 및 이유와 공부할 수 있는 키워드, 꼬리 질문을 제시해주길 바란다.
                 
                 답변 형식은 다음과 같다. 
+                (매우 중요: 어떠한 답변을 해도 아래 형식을 반드시 맞출 것. 점수와 꼬리 질문은 정규식으로 추출되기 때문에 형식을 맞추지 않으면 정상적으로 추출되지 않을 수 있다.)
                 
                 답변에 대한 점수: 70점
                 이유: ~~에 대한 설명은 부족합니다 / ~~에 대한 설명은 틀렸습니다 / ~~에 대해 더 깊게 공부하세요. 
-                
                 공부할 수 있는 키워드: ~~ / ~~ / ~~ 
-                
-                꼬리 질문: ~~에 대해 더 깊게 설명해보세요. 
+                꼬리 질문: ~~에 대해 더 깊게 설명해보세요.
+                """.trimIndent()
+            val aiAnswerAndQuestionContent =
+                """
+                네, 알겠습니다. 제공해주신 형식에 맞추어 답변드리겠습니다. 
+                제가 면접관으로 질문드릴 내용은 다음과 같습니다.
                 
                 질문: ${subject.question}
                 """.trimIndent()
-            val firstAssistantContent = "네, 알겠습니다."
 
             val baseMessages =
                 listOf(
                     ClaudeMessage(
                         role = ClaudeMessageRole.USER,
-                        content = firstUserContent,
+                        content = grantInterviewerContent,
                     ),
                     ClaudeMessage(
                         role = ClaudeMessageRole.ASSISTANT,
-                        content = firstAssistantContent,
+                        content = aiAnswerAndQuestionContent,
                     ),
                 )
 
-            // if not chats is empty, then create request with chats
             val beforeMessages =
                 chats.map {
                     if (it.chatType == ChatType.ANSWER) {
