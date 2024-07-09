@@ -19,12 +19,7 @@ class ChatService(
         answer: String,
         nextQuestion: String,
         score: Int,
-        chats: List<Chat>,
     ) {
-        if (chats.isEmpty()) {
-            addQuestion(subject, userSessionId)
-        }
-
         addAnswer(subject, userSessionId, answer, score)
         addNextQuestion(subject, userSessionId, nextQuestion)
     }
@@ -42,21 +37,6 @@ class ChatService(
                 message = answer,
                 chatType = ChatType.ANSWER,
                 score = score,
-            )
-
-        chatCommandRepository.save(chat)
-    }
-
-    private fun addQuestion(
-        subject: Subject,
-        userSessionId: String,
-    ) {
-        val chat =
-            Chat(
-                subject = subject,
-                userSessionId = userSessionId,
-                message = subject.question,
-                chatType = ChatType.QUESTION,
             )
 
         chatCommandRepository.save(chat)

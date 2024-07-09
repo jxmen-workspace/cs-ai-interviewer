@@ -36,7 +36,6 @@ class SubjectService(
             answer = command.answer,
             nextQuestion = apiResponse.nextQuestion,
             score = apiResponse.score,
-            chats = chats,
         )
 
         return SubjectAnswerResponse(
