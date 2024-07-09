@@ -10,6 +10,7 @@ class WebConfig : WebMvcConfigurer {
         registry
             .addMapping("/api/**")
             .allowedOrigins("http://localhost:3000", "https://cs-ai-interviewer-web.vercel.app", "https://cs-ai.jxmen.dev")
+            .allowCredentials(true)
             .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
             .allowedHeaders("*")
     }
