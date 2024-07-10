@@ -107,3 +107,17 @@ tasks.register<Copy>(copyOasToSwaggerTask) {
     from(layout.buildDirectory.file("api-spec/openapi3.yaml")) // 복제할 OAS 파일 지정
     into("src/main/resources/static/swagger-ui/.") // 타겟 디렉터리로 파일 복제
 }
+
+tasks.register<Copy>("writeVersion") {
+    group = "custom"
+    description = "버전 정보 기록"
+
+    val versionFile = file("$projectDir/src/main/resources/version.properties")
+    println("Writing version=${project.version} to version.properties.")
+    versionFile.writeText("version=${project.version}")
+    println("version.properties created/updated successfully.")
+}
+
+tasks.named("processResources") {
+    dependsOn("writeVersion")
+}
