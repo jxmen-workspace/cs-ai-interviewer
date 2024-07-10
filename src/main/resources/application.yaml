@@ -24,6 +24,9 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
+  session:
+    jdbc:
+      initialize-schema: always
   jpa:
     hibernate:
       ddl-auto: create
@@ -52,6 +55,9 @@ spring:
     username: root
     password: password
     driver-class-name: org.mariadb.jdbc.Driver
+  session:
+    jdbc:
+      initialize-schema: never
   flyway:
     enabled: true # NOTE: dev profile is set to enable flyway
   jpa:
@@ -79,6 +85,9 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
+  session:
+    jdbc:
+      initialize-schema: never
   flyway:
     enabled: true
   jpa:
