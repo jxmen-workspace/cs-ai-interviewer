@@ -62,7 +62,7 @@ class ChatApiTest :
                         .perform(
                             get(
                                 "/api/chat/messages?subjectId=${StubSubjectQuery.EXIST_SUBJECT_ID}",
-                            ).cookie(Cookie("JSESSIONID", StubChatQuery.EXIST_USER_SESSION_ID)),
+                            ).cookie(Cookie("SESSION", StubChatQuery.EXIST_USER_SESSION_ID)),
                         ).andExpect(status().isOk)
                         .andDo(
                             document(
@@ -88,7 +88,7 @@ class ChatApiTest :
                         .perform(
                             get(
                                 "/api/chat/messages?subjectId=999",
-                            ).cookie(Cookie("JSESSIONID", StubChatQuery.EXIST_USER_SESSION_ID)),
+                            ).cookie(Cookie("SESSION", StubChatQuery.EXIST_USER_SESSION_ID)),
                         ).andExpect(status().isNotFound)
                         .andDo(
                             document(
