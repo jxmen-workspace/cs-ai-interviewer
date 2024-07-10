@@ -46,6 +46,8 @@ dependencies {
     implementation("com.epages:restdocs-api-spec-mockmvc:$epagesVersion")
     implementation("com.epages:restdocs-api-spec-openapi3-generator:$epagesVersion")
 
+    implementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
