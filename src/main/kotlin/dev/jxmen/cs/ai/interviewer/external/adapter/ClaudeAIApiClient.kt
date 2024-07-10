@@ -22,7 +22,6 @@ class ClaudeAIApiClient(
 
         private val client = RestClient.create()
 
-        private val nextQuestionRegex = "꼬리 질문: (.+)".toRegex()
         private val scoreRegex = "답변에 대한 점수: (\\d+)점".toRegex()
     }
 
@@ -49,25 +48,29 @@ class ClaudeAIApiClient(
                 .body(ClaudeAnswerResponse::class.java)
 
         return AiApiAnswerResponse(
-            nextQuestion = parseNextQuestionFrom(response),
+            nextQuestion =
+                response
+                    ?.content
+                    ?.get(0)
+                    ?.text
+                    .toString(),
             score = parseScoreFrom(response),
         )
     }
 
     private fun parseScoreFrom(response: ClaudeAnswerResponse?): Int {
-        val scoreMatchResult = response?.content?.get(0)?.let { scoreRegex.find(it.toString()) }
+        val scoreMatchResult =
+            response
+                ?.content
+                ?.get(0)
+                ?.text
+                ?.let { scoreRegex.find(it) }
 
         return scoreMatchResult
             ?.groups
             ?.get(1)
             ?.value
             ?.toInt() ?: 0
-    }
-
-    private fun parseNextQuestionFrom(response: ClaudeAnswerResponse?): String {
-        val questionMatchResult = response?.content?.get(0)?.let { nextQuestionRegex.find(it.toString()) }
-
-        return questionMatchResult?.groups?.get(1)?.value ?: ""
     }
 }
 
@@ -102,13 +105,15 @@ data class ClaudeAnswerReqeust(
                 당신은 이제부터 Computer Science에 대해 질문하는 면접관이다. 
                 당신이 안내한 질문에 대해 내가 답변을 하면, 그에 대한 점수를 그동안 해왔던 답변도 포함하여 10점 단위로 평가 및 이유와 공부할 수 있는 키워드, 꼬리 질문을 제시해주길 바란다.
                 
-                답변 형식은 다음과 같다. 
+                답변 형식은 다음과 같다.
                 (매우 중요: 어떠한 답변을 해도 아래 형식을 반드시 맞출 것. 점수와 꼬리 질문은 정규식으로 추출되기 때문에 형식을 맞추지 않으면 정상적으로 추출되지 않을 수 있다.)
                 
-                답변에 대한 점수: 70점
+                답변에 대한 점수: nn점
                 이유: ~~에 대한 설명은 부족합니다 / ~~에 대한 설명은 틀렸습니다 / ~~에 대해 더 깊게 공부하세요. 
-                공부할 수 있는 키워드: ~~ / ~~ / ~~ 
+                공부할 수 있는 키워드: ~~ / ~~ / ~~
                 꼬리 질문: ~~에 대해 더 깊게 설명해보세요.
+                
+                답변에 대한 점수 / 이유 / 공부할 수 있는 키워드 / 꼬리 질문 항목에 대해 줄바꿈하여 작성해주길 바람 .
                 """.trimIndent()
             val aiAnswerAndQuestionContent =
                 """
