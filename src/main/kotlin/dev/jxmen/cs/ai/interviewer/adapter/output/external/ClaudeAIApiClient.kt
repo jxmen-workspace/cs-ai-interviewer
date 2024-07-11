@@ -1,12 +1,12 @@
-package dev.jxmen.cs.ai.interviewer.external.adapter
+package dev.jxmen.cs.ai.interviewer.adapter.output.external
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
+import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
+import dev.jxmen.cs.ai.interviewer.application.port.output.dto.AiApiAnswerResponse
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
-import dev.jxmen.cs.ai.interviewer.external.port.AIApiClient
-import dev.jxmen.cs.ai.interviewer.external.port.AiApiAnswerResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component

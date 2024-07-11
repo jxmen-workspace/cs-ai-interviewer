@@ -5,7 +5,7 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.external.port.AIApiClient
+import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
 import org.springframework.stereotype.Service
 
 @Service
