@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer
+package dev.jxmen.cs.ai.interviewer.adapter.input
 
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity

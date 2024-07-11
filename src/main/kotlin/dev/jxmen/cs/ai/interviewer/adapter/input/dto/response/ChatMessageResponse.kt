@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.domain.chat.dto.response
+package dev.jxmen.cs.ai.interviewer.adapter.input.dto.response
 
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
 
