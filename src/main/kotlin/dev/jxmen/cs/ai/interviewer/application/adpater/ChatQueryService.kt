@@ -1,8 +1,8 @@
-package dev.jxmen.cs.ai.interviewer.domain.chat.service.adapter
+package dev.jxmen.cs.ai.interviewer.application.adpater
 
+import dev.jxmen.cs.ai.interviewer.application.port.`in`.ChatQuery
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatQueryRepository
-import dev.jxmen.cs.ai.interviewer.domain.chat.service.port.ChatQuery
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

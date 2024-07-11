@@ -1,13 +1,13 @@
 package dev.jxmen.cs.ai.interviewer.domain.chat.api
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
+import dev.jxmen.cs.ai.interviewer.application.port.`in`.ChatQuery
+import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
-import dev.jxmen.cs.ai.interviewer.domain.chat.service.port.ChatQuery
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
-import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import io.kotest.core.spec.style.DescribeSpec
 import jakarta.servlet.http.Cookie
