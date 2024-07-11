@@ -4,9 +4,9 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerReques
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
-import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectQuery
-import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectUseCase
-import dev.jxmen.cs.ai.interviewer.application.port.`in`.dto.CreateSubjectAnswerCommand
+import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
+import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
