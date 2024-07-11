@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.application.adpater
+package dev.jxmen.cs.ai.interviewer.application.adapter
 
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.ChatUseCase
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
