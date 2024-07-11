@@ -2,8 +2,8 @@ package dev.jxmen.cs.ai.interviewer.domain.chat.api
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import dev.jxmen.cs.ai.interviewer.adapter.input.ChatApi
-import dev.jxmen.cs.ai.interviewer.application.port.`in`.ChatQuery
-import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectQuery
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
+import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject

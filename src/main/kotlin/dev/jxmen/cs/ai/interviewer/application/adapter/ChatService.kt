@@ -1,6 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
-import dev.jxmen.cs.ai.interviewer.application.port.`in`.ChatUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatUseCase
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
