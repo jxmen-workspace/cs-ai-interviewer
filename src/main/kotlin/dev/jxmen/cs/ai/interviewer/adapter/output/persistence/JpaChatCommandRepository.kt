@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.infrastructure.persistence
+package dev.jxmen.cs.ai.interviewer.adapter.output.persistence
 
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatCommandRepository
