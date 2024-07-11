@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.infrastructure.persistence
+package dev.jxmen.cs.ai.interviewer.adapter.output.persistence
 
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectQueryRepository
