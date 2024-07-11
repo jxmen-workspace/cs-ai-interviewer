@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.infra
+package dev.jxmen.cs.ai.interviewer.infrastructure
 
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatQueryRepository
