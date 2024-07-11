@@ -1,12 +1,12 @@
-package dev.jxmen.cs.ai.interviewer.domain.subject.api
+package dev.jxmen.cs.ai.interviewer.adapter.input
 
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerRequest
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.dto.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.domain.subject.dto.request.SubjectAnswerRequest
-import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectAnswerResponse
-import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectDetailResponse
-import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid

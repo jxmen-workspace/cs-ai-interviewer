@@ -1,10 +1,10 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.ChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.dto.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.external.port.AIApiClient
 import org.springframework.stereotype.Service
 

@@ -1,7 +1,8 @@
-package dev.jxmen.cs.ai.interviewer.domain.chat.api
+package dev.jxmen.cs.ai.interviewer.adapter.input
+
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.ChatMessageResponse
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectQuery
-import dev.jxmen.cs.ai.interviewer.domain.chat.dto.response.ChatMessageResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import jakarta.servlet.http.HttpSession
 import org.springframework.data.repository.query.Param
