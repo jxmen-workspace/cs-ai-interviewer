@@ -2,6 +2,9 @@ package dev.jxmen.cs.ai.interviewer.domain.subject
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.fasterxml.jackson.databind.ObjectMapper
+import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectQuery
+import dev.jxmen.cs.ai.interviewer.application.port.`in`.SubjectUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.`in`.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.domain.subject.api.SubjectApi
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.request.SubjectAnswerRequest
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectAnswerResponse
@@ -9,9 +12,6 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectDetailResp
 import dev.jxmen.cs.ai.interviewer.domain.subject.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
-import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectQuery
-import dev.jxmen.cs.ai.interviewer.domain.subject.service.port.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
