@@ -32,6 +32,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.session:spring-session-jdbc") // redis로 변경은 추후 검토
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
     // database
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
