@@ -33,6 +33,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.session:spring-session-jdbc") // redis로 변경은 추후 검토
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.security:spring-security-oauth2-client")
 
     // database
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
