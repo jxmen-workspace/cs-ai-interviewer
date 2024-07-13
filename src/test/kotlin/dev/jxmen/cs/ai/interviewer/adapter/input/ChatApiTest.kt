@@ -14,6 +14,10 @@ import io.kotest.core.spec.style.DescribeSpec
 import jakarta.servlet.http.Cookie
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.restdocs.ManualRestDocumentation
+import org.springframework.restdocs.cookies.CookieDocumentation.cookieWithName
+import org.springframework.restdocs.cookies.CookieDocumentation.requestCookies
+import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
+import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.restdocs.payload.JsonFieldType
@@ -77,6 +81,12 @@ class ChatApiTest :
                                 description = "채팅 메시지 내역 조회",
                                 snippets =
                                     arrayOf(
+                                        requestHeaders(
+                                            headerWithName("X-Api-Version").description("API 버전 - V2는 2로 설정").optional(),
+                                        ),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        ),
                                         responseFields(
                                             fieldWithPath("data[].message").description("메시지").type(JsonFieldType.STRING),
                                             fieldWithPath("data[].score").description("점수").type(JsonFieldType.NULL),
@@ -103,6 +113,15 @@ class ChatApiTest :
                             document(
                                 identifier = "get-chat-message-not-found",
                                 description = "존재하지 않는 주제 조회",
+                                snippets =
+                                    arrayOf(
+                                        requestHeaders(
+                                            headerWithName("X-Api-Version").description("API 버전 - V2는 2로 설정").optional(),
+                                        ),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        ),
+                                    ),
                             ),
                         )
                 }
@@ -163,8 +182,8 @@ class StubChatQuery : ChatQuery {
     override fun findBySubjectAndMember(
         subject: Subject,
         member: Member,
-    ): List<Chat> {
-        return listOf(
+    ): List<Chat> =
+        listOf(
             Chat(
                 subject = subject,
                 chatType = ChatType.QUESTION,
@@ -173,5 +192,4 @@ class StubChatQuery : ChatQuery {
                 userSessionId = EXIST_USER_SESSION_ID,
             ),
         )
-    }
 }

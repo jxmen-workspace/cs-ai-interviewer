@@ -18,9 +18,14 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundExce
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
+import jakarta.servlet.http.Cookie
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.restdocs.ManualRestDocumentation
+import org.springframework.restdocs.cookies.CookieDocumentation.cookieWithName
+import org.springframework.restdocs.cookies.CookieDocumentation.requestCookies
+import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
+import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post
@@ -196,6 +201,7 @@ class SubjectApiTest :
                     val perform =
                         mockMvc.perform(
                             post("/api/subjects/$subjectId/answer")
+                                .cookie(Cookie("SESSION", mockHttpSession.id))
                                 .header("X-Api-Version", "2")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
@@ -210,6 +216,12 @@ class SubjectApiTest :
                                 description = "주제 답변 요청",
                                 snippets =
                                     arrayOf(
+                                        requestHeaders(
+                                            headerWithName("X-Api-Version").description("API 버전 - V2 버전은 2로 설정").optional(),
+                                        ),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        ),
                                         responseFields(
                                             fieldWithPath("nextQuestion").description("다음 질문").type(JsonFieldType.STRING),
                                             fieldWithPath("score").description("답변에 대한 점수").type(JsonFieldType.NUMBER),
@@ -233,6 +245,7 @@ class SubjectApiTest :
                         mockMvc
                             .perform(
                                 post("/api/subjects/$subjectId/answer")
+                                    .cookie(Cookie("SESSION", mockHttpSession.id))
                                     .header("X-Api-Version", "2")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
@@ -244,6 +257,15 @@ class SubjectApiTest :
                             document(
                                 identifier = "post-subject-answer-not-found",
                                 description = "존재하지 않는 답변 요청",
+                                snippets =
+                                    arrayOf(
+                                        requestHeaders(
+                                            headerWithName("X-Api-Version").description("API 버전 - V2 버전은 2로 설정").optional(),
+                                        ),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        ),
+                                    ),
                             ),
                         )
                 }
@@ -258,6 +280,7 @@ class SubjectApiTest :
                         mockMvc
                             .perform(
                                 post("/api/subjects/$subjectId/answer")
+                                    .cookie(Cookie("SESSION", mockHttpSession.id))
                                     .header("X-Api-Version", "2")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
@@ -269,6 +292,15 @@ class SubjectApiTest :
                             document(
                                 identifier = "post-subject-answer-bad-request",
                                 description = "답변이 없는 요청",
+                                snippets =
+                                    arrayOf(
+                                        requestHeaders(
+                                            headerWithName("X-Api-Version").description("API 버전 - V2 버전은 2로 설정").optional(),
+                                        ),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        ),
+                                    ),
                             ),
                         )
                 }
@@ -327,7 +359,4 @@ class SubjectApiTest :
         override fun answerV2(command: CreateSubjectAnswerCommandV2): SubjectAnswerResponse =
             SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
     }
-
 }
-
-
