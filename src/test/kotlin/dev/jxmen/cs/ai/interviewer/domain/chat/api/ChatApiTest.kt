@@ -6,6 +6,7 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
+import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
@@ -196,5 +197,9 @@ class StubChatQuery : ChatQuery {
                 userSessionId = userSessionId,
             ),
         )
+    }
+
+    override fun findBySubjectAndMember(subject: Subject, member: Member): List<Chat> {
+        TODO("Not yet implemented")
     }
 }
