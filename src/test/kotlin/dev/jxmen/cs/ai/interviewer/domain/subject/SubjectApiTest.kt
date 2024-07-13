@@ -10,12 +10,15 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
+import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
+import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockHttpSession
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
@@ -42,13 +45,14 @@ class SubjectApiTest :
          */
         val manualRestDocumentation = ManualRestDocumentation()
         val controllerAdvice = GlobalControllerAdvice()
+        val mockHttpSession = MockHttpSession()
 
         lateinit var mockMvc: MockMvc
 
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(stubSubjectQuery, stubSubjectUseCase))
+                    .standaloneSetup(SubjectApi(stubSubjectQuery, stubSubjectUseCase, mockHttpSession))
                     .setControllerAdvice(controllerAdvice)
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
                     .build()
@@ -181,13 +185,17 @@ class SubjectApiTest :
 
             context("존재하는 주제에 대한 답변 요청 시") {
                 it("201 상태코드와 재질문이 포함된 응답을 반환한다.") {
+                    val member = Member.createGoogleMember(name = "박주영", email = "sprnd645@gmail.com")
+                    mockHttpSession.setAttribute("member", member)
                     val subjectId = StubSubjectQuery.EXIST_SUBJECT_ID
                     val req = SubjectAnswerRequest(answer = "answer")
-                    val expectResponse = SubjectAnswerResponse(nextQuestion = "What is OS? (answer: answer)", score = 50)
+                    val expectResponse =
+                        SubjectAnswerResponse(nextQuestion = "What is OS? (answer: answer)", score = 50)
 
                     val perform =
                         mockMvc.perform(
                             post("/api/subjects/$subjectId/answer")
+                                .header("X-Api-Version", "2")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
                         )
@@ -224,6 +232,7 @@ class SubjectApiTest :
                         mockMvc
                             .perform(
                                 post("/api/subjects/$subjectId/answer")
+                                    .header("X-Api-Version", "2")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -248,6 +257,7 @@ class SubjectApiTest :
                         mockMvc
                             .perform(
                                 post("/api/subjects/$subjectId/answer")
+                                    .header("X-Api-Version", "2")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -280,8 +290,24 @@ class StubSubjectQuery : SubjectQuery {
     override fun findBySubject(cateStr: String): List<Subject> =
         when (cateStr) {
             "dsa" -> listOf(Subject(title = "DSA", question = "What is DSA?", category = SubjectCategory.DSA))
-            "network" -> listOf(Subject(title = "NETWORK", question = "What is Network?", category = SubjectCategory.NETWORK))
-            "database" -> listOf(Subject(title = "DATABASE", question = "What is Database?", category = SubjectCategory.DATABASE))
+            "network" ->
+                listOf(
+                    Subject(
+                        title = "NETWORK",
+                        question = "What is Network?",
+                        category = SubjectCategory.NETWORK,
+                    ),
+                )
+
+            "database" ->
+                listOf(
+                    Subject(
+                        title = "DATABASE",
+                        question = "What is Database?",
+                        category = SubjectCategory.DATABASE,
+                    ),
+                )
+
             "os" -> listOf(Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS))
             else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
         }
@@ -296,5 +322,8 @@ class StubSubjectQuery : SubjectQuery {
 
 class StubSubjectUseCase : SubjectUseCase {
     override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse =
+        SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
+
+    override fun answerV2(command: CreateSubjectAnswerCommandV2): SubjectAnswerResponse =
         SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
 }

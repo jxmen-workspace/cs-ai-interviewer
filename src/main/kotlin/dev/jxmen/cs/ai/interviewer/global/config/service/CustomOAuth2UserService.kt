@@ -21,7 +21,7 @@ class CustomOAuth2UserService(
     }
 
     override fun loadUser(userRequest: OAuth2UserRequest): OAuth2User {
-        validateGoogleLoginRequest(userRequest)
+        validateGoogleLoginRequest(userRequest) // NOTE: 구글 외 다른 로그인 수단 추가 시 제거
         val oauth2User = defaultOAuth2UserService.loadUser(userRequest)
         val email = oauth2User.attributes["email"].toString()
         val name = oauth2User.attributes["name"].toString()
