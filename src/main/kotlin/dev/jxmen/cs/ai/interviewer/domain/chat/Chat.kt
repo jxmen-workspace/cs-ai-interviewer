@@ -1,6 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.domain.chat
 
 import dev.jxmen.cs.ai.interviewer.domain.BaseEntity
+import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
@@ -25,9 +26,14 @@ class Chat(
     @Comment("주제")
     val subject: Subject,
 
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true) // NOTE: sessionId 컬럼 제거 시 nullable 제거
+    @JoinColumn(name = "member_id")
+    @Comment("멤버 아이디")
+    val member: Member? = null,
+
+    @Column(nullable = true)
     @Comment("유저 세션 아이디")
-    val userSessionId: String, // NOTE: 유저 도메인이 추가되면 userId로 변경 예정
+    val userSessionId: String? = null, // NOTE: 유저 도메인이 추가되면 memberId로 변경 예정
 
     @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -43,4 +49,34 @@ class Chat(
     @Convert(converter = ChatTypeConverter::class)
     @Comment("채팅 유형")
     val chatType: ChatType, // TODO: type으로 이름 변경
-) : BaseEntity()
+) : BaseEntity() {
+    constructor(subject: Subject, member: Member, message: String, chatType: ChatType, score: Int) : this(
+        subject = subject,
+        member = member,
+        userSessionId = null,
+        message = message,
+        score = score,
+        chatType = chatType
+    )
+
+    companion object {
+        fun createQuestion(subject: Subject, member: Member, nextQuestion: String): Chat {
+            return Chat(
+                subject = subject,
+                member = member,
+                message = nextQuestion,
+                chatType = ChatType.QUESTION,
+            )
+        }
+
+        fun createAnswer(subject: Subject, member: Member, answer: String, score: Int): Chat {
+            return Chat(
+                subject = subject,
+                member = member,
+                message = answer,
+                score = score,
+                chatType = ChatType.ANSWER,
+            )
+        }
+    }
+}
