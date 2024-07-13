@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer
+package dev.jxmen.cs.ai.interviewer.adapter.input
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import io.kotest.core.spec.style.DescribeSpec

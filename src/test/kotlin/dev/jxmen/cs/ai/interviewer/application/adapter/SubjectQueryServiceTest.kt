@@ -1,6 +1,5 @@
-package dev.jxmen.cs.ai.interviewer.domain.subject.service.adapter
+package dev.jxmen.cs.ai.interviewer.application.adapter
 
-import dev.jxmen.cs.ai.interviewer.application.adapter.SubjectQueryService
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectQueryRepository

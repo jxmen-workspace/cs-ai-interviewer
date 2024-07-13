@@ -1,7 +1,6 @@
-package dev.jxmen.cs.ai.interviewer.domain.chat.api
+package dev.jxmen.cs.ai.interviewer.adapter.input
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
-import dev.jxmen.cs.ai.interviewer.adapter.input.ChatApi
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
@@ -21,7 +20,6 @@ import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
