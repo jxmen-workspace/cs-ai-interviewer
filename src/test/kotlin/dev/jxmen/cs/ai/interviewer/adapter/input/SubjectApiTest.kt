@@ -1,8 +1,7 @@
-package dev.jxmen.cs.ai.interviewer.domain.subject
+package dev.jxmen.cs.ai.interviewer.adapter.input
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.jxmen.cs.ai.interviewer.adapter.input.SubjectApi
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerRequest
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
@@ -12,6 +11,8 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
+import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
+import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
@@ -279,51 +280,54 @@ class SubjectApiTest :
 
         fun toJson(res: Any): String = objectMapper.writeValueAsString(res)
     }
-}
 
-class StubSubjectQuery : SubjectQuery {
-    companion object {
-        val EXIST_SUBJECT_ID = 1L
-        val NOT_FOUND_ID = 10000L
+    class StubSubjectQuery : SubjectQuery {
+        companion object {
+            val EXIST_SUBJECT_ID = 1L
+            val NOT_FOUND_ID = 10000L
+        }
+
+        override fun findBySubject(cateStr: String): List<Subject> =
+            when (cateStr) {
+                "dsa" -> listOf(Subject(title = "DSA", question = "What is DSA?", category = SubjectCategory.DSA))
+                "network" ->
+                    listOf(
+                        Subject(
+                            title = "NETWORK",
+                            question = "What is Network?",
+                            category = SubjectCategory.NETWORK,
+                        ),
+                    )
+
+                "database" ->
+                    listOf(
+                        Subject(
+                            title = "DATABASE",
+                            question = "What is Database?",
+                            category = SubjectCategory.DATABASE,
+                        ),
+                    )
+
+                "os" -> listOf(Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS))
+                else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
+            }
+
+        override fun findById(id: Long): Subject =
+            when (id) {
+                EXIST_SUBJECT_ID -> Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS)
+                NOT_FOUND_ID -> throw SubjectNotFoundException(id)
+                else -> throw SubjectNotFoundException(id)
+            }
     }
 
-    override fun findBySubject(cateStr: String): List<Subject> =
-        when (cateStr) {
-            "dsa" -> listOf(Subject(title = "DSA", question = "What is DSA?", category = SubjectCategory.DSA))
-            "network" ->
-                listOf(
-                    Subject(
-                        title = "NETWORK",
-                        question = "What is Network?",
-                        category = SubjectCategory.NETWORK,
-                    ),
-                )
+    class StubSubjectUseCase : SubjectUseCase {
+        override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse =
+            SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
 
-            "database" ->
-                listOf(
-                    Subject(
-                        title = "DATABASE",
-                        question = "What is Database?",
-                        category = SubjectCategory.DATABASE,
-                    ),
-                )
+        override fun answerV2(command: CreateSubjectAnswerCommandV2): SubjectAnswerResponse =
+            SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
+    }
 
-            "os" -> listOf(Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS))
-            else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
-        }
-
-    override fun findById(id: Long): Subject =
-        when (id) {
-            EXIST_SUBJECT_ID -> Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS)
-            NOT_FOUND_ID -> throw SubjectNotFoundException(id)
-            else -> throw SubjectNotFoundException(id)
-        }
 }
 
-class StubSubjectUseCase : SubjectUseCase {
-    override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse =
-        SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
 
-    override fun answerV2(command: CreateSubjectAnswerCommandV2): SubjectAnswerResponse =
-        SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
-}
