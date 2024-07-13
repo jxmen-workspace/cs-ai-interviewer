@@ -1,6 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.global.config
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import dev.jxmen.cs.ai.interviewer.global.config.service.CustomOAuth2UserService
 import dev.jxmen.cs.ai.interviewer.global.dto.ErrorResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -9,14 +10,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService
-import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.stereotype.Service
 
-@Suppress("ktlint:standard:chain-method-continuation")
+@Suppress("ktlint:standard:chain-method-continuation") // NOTE: 활성화시 오히려 가독성이 저하되어 비활성화
 @EnableWebSecurity
 @Configuration
 class SecurityConfig(
@@ -47,20 +43,19 @@ class SecurityConfig(
                     .requestMatchers("/api/version", "/api/test/**").permitAll()
                     .requestMatchers("/api/subjects", "/api/subjects/**").permitAll()
                     .anyRequest().authenticated()
-            }.oauth2Login { oAuth2LoginConfigurer ->
-                oAuth2LoginConfigurer.userInfoEndpoint {
+            }.oauth2Login {
+                it.userInfoEndpoint {
                     it.userService(customOAuth2UserService)
                 }
-            }
-            .exceptionHandling {
+            }.exceptionHandling {
                 it.authenticationEntryPoint { request, response, authException ->
-                    // 인증되지 않은 사용자는 공개된 API 외 401 응답
+                    // 인증되지 않거나 실패할 경우 공개된 API 외 401 응답
                     response.status = HttpStatus.UNAUTHORIZED.value()
                     response.setHeader("Content-Type", MediaType.APPLICATION_JSON.type)
                     response.writer.write(
                         toJson(
                             ErrorResponse(
-                                message = HttpStatus.UNAUTHORIZED.reasonPhrase,
+                                message = authException.message ?: "Unauthorized",
                                 status = HttpStatus.UNAUTHORIZED.value(),
                             ),
                         ),
@@ -74,14 +69,3 @@ class SecurityConfig(
     private fun toJson(obj: Any): String = objectMapper.writeValueAsString(obj)
 }
 
-@Service
-class CustomOAuth2UserService : OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-    companion object {
-        private val defaultOAuth2UserService = DefaultOAuth2UserService()
-    }
-
-    override fun loadUser(userRequest: OAuth2UserRequest?): OAuth2User {
-        // TODO: Implement custom logic - if user not exists, create user
-        return defaultOAuth2UserService.loadUser(userRequest)
-    }
-}
