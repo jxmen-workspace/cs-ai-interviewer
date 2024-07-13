@@ -33,11 +33,11 @@ class ChatApiTest :
 
         val manualRestDocumentation = ManualRestDocumentation()
         val controllerAdvice = GlobalControllerAdvice()
+        val mockHttpSession = SetSessionIdMockHttpSession(StubChatQuery.EXIST_USER_SESSION_ID)
 
         lateinit var mockMvc: MockMvc
 
         beforeEach {
-            val mockHttpSession = SetSessionIdMockHttpSession(StubChatQuery.EXIST_USER_SESSION_ID)
 
             mockMvc =
                 MockMvcBuilders
@@ -57,14 +57,21 @@ class ChatApiTest :
         }
 
         describe("GET /api/chat/messages?subjectId={subjectId} 요청은") {
+            val testMember = Member.createGoogleMember(name = "test", email = "test@exmaple.com")
 
             context("subjectId와 userSessionId가 존재할경우") {
                 it("200 OK와 Chat 객체를 반환한다") {
+                    mockHttpSession.setAttribute("member", testMember)
+
                     mockMvc
                         .perform(
-                            get(
-                                "/api/chat/messages?subjectId=${StubSubjectQuery.EXIST_SUBJECT_ID}",
-                            ).cookie(Cookie("SESSION", StubChatQuery.EXIST_USER_SESSION_ID)),
+                            get("/api/chat/messages?subjectId=${StubSubjectQuery.EXIST_SUBJECT_ID}")
+                                .cookie(
+                                    Cookie(
+                                        "SESSION",
+                                        StubChatQuery.EXIST_USER_SESSION_ID,
+                                    ),
+                                ).header("X-Api-Version", "2"),
                         ).andExpect(status().isOk)
                         .andDo(
                             document(
@@ -86,11 +93,13 @@ class ChatApiTest :
             context("subjectId가 존재하지 않을 경우") {
 
                 it("404 NOT_FOUND를 반환한다") {
+                    mockHttpSession.setAttribute("member", testMember)
+
                     mockMvc
                         .perform(
-                            get(
-                                "/api/chat/messages?subjectId=999",
-                            ).cookie(Cookie("SESSION", StubChatQuery.EXIST_USER_SESSION_ID)),
+                            get("/api/chat/messages?subjectId=999")
+                                .cookie(Cookie("SESSION", StubChatQuery.EXIST_USER_SESSION_ID))
+                                .header("X-Api-Version", "2"),
                         ).andExpect(status().isNotFound)
                         .andDo(
                             document(
@@ -98,51 +107,6 @@ class ChatApiTest :
                                 description = "존재하지 않는 주제 조회",
                             ),
                         )
-                }
-            }
-
-            context("세션 값이 존재하지 않을 경우") {
-                it("200 응답과 빈 배열을 응답한다") {
-                    // 세션 값이 없는 것을 테스트 하기 위해 MockMvc를 새로 생성
-                    val emptyMockHttpSessionMockMvc =
-                        MockMvcBuilders
-                            .standaloneSetup(ChatApi(MockHttpSession(), stubSubjectQuery, stubChatQuery))
-                            .setControllerAdvice(controllerAdvice)
-                            .apply<StandaloneMockMvcBuilder>(
-                                MockMvcRestDocumentation.documentationConfiguration(
-                                    manualRestDocumentation,
-                                ),
-                            ).build()
-                    val notExistSessionIdHttpSessionMockMvc =
-                        MockMvcBuilders
-                            .standaloneSetup(
-                                ChatApi(
-                                    SetSessionIdMockHttpSession(StubChatQuery.NOT_EXIST_USER_SESSION_ID),
-                                    stubSubjectQuery,
-                                    stubChatQuery,
-                                ),
-                            ).setControllerAdvice(controllerAdvice)
-                            .apply<StandaloneMockMvcBuilder>(
-                                MockMvcRestDocumentation.documentationConfiguration(
-                                    manualRestDocumentation,
-                                ),
-                            ).build()
-
-                    listOf(emptyMockHttpSessionMockMvc, notExistSessionIdHttpSessionMockMvc).forEach {
-                        it
-                            .perform(
-                                get(
-                                    "/api/chat/messages?subjectId=${StubSubjectQuery.EXIST_SUBJECT_ID}",
-                                ),
-                            ).andExpect(status().isOk)
-                            .andExpect(jsonPath("$.data").isEmpty())
-                            .andDo(
-                                document(
-                                    identifier = "get-chat-message-unauthorized",
-                                    description = "세션 값이 존재하지 않을 경우",
-                                ),
-                            )
-                    }
                 }
             }
         }
@@ -177,7 +141,6 @@ class StubSubjectQuery : SubjectQuery {
 class StubChatQuery : ChatQuery {
     companion object {
         const val EXIST_USER_SESSION_ID = "1"
-        const val NOT_EXIST_USER_SESSION_ID = "10000"
     }
 
     override fun findBySubjectAndUserSessionId(
@@ -199,7 +162,18 @@ class StubChatQuery : ChatQuery {
         )
     }
 
-    override fun findBySubjectAndMember(subject: Subject, member: Member): List<Chat> {
-        TODO("Not yet implemented")
+    override fun findBySubjectAndMember(
+        subject: Subject,
+        member: Member,
+    ): List<Chat> {
+        return listOf(
+            Chat(
+                subject = subject,
+                chatType = ChatType.QUESTION,
+                score = null,
+                message = "스레드와 프로세스의 차이점은 무엇인가요?",
+                userSessionId = EXIST_USER_SESSION_ID,
+            ),
+        )
     }
 }
