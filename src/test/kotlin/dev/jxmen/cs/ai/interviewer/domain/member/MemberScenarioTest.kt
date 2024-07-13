@@ -27,7 +27,6 @@ import org.springframework.web.context.WebApplicationContext
 
 @SpringBootTest
 class MemberScenarioTest {
-
     @MockBean // 해당 빈만 모킹해서 사용한다.
     private lateinit var aiApiClient: AIApiClient
 
@@ -44,47 +43,67 @@ class MemberScenarioTest {
 
     @BeforeEach
     fun setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .build()
+        mockMvc = MockMvcBuilders.webAppContextSetup(context).build()
     }
 
     @Test
     @WithMockUser
     fun `멤버 답변 및 채팅 내역 시나리오 테스트`() {
-        // 1. 멤버 생성
-        // 1.1 세션에 멤버 정보 저장 / mockMvc는 해당 세션 정보를 사용하도록 설정
+        // 멤버 생성 / 세션에 멤버 정보 저장 / mockMvc는 해당 세션 정보를 사용하도록 설정
         val testMember = Member.createGoogleMember(name = "test", email = "test@xample.com")
         val createdMember = memberCommandRepository.save(testMember)
 
         val mockHttpSession = MockHttpSession()
         mockHttpSession.setAttribute("member", createdMember)
 
-        // 1.2 주제 생성
-        val testSubject = Subject(title = "test subject", category = SubjectCategory.OS, question = "test question")
+        // 주제 생성
+        val testSubject = Subject(title = "test subject", question = "test question", category = SubjectCategory.OS)
         val createdSubject = subjectCommandRepository.save(testSubject)
 
-        // 1.3 aiApiClient는 모킹한 정보를 리턴하도록 설정
+        // aiApiClient는 모킹한 정보를 리턴하도록 설정
         given { aiApiClient.requestAnswer(any(), any(), any()) }
             .willReturn {
                 AiApiAnswerResponse(
                     nextQuestion = "next question",
-                    score = 10
+                    score = 10,
                 )
             }
 
-        // 2. 채팅 API 조회 시 빈 값 응답 검증
+        // 주제 목록 조회
+        mockMvc
+            .perform(get("/api/subjects"))
+            .andExpect {
+                status().isOk
+                jsonPath("$.data").isArray
+                jsonPath("$.data.length()", `is`(1))
+                jsonPath("$.data[0].id").value(createdSubject.id)
+                jsonPath("$.data[0].title").value("test subject")
+                jsonPath("$.data[0].question").value("test question")
+                jsonPath("$.data[0].category").value("OS")
+            }
+
+        // 주제 상세 조회
+        mockMvc
+            .perform(get("/api/subjects/${createdSubject.id}"))
+            .andExpect {
+                status().isOk
+                jsonPath("$.data.title").value("test subject")
+                jsonPath("$.data.question").value("test question")
+                jsonPath("$.data.category").value("OS")
+            }
+
+        // 채팅 API 조회 시 빈 값 응답 검증
         mockMvc
             .perform(
                 get("/api/chat/messages?subjectId=${createdSubject.id}")
                     .session(mockHttpSession)
                     .header("X-Api-Version", "2"),
-            )
-            .andExpect {
+            ).andExpect {
                 status().isOk
                 jsonPath("$.data").isEmpty()
             }
 
-        // 3. 특정 주제에 대해 답변
+        // 특정 주제에 대해 답변
         mockMvc
             .perform(
                 post("/api/subjects/${createdSubject.id}/answer")
@@ -97,27 +116,25 @@ class MemberScenarioTest {
                         """.trimIndent(),
                     ).session(mockHttpSession)
                     .header("X-Api-Version", "2"),
-            )
-            .andDo {
+            ).andDo {
                 status().isCreated
             }
 
-        // 4. 채팅 API 조회 - 답변과 다음 질문이 생성되었는지 검증
+        // 채팅 API 조회 - 답변과 다음 질문이 생성되었는지 검증
         mockMvc
             .perform(
                 get("/api/chat/messages?subjectId=${createdSubject.id}")
                     .session(mockHttpSession)
                     .header("X-Api-Version", "2"),
-            )
-            .andExpect {
+            ).andExpect {
                 status().isOk
                 jsonPath("$.data").isNotEmpty()
                 jsonPath("$.data.length()", `is`(2))
+                jsonPath("$.data[0].type").value("answer")
                 jsonPath("$.data[0].message").value("test answer")
                 jsonPath("$.data[0].score").value(10)
-                jsonPath("$.data[0].type").value("answer")
-                jsonPath("$.data[1].message").value("next question")
                 jsonPath("$.data[1].type").value("question")
+                jsonPath("$.data[1].message").value("next question")
             }
     }
 }
