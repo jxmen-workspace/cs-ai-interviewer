@@ -6,6 +6,7 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import jakarta.servlet.http.HttpSession
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.query.Param
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,11 +16,10 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/chat")
 class ChatApi(
-    private val httpSession: HttpSession,
+    @Autowired private val httpSession: HttpSession,
     private val subjectQuery: SubjectQuery,
     private val chatQuery: ChatQuery,
 ) {
-
     @Deprecated("Use getMessagesV2 instead")
     @GetMapping("/messages")
     fun getMessages(
@@ -57,7 +57,7 @@ class ChatApi(
         val messages =
             chatQuery.findBySubjectAndMember(
                 subject = subject,
-                member = member
+                member = member,
             )
 
         return ResponseEntity.ok(
