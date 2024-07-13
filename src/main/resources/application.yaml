@@ -1,6 +1,8 @@
 spring:
   application:
     name: cs-ai-interviewer
+  config:
+    import: classpath:version.properties # NOTE: version.properties 파일은 writeVersion task 실행 시 생성됨
   jpa:
     open-in-view: false
     hibernate:
@@ -10,8 +12,17 @@ spring:
       enabled: false
   flyway:
     enabled: false
-  config:
-    import: classpath:version.properties # NOTE: version.properties 파일은 writeVersion task 실행 시 생성됨
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            provider: google
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
 
 claude:
   api-key: ${CLAUDE_API_KEY}
