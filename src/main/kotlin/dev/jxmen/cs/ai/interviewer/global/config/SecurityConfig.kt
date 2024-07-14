@@ -6,6 +6,7 @@ import dev.jxmen.cs.ai.interviewer.global.dto.ErrorResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -39,9 +40,15 @@ class SecurityConfig(
             .authorizeHttpRequests {
                 it.requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers("/").permitAll()
-                    .requestMatchers("/swagger-ui/**").permitAll()
-                    .requestMatchers("/api/version", "/api/test/**").permitAll()
-                    .requestMatchers("/api/subjects", "/api/subjects/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/version").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/test/session-id").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/subjects").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/subjects/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/subjects/{subjectId}/answer").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/chat/messages").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/v2/subjects/{subjectId}/answer").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/v2/chat/messages").authenticated()
                     .anyRequest().authenticated()
             }.oauth2Login {
                 it.userInfoEndpoint {
@@ -68,4 +75,3 @@ class SecurityConfig(
 
     private fun toJson(obj: Any): String = objectMapper.writeValueAsString(obj)
 }
-

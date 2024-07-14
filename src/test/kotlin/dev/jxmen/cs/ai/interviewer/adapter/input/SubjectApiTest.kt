@@ -24,8 +24,6 @@ import org.springframework.mock.web.MockHttpSession
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.cookies.CookieDocumentation.cookieWithName
 import org.springframework.restdocs.cookies.CookieDocumentation.requestCookies
-import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
-import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post
@@ -187,7 +185,7 @@ class SubjectApiTest :
             }
         }
 
-        describe("POST /api/subjects/{id}/answer 요청은") {
+        describe("POST /api/v2/subjects/{id}/answer 요청은") {
 
             context("존재하는 주제에 대한 답변 요청 시") {
                 it("201 상태코드와 재질문이 포함된 응답을 반환한다.") {
@@ -200,9 +198,8 @@ class SubjectApiTest :
 
                     val perform =
                         mockMvc.perform(
-                            post("/api/subjects/$subjectId/answer")
+                            post("/api/v2/subjects/$subjectId/answer")
                                 .cookie(Cookie("SESSION", mockHttpSession.id))
-                                .header("X-Api-Version", "2")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
                         )
@@ -216,9 +213,6 @@ class SubjectApiTest :
                                 description = "주제 답변 요청",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("X-Api-Version").description("API 버전 - V2 버전은 2로 설정").optional(),
-                                        ),
                                         requestCookies(
                                             cookieWithName("SESSION").description("사용자 세션 ID"),
                                         ),
@@ -244,9 +238,8 @@ class SubjectApiTest :
                     val perform =
                         mockMvc
                             .perform(
-                                post("/api/subjects/$subjectId/answer")
+                                post("/api/v2/subjects/$subjectId/answer")
                                     .cookie(Cookie("SESSION", mockHttpSession.id))
-                                    .header("X-Api-Version", "2")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -259,9 +252,6 @@ class SubjectApiTest :
                                 description = "존재하지 않는 답변 요청",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("X-Api-Version").description("API 버전 - V2 버전은 2로 설정").optional(),
-                                        ),
                                         requestCookies(
                                             cookieWithName("SESSION").description("사용자 세션 ID"),
                                         ),
@@ -279,9 +269,8 @@ class SubjectApiTest :
                     val perform =
                         mockMvc
                             .perform(
-                                post("/api/subjects/$subjectId/answer")
+                                post("/api/v2/subjects/$subjectId/answer")
                                     .cookie(Cookie("SESSION", mockHttpSession.id))
-                                    .header("X-Api-Version", "2")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -294,9 +283,6 @@ class SubjectApiTest :
                                 description = "답변이 없는 요청",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("X-Api-Version").description("API 버전 - V2 버전은 2로 설정").optional(),
-                                        ),
                                         requestCookies(
                                             cookieWithName("SESSION").description("사용자 세션 ID"),
                                         ),

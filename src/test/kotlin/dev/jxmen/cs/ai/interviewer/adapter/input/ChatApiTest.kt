@@ -16,8 +16,6 @@ import org.springframework.mock.web.MockHttpSession
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.cookies.CookieDocumentation.cookieWithName
 import org.springframework.restdocs.cookies.CookieDocumentation.requestCookies
-import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
-import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.restdocs.payload.JsonFieldType
@@ -30,25 +28,18 @@ import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
 
 class ChatApiTest :
     DescribeSpec({
-        val stubChatQuery = StubChatQuery()
-        val stubSubjectQuery = StubSubjectQuery()
-
         val manualRestDocumentation = ManualRestDocumentation()
-        val controllerAdvice = GlobalControllerAdvice()
         val mockHttpSession = SetSessionIdMockHttpSession(StubChatQuery.EXIST_USER_SESSION_ID)
 
         lateinit var mockMvc: MockMvc
 
         beforeEach {
-
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(ChatApi(mockHttpSession, stubSubjectQuery, stubChatQuery))
-                    .setControllerAdvice(controllerAdvice)
+                    .standaloneSetup(ChatApi(mockHttpSession, StubSubjectQuery(), StubChatQuery()))
+                    .setControllerAdvice(GlobalControllerAdvice())
                     .apply<StandaloneMockMvcBuilder>(
-                        MockMvcRestDocumentation.documentationConfiguration(
-                            manualRestDocumentation,
-                        ),
+                        MockMvcRestDocumentation.documentationConfiguration(manualRestDocumentation),
                     ).build()
 
             manualRestDocumentation.beforeTest(javaClass, javaClass.simpleName) // manual rest docs 사용시 필요
@@ -58,7 +49,7 @@ class ChatApiTest :
             manualRestDocumentation.afterTest() // manual rest docs 사용시 필요
         }
 
-        describe("GET /api/chat/messages?subjectId={subjectId} 요청은") {
+        describe("GET /api/v2/chat/messages?subjectId={subjectId} 요청은") {
             val testMember = Member.createGoogleMember(name = "test", email = "test@exmaple.com")
 
             context("subjectId와 userSessionId가 존재할경우") {
@@ -67,13 +58,13 @@ class ChatApiTest :
 
                     mockMvc
                         .perform(
-                            get("/api/chat/messages?subjectId=${StubSubjectQuery.EXIST_SUBJECT_ID}")
+                            get("/api/v2/chat/messages?subjectId=${StubSubjectQuery.EXIST_SUBJECT_ID}")
                                 .cookie(
                                     Cookie(
                                         "SESSION",
                                         StubChatQuery.EXIST_USER_SESSION_ID,
                                     ),
-                                ).header("X-Api-Version", "2"),
+                                ),
                         ).andExpect(status().isOk)
                         .andDo(
                             document(
@@ -81,9 +72,6 @@ class ChatApiTest :
                                 description = "채팅 메시지 내역 조회",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("X-Api-Version").description("API 버전 - V2는 2로 설정").optional(),
-                                        ),
                                         requestCookies(
                                             cookieWithName("SESSION").description("사용자 세션 ID"),
                                         ),
@@ -105,9 +93,8 @@ class ChatApiTest :
 
                     mockMvc
                         .perform(
-                            get("/api/chat/messages?subjectId=999")
-                                .cookie(Cookie("SESSION", StubChatQuery.EXIST_USER_SESSION_ID))
-                                .header("X-Api-Version", "2"),
+                            get("/api/v2/chat/messages?subjectId=999")
+                                .cookie(Cookie("SESSION", StubChatQuery.EXIST_USER_SESSION_ID)),
                         ).andExpect(status().isNotFound)
                         .andDo(
                             document(
@@ -115,9 +102,6 @@ class ChatApiTest :
                                 description = "존재하지 않는 주제 조회",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("X-Api-Version").description("API 버전 - V2는 2로 설정").optional(),
-                                        ),
                                         requestCookies(
                                             cookieWithName("SESSION").description("사용자 세션 ID"),
                                         ),
