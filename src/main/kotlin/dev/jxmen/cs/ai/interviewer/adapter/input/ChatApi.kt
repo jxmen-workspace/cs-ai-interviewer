@@ -10,18 +10,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.query.Param
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/chat")
 class ChatApi(
     @Autowired private val httpSession: HttpSession,
     private val subjectQuery: SubjectQuery,
     private val chatQuery: ChatQuery,
 ) {
     @Deprecated("Use getMessagesV2 instead")
-    @GetMapping("/messages")
+    @GetMapping("/api/chat/messages")
     fun getMessages(
         @Param("subjectId") subjectId: String,
     ): ResponseEntity<ListDataResponse<ChatMessageResponse>> {
@@ -47,7 +45,7 @@ class ChatApi(
         )
     }
 
-    @GetMapping("/messages", headers = ["X-Api-Version=2"])
+    @GetMapping("/api/v2/chat/messages")
     fun getMessagesV2(
         @Param("subjectId") subjectId: String,
     ): ResponseEntity<ListDataResponse<ChatMessageResponse>> {

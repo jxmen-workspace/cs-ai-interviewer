@@ -95,9 +95,8 @@ class MemberScenarioTest {
         // 채팅 API 조회 시 빈 값 응답 검증
         mockMvc
             .perform(
-                get("/api/chat/messages?subjectId=${createdSubject.id}")
+                get("/api/v2/chat/messages?subjectId=${createdSubject.id}")
                     .session(mockHttpSession)
-                    .header("X-Api-Version", "2"),
             ).andExpect {
                 status().isOk
                 jsonPath("$.data").isEmpty()
@@ -106,7 +105,7 @@ class MemberScenarioTest {
         // 특정 주제에 대해 답변
         mockMvc
             .perform(
-                post("/api/subjects/${createdSubject.id}/answer")
+                post("/api/v2/subjects/${createdSubject.id}/answer")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
@@ -115,7 +114,6 @@ class MemberScenarioTest {
                         }
                         """.trimIndent(),
                     ).session(mockHttpSession)
-                    .header("X-Api-Version", "2"),
             ).andDo {
                 status().isCreated
             }
@@ -123,9 +121,8 @@ class MemberScenarioTest {
         // 채팅 API 조회 - 답변과 다음 질문이 생성되었는지 검증
         mockMvc
             .perform(
-                get("/api/chat/messages?subjectId=${createdSubject.id}")
+                get("/api/v2/chat/messages?subjectId=${createdSubject.id}")
                     .session(mockHttpSession)
-                    .header("X-Api-Version", "2"),
             ).andExpect {
                 status().isOk
                 jsonPath("$.data").isNotEmpty()

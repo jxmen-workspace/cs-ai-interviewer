@@ -18,18 +18,16 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/subjects")
 class SubjectApi(
     private val subjectQuery: SubjectQuery,
     private val subjectUseCase: SubjectUseCase,
-    private val httpSession: HttpSession
+    private val httpSession: HttpSession,
 ) {
-    @GetMapping
+    @GetMapping("/api/subjects")
     fun getSubjects(
         @RequestParam("category") cateStr: String,
     ): ResponseEntity<ListDataResponse<SubjectResponse>> {
@@ -47,7 +45,7 @@ class SubjectApi(
         return ResponseEntity.ok(response)
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/api/subjects/{id}")
     fun getSubject(
         @PathVariable("id") id: String,
     ): ResponseEntity<SubjectDetailResponse> {
@@ -63,8 +61,8 @@ class SubjectApi(
         )
     }
 
-    @Deprecated(message = "V2로 대체될 예정 - POST/subjects/{id}/answer X-Api-Version: 2")
-    @PostMapping("/{id}/answer")
+    @Deprecated(message = "V2로 대체될 예정 - POST/api/v2/subjects/{id}/answer")
+    @PostMapping("/api/subjects/{id}/answer")
     fun answerSubject(
         @PathVariable("id") id: String,
         @RequestBody @Valid req: SubjectAnswerRequest,
@@ -83,7 +81,7 @@ class SubjectApi(
         return ResponseEntity.status(201).body(res)
     }
 
-    @PostMapping("/{id}/answer", headers = ["X-Api-Version=2"])
+    @PostMapping("/api/v2/subjects/{id}/answer")
     fun answerSubjectV2(
         @PathVariable("id") id: String,
         @RequestBody @Valid req: SubjectAnswerRequest,
@@ -102,5 +100,4 @@ class SubjectApi(
 
         return ResponseEntity.status(201).body(res)
     }
-
 }
