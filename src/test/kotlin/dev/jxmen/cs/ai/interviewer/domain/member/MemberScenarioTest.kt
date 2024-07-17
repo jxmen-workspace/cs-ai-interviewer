@@ -5,7 +5,6 @@ import dev.jxmen.cs.ai.interviewer.application.port.output.dto.AiApiAnswerRespon
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
-import org.hamcrest.core.Is.`is`
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -16,12 +15,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpSession
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
@@ -49,16 +46,48 @@ class MemberScenarioTest {
     @Test
     @WithMockUser
     fun `멤버 답변 및 채팅 내역 시나리오 테스트`() {
-        // 멤버 생성 / 세션에 멤버 정보 저장 / mockMvc는 해당 세션 정보를 사용하도록 설정
+        // 멤버 생성
         val testMember = Member.createGoogleMember(name = "test", email = "test@xample.com")
         val createdMember = memberCommandRepository.save(testMember)
 
+        // 세션에 멤버 정보 저장 / mockMvc는 해당 세션 정보를 사용하도록 설정
         val mockHttpSession = MockHttpSession()
         mockHttpSession.setAttribute("member", createdMember)
 
         // 주제 생성
         val testSubject = Subject(title = "test subject", question = "test question", category = SubjectCategory.OS)
         val createdSubject = subjectCommandRepository.save(testSubject)
+
+        // 주제 목록 조회
+        mockMvc
+            .get("/api/subjects") { param("category", "OS") }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.data") { isArray() }
+                jsonPath("$.data.length()") { value(1) }
+                jsonPath("$.data[0].id") { value(createdSubject.id) }
+                jsonPath("$.data[0].title") { value("test subject") }
+                jsonPath("$.data[0].category") { value("OS") }
+            }
+
+        // 주제 상세 조회
+        mockMvc
+            .get("/api/subjects/${createdSubject.id}")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.id") { value(createdSubject.id) }
+                jsonPath("$.title") { value("test subject") }
+                jsonPath("$.question") { value("test question") }
+                jsonPath("$.category") { value("OS") }
+            }
+
+        // 채팅 API 조회 시 빈 값 응답 검증
+        mockMvc
+            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") { session = mockHttpSession }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.data") { isEmpty() }
+            }
 
         // aiApiClient는 모킹한 정보를 리턴하도록 설정
         given { aiApiClient.requestAnswer(any(), any(), any()) }
@@ -69,69 +98,32 @@ class MemberScenarioTest {
                 )
             }
 
-        // 주제 목록 조회
-        mockMvc
-            .perform(get("/api/subjects"))
-            .andExpect {
-                status().isOk
-                jsonPath("$.data").isArray
-                jsonPath("$.data.length()", `is`(1))
-                jsonPath("$.data[0].id").value(createdSubject.id)
-                jsonPath("$.data[0].title").value("test subject")
-                jsonPath("$.data[0].question").value("test question")
-                jsonPath("$.data[0].category").value("OS")
-            }
-
-        // 주제 상세 조회
-        mockMvc
-            .perform(get("/api/subjects/${createdSubject.id}"))
-            .andExpect {
-                status().isOk
-                jsonPath("$.data.title").value("test subject")
-                jsonPath("$.data.question").value("test question")
-                jsonPath("$.data.category").value("OS")
-            }
-
-        // 채팅 API 조회 시 빈 값 응답 검증
-        mockMvc
-            .perform(
-                get("/api/v2/chat/messages?subjectId=${createdSubject.id}")
-                    .session(mockHttpSession)
-            ).andExpect {
-                status().isOk
-                jsonPath("$.data").isEmpty()
-            }
-
         // 특정 주제에 대해 답변
         mockMvc
-            .perform(
-                post("/api/v2/subjects/${createdSubject.id}/answer")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        """
-                        {
-                            "answer": "test answer"
-                        }
-                        """.trimIndent(),
-                    ).session(mockHttpSession)
-            ).andDo {
-                status().isCreated
-            }
+            .post("/api/v2/subjects/${createdSubject.id}/answer") {
+                contentType = MediaType.APPLICATION_JSON
+                content =
+                    """
+                    {
+                        "answer": "test answer"
+                    }
+                    """.trimIndent()
+                session = mockHttpSession
+            }.andExpect { status { isCreated() } }
 
         // 채팅 API 조회 - 답변과 다음 질문이 생성되었는지 검증
         mockMvc
-            .perform(
-                get("/api/v2/chat/messages?subjectId=${createdSubject.id}")
-                    .session(mockHttpSession)
-            ).andExpect {
-                status().isOk
-                jsonPath("$.data").isNotEmpty()
-                jsonPath("$.data.length()", `is`(2))
-                jsonPath("$.data[0].type").value("answer")
-                jsonPath("$.data[0].message").value("test answer")
-                jsonPath("$.data[0].score").value(10)
-                jsonPath("$.data[1].type").value("question")
-                jsonPath("$.data[1].message").value("next question")
+            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") { session = mockHttpSession }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.data") { isNotEmpty() }
+                jsonPath("$.data.length()") { value(2) }
+                jsonPath("$.data[0].type") { value("answer") }
+                jsonPath("$.data[0].message") { value("test answer") }
+                jsonPath("$.data[0].score") { value(10) }
+                jsonPath("$.data[1].type") { value("question") }
+                jsonPath("$.data[1].message") { value("next question") }
+                jsonPath("$.data[1].score") { value(null) }
             }
     }
 }

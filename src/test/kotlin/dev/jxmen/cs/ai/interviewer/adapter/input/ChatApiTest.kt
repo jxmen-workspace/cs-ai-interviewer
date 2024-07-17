@@ -77,7 +77,7 @@ class ChatApiTest :
                                         ),
                                         responseFields(
                                             fieldWithPath("data[].message").description("메시지").type(JsonFieldType.STRING),
-                                            fieldWithPath("data[].score").description("점수").type(JsonFieldType.NULL),
+                                            fieldWithPath("data[].score").description("점수").type(JsonFieldType.NULL).optional(),
                                             fieldWithPath("data[].type").description("채팅 타입").type(JsonFieldType.STRING),
                                         ),
                                     ),
