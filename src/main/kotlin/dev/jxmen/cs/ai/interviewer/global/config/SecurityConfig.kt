@@ -50,19 +50,23 @@ class SecurityConfig(
 
         http
             .csrf {
-                    it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                    it.csrfTokenRequestHandler(SpaCsrfTokenRequestHandler())
+                it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                it.csrfTokenRequestHandler(SpaCsrfTokenRequestHandler())
             }
             .authorizeHttpRequests {
-                it.requestMatchers("/h2-console/**").permitAll()
+                it
+                    // == permitAll ==
+                    .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers("/").permitAll()
                     .requestMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/version").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/test/session-id").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/is-logged-in").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/subjects").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/subjects/**").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/subjects/{subjectId}/answer").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/chat/messages").permitAll()
+                    // === authenticated ===
                     .requestMatchers(HttpMethod.POST, "/api/v2/subjects/{subjectId}/answer").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/v2/chat/messages").authenticated()
                     .anyRequest().authenticated()
@@ -97,7 +101,11 @@ class SecurityConfig(
 class SpaCsrfTokenRequestHandler : CsrfTokenRequestAttributeHandler() {
     private val delegate: CsrfTokenRequestHandler = XorCsrfTokenRequestAttributeHandler()
 
-    override fun handle(request: HttpServletRequest, response: HttpServletResponse, csrfToken: Supplier<CsrfToken>) {
+    override fun handle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        csrfToken: Supplier<CsrfToken>,
+    ) {
         /*
          * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of
          * the CsrfToken when it is rendered in the response body.
@@ -105,7 +113,10 @@ class SpaCsrfTokenRequestHandler : CsrfTokenRequestAttributeHandler() {
         delegate.handle(request, response, csrfToken)
     }
 
-    override fun resolveCsrfTokenValue(request: HttpServletRequest, csrfToken: CsrfToken): String? {
+    override fun resolveCsrfTokenValue(
+        request: HttpServletRequest,
+        csrfToken: CsrfToken,
+    ): String? {
         /*
          * If the request contains a request header, use CsrfTokenRequestAttributeHandler
          * to resolve the CsrfToken. This applies when a single-page application includes
@@ -127,9 +138,12 @@ class SpaCsrfTokenRequestHandler : CsrfTokenRequestAttributeHandler() {
 }
 
 class CsrfCookieFilter : OncePerRequestFilter() {
-
     @Throws(ServletException::class, IOException::class)
-    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain,
+    ) {
         val csrfToken = request.getAttribute("_csrf") as CsrfToken
         // Render the token value to a cookie by causing the deferred token to be loaded
         csrfToken.token
