@@ -1,7 +1,9 @@
-package dev.jxmen.cs.ai.interviewer.domain.member
+package dev.jxmen.cs.ai.interviewer
 
 import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
 import dev.jxmen.cs.ai.interviewer.application.port.output.dto.AiApiAnswerResponse
+import dev.jxmen.cs.ai.interviewer.domain.member.Member
+import dev.jxmen.cs.ai.interviewer.domain.member.MemberCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
@@ -15,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpSession
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
@@ -44,15 +45,30 @@ class MemberScenarioTest {
     }
 
     @Test
-    @WithMockUser
     fun `멤버 답변 및 채팅 내역 시나리오 테스트`() {
         // 멤버 생성
         val testMember = Member.createGoogleMember(name = "test", email = "test@xample.com")
         val createdMember = memberCommandRepository.save(testMember)
 
+        // 로그인 여부 API 조회
+        mockMvc
+            .get("/api/v1/is-logged-in")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.isLoggedIn") { value(false) }
+            }
+
         // 세션에 멤버 정보 저장 / mockMvc는 해당 세션 정보를 사용하도록 설정
         val mockHttpSession = MockHttpSession()
         mockHttpSession.setAttribute("member", createdMember)
+
+        // 로그인 여부 API 조회
+        mockMvc
+            .get("/api/v1/is-logged-in") { session = mockHttpSession }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.isLoggedIn") { value(true) }
+            }
 
         // 주제 생성
         val testSubject = Subject(title = "test subject", question = "test question", category = SubjectCategory.OS)
