@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.global.config.service
+package dev.jxmen.cs.ai.interviewer.global.config.security
 
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.member.MemberCommandRepository
@@ -27,8 +27,9 @@ class CustomOAuth2UserService(
         val name = oauth2User.attributes["name"].toString()
 
         // NOTE: 구글 외 다른 로그인 수단 추가 시 아래 로직 변경 필요
-        val member = memberQueryRepository.findByEmailOrNull(email)
-            ?: memberCommandRepository.save(Member.createGoogleMember(name = name, email = email))
+        val member =
+            memberQueryRepository.findByEmailOrNull(email)
+                ?: memberCommandRepository.save(Member.createGoogleMember(name = name, email = email))
         httpSession.setAttribute("member", member)
 
         return oauth2User

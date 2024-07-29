@@ -81,13 +81,13 @@ class SubjectApi(
         return ResponseEntity.status(201).body(res)
     }
 
-    @PostMapping("/api/v2/subjects/{id}/answer")
+    @PostMapping("/api/v2/subjects/{subjectId}/answer")
     fun answerSubjectV2(
-        @PathVariable("id") id: String,
+        member: Member,
+        @PathVariable("subjectId") subjectId: String,
         @RequestBody @Valid req: SubjectAnswerRequest,
     ): ResponseEntity<SubjectAnswerResponse> {
-        val subject = subjectQuery.findById(id.toLong())
-        val member = httpSession.getAttribute("member") as Member
+        val subject = subjectQuery.findById(subjectId.toLong())
 
         val res =
             subjectUseCase.answerV2(

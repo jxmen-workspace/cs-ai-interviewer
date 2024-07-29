@@ -1,7 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.global.config
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import dev.jxmen.cs.ai.interviewer.global.config.service.CustomOAuth2UserService
+import dev.jxmen.cs.ai.interviewer.global.config.security.TokenFilter
 import dev.jxmen.cs.ai.interviewer.global.dto.ErrorResponse
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
@@ -33,7 +33,6 @@ import java.util.function.Supplier
 class SecurityConfig(
     @Value("\${spring.profiles.active:default}") // NOTE: 값이 없을시 콜론 뒤에 기본값 지정 가능
     private val activeProfile: String,
-    private val customOAuth2UserService: CustomOAuth2UserService,
 ) {
     companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -50,15 +49,21 @@ class SecurityConfig(
 
         http
             .csrf {
+                it.ignoringRequestMatchers("/h2-console/**")
                 it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                it.csrfTokenRequestHandler(SpaCsrfTokenRequestHandler())
+                it.csrfTokenRequestHandler(spaCsrfTokenRequestHandler())
             }
             .authorizeHttpRequests {
+                // resources and public pages
                 it
-                    // == permitAll ==
                     .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers("/").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/error").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                     .requestMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
+
+                // public API
+                it
                     .requestMatchers(HttpMethod.GET, "/api/version").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/test/session-id").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/is-logged-in").permitAll()
@@ -66,14 +71,13 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.GET, "/api/subjects/**").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/subjects/{subjectId}/answer").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/chat/messages").permitAll()
-                    // === authenticated ===
-                    .requestMatchers(HttpMethod.POST, "/api/v2/subjects/{subjectId}/answer").authenticated()
-                    .requestMatchers(HttpMethod.GET, "/api/v2/chat/messages").authenticated()
-                    .anyRequest().authenticated()
+
+                // v2 API
+                it
+                    .requestMatchers(HttpMethod.POST, "/api/v2/subjects/{subjectId}/answer").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v2/chat/messages").permitAll()
             }
-            .oauth2Login {
-                it.userInfoEndpoint { it.userService(customOAuth2UserService) }
-            }
+            .oauth2Login { }
             .exceptionHandling {
                 it.authenticationEntryPoint { _, response, authException ->
                     // 인증되지 않거나 실패할 경우 공개된 API 외 401 응답
@@ -89,11 +93,20 @@ class SecurityConfig(
                     )
                 }
             }
-
-        http.addFilterAfter(CsrfCookieFilter(), BasicAuthenticationFilter::class.java)
+            .addFilterBefore(googleTokenFilter(), BasicAuthenticationFilter::class.java)
+            .addFilterAfter(csrfCookieFilter(), BasicAuthenticationFilter::class.java)
 
         return http.build()
     }
+
+    @Bean
+    fun googleTokenFilter(): OncePerRequestFilter = TokenFilter()
+
+    @Bean
+    fun spaCsrfTokenRequestHandler(): CsrfTokenRequestHandler = SpaCsrfTokenRequestHandler()
+
+    @Bean
+    fun csrfCookieFilter(): CsrfCookieFilter = CsrfCookieFilter()
 
     private fun toJson(obj: Any): String = objectMapper.writeValueAsString(obj)
 }

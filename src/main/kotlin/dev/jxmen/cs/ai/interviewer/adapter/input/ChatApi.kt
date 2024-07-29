@@ -47,9 +47,9 @@ class ChatApi(
 
     @GetMapping("/api/v2/chat/messages")
     fun getMessagesV2(
+        member: Member,
         @Param("subjectId") subjectId: String,
     ): ResponseEntity<ListDataResponse<ChatMessageResponse>> {
-        val member = httpSession.getAttribute("member") as Member
         val subject = subjectQuery.findById(subjectId.toLong())
 
         val messages =
