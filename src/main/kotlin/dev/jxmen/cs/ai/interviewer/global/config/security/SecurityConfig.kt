@@ -1,7 +1,6 @@
-package dev.jxmen.cs.ai.interviewer.global.config
+package dev.jxmen.cs.ai.interviewer.global.config.security
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import dev.jxmen.cs.ai.interviewer.global.config.security.TokenFilter
 import dev.jxmen.cs.ai.interviewer.global.dto.ErrorResponse
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
