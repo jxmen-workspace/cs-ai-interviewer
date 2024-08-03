@@ -82,14 +82,14 @@ class SecurityConfig(
                     )
                 }
             }
-            .addFilterBefore(googleTokenFilter(), BasicAuthenticationFilter::class.java)
+            .addFilterBefore(tokenFilter(), BasicAuthenticationFilter::class.java)
             .addFilterAfter(csrfCookieFilter(), BasicAuthenticationFilter::class.java)
 
         return http.build()
     }
 
     @Bean
-    fun googleTokenFilter(): OncePerRequestFilter = TokenFilter()
+    fun tokenFilter(): OncePerRequestFilter = TokenFilter()
 
     @Bean
     fun spaCsrfTokenRequestHandler(): CsrfTokenRequestHandler = SpaCsrfTokenRequestHandler()
