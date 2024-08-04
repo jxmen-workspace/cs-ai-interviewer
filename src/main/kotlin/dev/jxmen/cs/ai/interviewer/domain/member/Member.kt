@@ -29,7 +29,8 @@ class Member(
     @Comment("로그인 타입")
     val loginType: MemberLoginType,
 
-) : BaseEntity(), Serializable {
+) : BaseEntity(),
+    Serializable {
     companion object {
         fun createGoogleMember(
             name: String,
@@ -40,5 +41,16 @@ class Member(
                 email = email,
                 loginType = MemberLoginType.GOOGLE,
             )
+
+        fun createWithId(
+            id: Long,
+            name: String,
+            email: String,
+            loginType: MemberLoginType,
+        ): Member {
+            val member = Member(name, email, loginType)
+            member.id = id
+            return member
+        }
     }
 }
