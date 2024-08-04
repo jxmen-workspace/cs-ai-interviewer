@@ -31,6 +31,7 @@ class TokenFilter : OncePerRequestFilter() {
         if (authRequireUrlRegexes.any { it.matches(request.requestURI) }) {
             val token = request.getHeader("Authorization")
             if (token == null || !token.startsWith("Bearer ")) {
+                logger.warn("Token is invalid or not provided.")
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is invalid or not provided.")
                 return
             }
