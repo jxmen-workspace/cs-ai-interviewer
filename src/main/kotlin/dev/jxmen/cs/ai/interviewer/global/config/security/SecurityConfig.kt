@@ -1,15 +1,12 @@
 package dev.jxmen.cs.ai.interviewer.global.config.security
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import dev.jxmen.cs.ai.interviewer.global.dto.ErrorResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
@@ -23,22 +20,20 @@ class SecurityConfig(
     @Value("\${spring.profiles.active:default}") // NOTE: 값이 없을시 콜론 뒤에 기본값 지정 가능
     private val activeProfile: String,
 ) {
-    companion object {
-        private val objectMapper = jacksonObjectMapper()
-    }
-
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         if (activeProfile == "local" || activeProfile == "default") {
             // set h2 console to be accessible
-            http.headers {
-                it.frameOptions { it.disable() }
-            }
+            http
+                .headers {
+                    it.frameOptions { it.disable() }
+                }.csrf {
+                    it.ignoringRequestMatchers("/h2-console/**")
+                }
         }
 
         http
             .csrf {
-                it.ignoringRequestMatchers("/h2-console/**")
                 it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 it.csrfTokenRequestHandler(spaCsrfTokenRequestHandler())
             }
@@ -68,25 +63,16 @@ class SecurityConfig(
             }
             .oauth2Login { }
             .exceptionHandling {
-                it.authenticationEntryPoint { _, response, authException ->
-                    // 인증되지 않거나 실패할 경우 공개된 API 외 401 응답
-                    response.status = HttpStatus.UNAUTHORIZED.value()
-                    response.setHeader("Content-Type", MediaType.APPLICATION_JSON.type)
-                    response.writer.write(
-                        toJson(
-                            ErrorResponse(
-                                message = authException.message ?: "Unauthorized",
-                                status = HttpStatus.UNAUTHORIZED.value(),
-                            ),
-                        ),
-                    )
-                }
+                it.authenticationEntryPoint(setCustomResponseAuthenticationEntryPoint())
             }
             .addFilterBefore(tokenFilter(), BasicAuthenticationFilter::class.java)
             .addFilterAfter(csrfCookieFilter(), BasicAuthenticationFilter::class.java)
 
         return http.build()
     }
+
+    @Bean
+    fun setCustomResponseAuthenticationEntryPoint(): AuthenticationEntryPoint = SetCustomResponseAuthenticationEntryPoint()
 
     @Bean
     fun tokenFilter(): OncePerRequestFilter = TokenFilter()
@@ -96,6 +82,4 @@ class SecurityConfig(
 
     @Bean
     fun csrfCookieFilter(): CsrfCookieFilter = CsrfCookieFilter()
-
-    private fun toJson(obj: Any): String = objectMapper.writeValueAsString(obj)
 }
