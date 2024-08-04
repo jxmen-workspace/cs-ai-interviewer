@@ -14,19 +14,21 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.filter.OncePerRequestFilter
 
 class TokenFilter : OncePerRequestFilter() {
-    val restTemplate = RestTemplate()
+    companion object {
+        private val restTemplate = RestTemplate()
+        private val authRequireUrlRegexes =
+            listOf(
+                Regex("/api/v2/subjects/\\d+/answer"),
+                Regex("/api/v2/chat/messages"),
+            )
+    }
 
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        val authRequireUrls =
-            listOf(
-                Regex("/api/v2/subjects/\\d+/answer"),
-                Regex("/api/v2/chat/messages"),
-            )
-        if (authRequireUrls.any { it.matches(request.requestURI) }) {
+        if (authRequireUrlRegexes.any { it.matches(request.requestURI) }) {
             val token = request.getHeader("Authorization")
             if (token == null || !token.startsWith("Bearer ")) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is invalid or not provided.")
