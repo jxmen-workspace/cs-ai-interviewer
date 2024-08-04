@@ -6,6 +6,7 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
+import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
@@ -38,6 +39,7 @@ class ChatApiTest :
                 MockMvcBuilders
                     .standaloneSetup(ChatApi(mockHttpSession, StubSubjectQuery(), StubChatQuery()))
                     .setControllerAdvice(GlobalControllerAdvice())
+                    .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(
                         MockMvcRestDocumentation.documentationConfiguration(manualRestDocumentation),
                     ).build()
@@ -54,8 +56,6 @@ class ChatApiTest :
 
             context("subjectId와 userSessionId가 존재할경우") {
                 it("200 OK와 Chat 객체를 반환한다") {
-                    mockHttpSession.setAttribute("member", testMember)
-
                     mockMvc
                         .perform(
                             get("/api/v2/chat/messages?subjectId=${StubSubjectQuery.EXIST_SUBJECT_ID}")
@@ -89,8 +89,6 @@ class ChatApiTest :
             context("subjectId가 존재하지 않을 경우") {
 
                 it("404 NOT_FOUND를 반환한다") {
-                    mockHttpSession.setAttribute("member", testMember)
-
                     mockMvc
                         .perform(
                             get("/api/v2/chat/messages?subjectId=999")

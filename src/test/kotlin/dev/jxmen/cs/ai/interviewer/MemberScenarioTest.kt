@@ -16,7 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
-import org.springframework.mock.web.MockHttpSession
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
@@ -41,34 +44,23 @@ class MemberScenarioTest {
 
     @BeforeEach
     fun setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build()
+        // kotlin에서는 버그로 인해 필터 추가 불가 - https://docs.spring.io/spring-framework/reference/testing/spring-mvc-test-framework/server-filters.html
+        mockMvc =
+            MockMvcBuilders
+                .webAppContextSetup(context)
+                .build()
     }
 
     @Test
     fun `멤버 답변 및 채팅 내역 시나리오 테스트`() {
         // 멤버 생성
-        val testMember = Member.createGoogleMember(name = "test", email = "test@xample.com")
+        val testMember = Member.createGoogleMember(name = "박주영", email = "me@jxmen.dev")
         val createdMember = memberCommandRepository.save(testMember)
 
-        // 로그인 여부 API 조회
-        mockMvc
-            .get("/api/v1/is-logged-in")
-            .andExpect {
-                status { isOk() }
-                jsonPath("$.isLoggedIn") { value(false) }
-            }
-
-        // 세션에 멤버 정보 저장 / mockMvc는 해당 세션 정보를 사용하도록 설정
-        val mockHttpSession = MockHttpSession()
-        mockHttpSession.setAttribute("member", createdMember)
-
-        // 로그인 여부 API 조회
-        mockMvc
-            .get("/api/v1/is-logged-in") { session = mockHttpSession }
-            .andExpect {
-                status { isOk() }
-                jsonPath("$.isLoggedIn") { value(true) }
-            }
+        // 멤버 인증 정보 저장
+        val oauth2User = createOAuth2User(createdMember)
+        val authentication = createOAuth2AuthenticationToken(oauth2User)
+        SecurityContextHolder.getContext().authentication = authentication
 
         // 주제 생성
         val testSubject = Subject(title = "test subject", question = "test question", category = SubjectCategory.OS)
@@ -99,8 +91,9 @@ class MemberScenarioTest {
 
         // 채팅 API 조회 시 빈 값 응답 검증
         mockMvc
-            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") { session = mockHttpSession }
-            .andExpect {
+            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") {
+                header("Authorization", "Bearer test-token")
+            }.andExpect {
                 status { isOk() }
                 jsonPath("$.data") { isEmpty() }
             }
@@ -117,6 +110,7 @@ class MemberScenarioTest {
         // 특정 주제에 대해 답변
         mockMvc
             .post("/api/v2/subjects/${createdSubject.id}/answer") {
+                header("Authorization", "Bearer test-token")
                 contentType = MediaType.APPLICATION_JSON
                 content =
                     """
@@ -124,13 +118,13 @@ class MemberScenarioTest {
                         "answer": "test answer"
                     }
                     """.trimIndent()
-                session = mockHttpSession
             }.andExpect { status { isCreated() } }
 
         // 채팅 API 조회 - 답변과 다음 질문이 생성되었는지 검증
         mockMvc
-            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") { session = mockHttpSession }
-            .andExpect {
+            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") {
+                header("Authorization", "Bearer test-token")
+            }.andExpect {
                 status { isOk() }
                 jsonPath("$.data") { isNotEmpty() }
                 jsonPath("$.data.length()") { value(2) }
@@ -141,5 +135,29 @@ class MemberScenarioTest {
                 jsonPath("$.data[1].message") { value("next question") }
                 jsonPath("$.data[1].score") { value(null) }
             }
+    }
+
+    private fun createOAuth2AuthenticationToken(oauth2User: DefaultOAuth2User): OAuth2AuthenticationToken {
+        val authentication =
+            OAuth2AuthenticationToken(
+                oauth2User,
+                emptyList<GrantedAuthority>(),
+                "google", // NOTE: 구글 외 다른 로그인 수단 추가 시 변경 필요
+            )
+        return authentication
+    }
+
+    private fun createOAuth2User(createdMember: Member): DefaultOAuth2User {
+        val oauth2User =
+            DefaultOAuth2User(
+                emptyList<GrantedAuthority>(),
+                mapOf(
+                    "sub" to createdMember.id,
+                    "name" to createdMember.name,
+                    "email" to createdMember.email,
+                ),
+                "sub",
+            )
+        return oauth2User
     }
 }
