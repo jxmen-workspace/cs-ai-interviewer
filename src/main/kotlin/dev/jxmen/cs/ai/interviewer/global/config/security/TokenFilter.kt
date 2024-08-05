@@ -16,10 +16,10 @@ import org.springframework.web.filter.OncePerRequestFilter
 class TokenFilter : OncePerRequestFilter() {
     companion object {
         private val restTemplate = RestTemplate()
-        private val authRequireUrlRegexes =
-            listOf(
-                Regex("/api/v2/subjects/\\d+/answer"),
-                Regex("/api/v2/chat/messages"),
+        private val authRequireUrlMap =
+            mapOf(
+                Regex("/api/v2/chat/messages") to HttpMethod.GET,
+                Regex("/api/v2/subjects/\\d+/answer") to HttpMethod.POST,
             )
     }
 
@@ -28,8 +28,10 @@ class TokenFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        if (authRequireUrlRegexes.any { it.matches(request.requestURI) }) {
-            val token = request.getHeader("Authorization")
+        val requestUri = request.requestURI
+        val matchingEntry = authRequireUrlMap.entries.find { it.key.matches(requestUri) }
+        if (matchingEntry != null && matchingEntry.value == HttpMethod.valueOf(request.method)) {
+            val token = extractTokenFromRequest(request)
             if (token == null || !token.startsWith("Bearer ")) {
                 logger.warn("Token is invalid or not provided.")
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is invalid or not provided.")
@@ -59,6 +61,15 @@ class TokenFilter : OncePerRequestFilter() {
 
         filterChain.doFilter(request, response)
     }
+
+    private fun extractTokenFromRequest(request: HttpServletRequest): String? =
+        if (request.getHeader("Authorization") != null) {
+            request.getHeader("Authorization")
+        } else if (request.getHeader("authorization") != null) {
+            request.getHeader("authorization")
+        } else {
+            null
+        }
 
     private fun fetchGoogleUserInfo(token: String?): GoogleUserInfo {
         val response =
