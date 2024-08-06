@@ -28,13 +28,17 @@ class TokenFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        val requestUri = request.requestURI
-        val matchingEntry = authRequireUrlMap.entries.find { it.key.matches(requestUri) }
-        if (matchingEntry != null && matchingEntry.value == HttpMethod.valueOf(request.method)) {
+        if (isRequireAuthRequest(request)) {
             val token = extractTokenFromRequest(request)
-            if (token == null || !token.startsWith("Bearer ")) {
-                logger.warn("Token is invalid or not provided.")
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is invalid or not provided.")
+            if (token == null) {
+                logger.warn("Token not found.")
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token not found.")
+                return
+            }
+
+            if (!token.startsWith("Bearer ")) {
+                logger.warn("Invalid token format.")
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token format.")
                 return
             }
 
@@ -60,6 +64,13 @@ class TokenFilter : OncePerRequestFilter() {
         }
 
         filterChain.doFilter(request, response)
+    }
+
+    private fun isRequireAuthRequest(request: HttpServletRequest): Boolean {
+        val requestUri = request.requestURI
+        val matchingEntry = authRequireUrlMap.entries.find { it.key.matches(requestUri) }
+
+        return matchingEntry != null && matchingEntry.value == HttpMethod.valueOf(request.method)
     }
 
     private fun extractTokenFromRequest(request: HttpServletRequest): String? =
