@@ -28,9 +28,7 @@ class TokenFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        val requestUri = request.requestURI
-        val matchingEntry = authRequireUrlMap.entries.find { it.key.matches(requestUri) }
-        if (matchingEntry != null && matchingEntry.value == HttpMethod.valueOf(request.method)) {
+        if (isRequireAuthRequest(request)) {
             val token = extractTokenFromRequest(request)
             if (token == null) {
                 logger.warn("Token not found.")
@@ -66,6 +64,13 @@ class TokenFilter : OncePerRequestFilter() {
         }
 
         filterChain.doFilter(request, response)
+    }
+
+    private fun isRequireAuthRequest(request: HttpServletRequest): Boolean {
+        val requestUri = request.requestURI
+        val matchingEntry = authRequireUrlMap.entries.find { it.key.matches(requestUri) }
+
+        return matchingEntry != null && matchingEntry.value == HttpMethod.valueOf(request.method)
     }
 
     private fun extractTokenFromRequest(request: HttpServletRequest): String? =
