@@ -32,9 +32,15 @@ class TokenFilter : OncePerRequestFilter() {
         val matchingEntry = authRequireUrlMap.entries.find { it.key.matches(requestUri) }
         if (matchingEntry != null && matchingEntry.value == HttpMethod.valueOf(request.method)) {
             val token = extractTokenFromRequest(request)
-            if (token == null || !token.startsWith("Bearer ")) {
-                logger.warn("Token is invalid or not provided.")
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is invalid or not provided.")
+            if (token == null) {
+                logger.warn("Token not found.")
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token not found.")
+                return
+            }
+
+            if (!token.startsWith("Bearer ")) {
+                logger.warn("Invalid token format.")
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token format.")
                 return
             }
 
