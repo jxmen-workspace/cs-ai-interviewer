@@ -68,9 +68,7 @@ class JdslSubjectQueryRepository(
                         ),
                     ),
                 ).where(
-                    and(
-                        category?.let { path(Subject::category).eq(it) },
-                    ),
+                    category?.let { path(Subject::category).eq(it) },
                 ).groupBy(
                     path(Subject::id),
                 ).orderBy(

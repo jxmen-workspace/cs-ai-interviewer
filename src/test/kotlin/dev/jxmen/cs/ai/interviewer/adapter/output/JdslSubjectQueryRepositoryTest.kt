@@ -105,10 +105,7 @@ class JdslSubjectQueryRepositoryTest(
     @Test
     fun findWithMember() {
         val findWithMember =
-            subjectQueryRepository.findWithMember(
-                member,
-                null,
-            )
+            subjectQueryRepository.findWithMember(member)
 
         findWithMember.size shouldBe 2
         with(findWithMember[0]) {
@@ -122,6 +119,23 @@ class JdslSubjectQueryRepositoryTest(
             title shouldBe "test2"
             category shouldBe SubjectCategory.NETWORK
             maxScore shouldBe 70
+        }
+    }
+
+    @Test
+    fun findWithMemberCategory() {
+        val findWithMember =
+            subjectQueryRepository.findWithMember(
+                member,
+                SubjectCategory.OS,
+            )
+
+        findWithMember.size shouldBe 1
+        with(findWithMember[0]) {
+            id shouldBe subject1.id
+            title shouldBe "test1"
+            category shouldBe SubjectCategory.OS
+            maxScore shouldBe 100
         }
     }
 }
