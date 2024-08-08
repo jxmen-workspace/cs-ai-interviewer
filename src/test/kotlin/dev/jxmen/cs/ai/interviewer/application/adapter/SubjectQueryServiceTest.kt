@@ -29,7 +29,7 @@ class SubjectQueryServiceTest :
         val subjectQueryRepository = mockk<SubjectQueryRepository>()
         val subjectQueryService = SubjectQueryService(subjectQueryRepository)
 
-        describe("getSubjectsByCategory") {
+        describe("findByByCategory") {
             context("만약 카테고리가 잘못된 값이라면 IllegalArgumentException을 던진다") {
                 withData(
                     listOf(
@@ -74,7 +74,7 @@ class SubjectQueryServiceTest :
             }
         }
 
-        describe("getSubjectById") {
+        describe("findById") {
             context("존재하는 id라면") {
                 it("발견한 주제를 리턴한다.") {
                     every { subjectQueryRepository.findByIdOrNull(1L) } returns
