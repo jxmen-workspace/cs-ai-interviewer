@@ -14,33 +14,33 @@ class JdslSubjectQueryRepository(
     private val entityManager: EntityManager,
 ) : SubjectQueryRepository {
     private val context = JpqlRenderContext()
+    private val renderer = JpqlRenderer()
 
     override fun findByCategory(category: SubjectCategory): List<Subject> {
-        val query =
-            jpql {
-                selectNew<Subject>(
-                    path(Subject::id),
-                    path(Subject::title),
-                    path(Subject::question),
-                    path(Subject::category),
-                ).from(
-                    entity(Subject::class),
-                ).where(
-                    path(Subject::category).eq(category),
-                )
-            }
+        val rendered =
+            renderer.render(
+                jpql {
+                    selectNew<Subject>(
+                        path(Subject::id),
+                        path(Subject::title),
+                        path(Subject::question),
+                        path(Subject::category),
+                    ).from(
+                        entity(Subject::class),
+                    ).where(
+                        path(Subject::category).eq(category),
+                    )
+                },
+                context,
+            )
 
-        val renderer = JpqlRenderer()
-        val rendered = renderer.render(query, context)
-
-        val apply =
-            entityManager.createQuery(rendered.query, Subject::class.java).apply {
+        return entityManager
+            .createQuery(rendered.query, Subject::class.java)
+            .apply {
                 rendered.params.forEach { (name, value) ->
                     setParameter(name, value)
                 }
-            }
-
-        return apply.resultList
+            }.resultList
     }
 
     override fun findByIdOrNull(id: Long): Subject? = entityManager.find(Subject::class.java, id)
