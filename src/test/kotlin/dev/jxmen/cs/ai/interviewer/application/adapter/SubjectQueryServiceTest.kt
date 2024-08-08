@@ -1,5 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
+import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectQueryRepository
@@ -99,6 +101,32 @@ class SubjectQueryServiceTest :
                     shouldThrow<SubjectNotFoundException> {
                         subjectQueryService.findById(-1)
                     }
+                }
+            }
+        }
+
+        describe("findWithMember") {
+
+            it("주제 정보와 멤버의 최대 점수 목록을 같이 리턴한다") {
+                every { subjectQueryRepository.findWithMember(any(), any()) } returns
+                    listOf(
+                        MemberSubjectResponse(
+                            id = 1,
+                            title = "OS",
+                            category = SubjectCategory.OS,
+                            maxScore = 100,
+                        ),
+                    )
+
+                val member = Member.createGoogleMember("박주영", "me@jxmen.dev")
+                val memberSubjects: List<MemberSubjectResponse> = subjectQueryService.findWithMember(member)
+
+                memberSubjects.size shouldBe 1
+                with(memberSubjects[0]) {
+                    id shouldBe 1
+                    title shouldBe "OS"
+                    category shouldBe SubjectCategory.OS
+                    maxScore shouldBe 100
                 }
             }
         }

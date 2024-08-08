@@ -1,6 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.adapter.input
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
@@ -134,6 +135,13 @@ class StubSubjectQuery : SubjectQuery {
             question = "스레드와 프로세스의 차이점은 무엇인가요?",
             category = SubjectCategory.OS,
         )
+    }
+
+    override fun findWithMember(
+        member: Member,
+        category: String?,
+    ): List<MemberSubjectResponse> {
+        TODO("Not yet implemented")
     }
 }
 

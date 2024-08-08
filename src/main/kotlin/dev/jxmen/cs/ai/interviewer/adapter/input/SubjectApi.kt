@@ -1,5 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.adapter.input
 
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerRequest
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
@@ -13,6 +14,7 @@ import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpSession
 import jakarta.validation.Valid
+import org.springframework.data.repository.query.Param
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -99,5 +101,15 @@ class SubjectApi(
             )
 
         return ResponseEntity.status(201).body(res)
+    }
+
+    @GetMapping("/api/v1/subjects/member")
+    fun getMemberSubjects(
+        member: Member,
+        @Param("category") category: String?,
+    ): ResponseEntity<ListDataResponse<MemberSubjectResponse>> {
+        val response = ListDataResponse(subjectQuery.findWithMember(member, category))
+
+        return ResponseEntity.ok(response)
     }
 }
