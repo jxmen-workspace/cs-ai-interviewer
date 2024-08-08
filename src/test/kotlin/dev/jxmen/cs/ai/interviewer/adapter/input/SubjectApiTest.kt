@@ -2,6 +2,7 @@ package dev.jxmen.cs.ai.interviewer.adapter.input
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.fasterxml.jackson.databind.ObjectMapper
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerRequest
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
@@ -32,6 +33,7 @@ import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -294,6 +296,59 @@ class SubjectApiTest :
                 }
             }
         }
+
+        describe("GET /api/v1/subjects/member 요청은") {
+            context("로그인한 사용자가 카테고리 없이 요청 시") {
+                it("200 상태코드와 전체 주제 목록을 응답한다.") {
+                    mockMvc
+                        .get("/api/v1/subjects/member")
+                        .andExpect {
+                            status { isOk() }
+                            jsonPath("$.data") { isArray() }
+                            jsonPath("$.data.length()") { value(2) }
+                            jsonPath("$.data[0].id") { value(1) }
+                            jsonPath("$.data[0].title") { value("title1") }
+                            jsonPath("$.data[0].category") { value("OS") }
+                            jsonPath("$.data[0].maxScore") { value(100) }
+                            jsonPath("$.data[1].id") { value(2) }
+                            jsonPath("$.data[1].title") { value("title2") }
+                            jsonPath("$.data[1].category") { value("NETWORK") }
+                            jsonPath("$.data[1].maxScore") { value(70) }
+                        }.andDo {
+                            document(
+                                identifier = "get-subjects-member",
+                                description = "로그인한 사용자의 주제 목록 조회",
+                                snippets =
+                                    arrayOf(
+                                        responseFields(
+                                            fieldWithPath("data").description("데이터"),
+                                            fieldWithPath("data[].id").description("주제 식별자"),
+                                            fieldWithPath("data[].title").description("제목"),
+                                            fieldWithPath("data[].category").description("카테고리"),
+                                            fieldWithPath("data[].maxScore").description("최대 점수"),
+                                        ),
+                                    ),
+                            )
+                        }
+                }
+            }
+
+            context("로그인한 사용자가 카테고리와 함께 요청 시") {
+                it("200 상태코드와 해당 카테고리 주제 목록을 응답한다.") {
+                    mockMvc
+                        .get("/api/v1/subjects/member") { param("category", "os") }
+                        .andExpect {
+                            status { isOk() }
+                            jsonPath("$.data") { isArray() }
+                            jsonPath("$.data.length()") { value(1) }
+                            jsonPath("$.data[0].id") { value(1) }
+                            jsonPath("$.data[0].title") { value("title1") }
+                            jsonPath("$.data[0].category") { value("OS") }
+                            jsonPath("$.data[0].maxScore") { value(100) }
+                        }
+                }
+            }
+        }
     }) {
     companion object {
         private val objectMapper = ObjectMapper()
@@ -337,6 +392,37 @@ class SubjectApiTest :
                 EXIST_SUBJECT_ID -> Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS)
                 NOT_FOUND_ID -> throw SubjectNotFoundException(id)
                 else -> throw SubjectNotFoundException(id)
+            }
+
+        override fun findWithMember(
+            member: Member,
+            category: String?,
+        ): List<MemberSubjectResponse> =
+            when (category) {
+                "os" ->
+                    listOf(
+                        MemberSubjectResponse(
+                            id = 1,
+                            title = "title1",
+                            category = SubjectCategory.OS,
+                            maxScore = 100,
+                        ),
+                    )
+                else ->
+                    listOf(
+                        MemberSubjectResponse(
+                            id = 1,
+                            title = "title1",
+                            category = SubjectCategory.OS,
+                            maxScore = 100,
+                        ),
+                        MemberSubjectResponse(
+                            id = 2,
+                            title = "title2",
+                            category = SubjectCategory.NETWORK,
+                            maxScore = 70,
+                        ),
+                    )
             }
     }
 

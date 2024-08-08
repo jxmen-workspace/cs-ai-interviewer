@@ -58,6 +58,7 @@ class SecurityConfig(
                 it
                     .requestMatchers(HttpMethod.POST, "/api/v2/subjects/{subjectId}/answer").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v2/chat/messages").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/subjects/member").permitAll()
             }
             .oauth2Login { }
             .exceptionHandling {

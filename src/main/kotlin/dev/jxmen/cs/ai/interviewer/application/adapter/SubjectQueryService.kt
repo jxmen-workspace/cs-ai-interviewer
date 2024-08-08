@@ -1,6 +1,8 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
+import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectQueryRepository
@@ -21,4 +23,14 @@ class SubjectQueryService(
 
     @Transactional(readOnly = true)
     override fun findById(id: Long): Subject = this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundException(id)
+
+    @Transactional(readOnly = true)
+    override fun findWithMember(
+        member: Member,
+        category: String?,
+    ): List<MemberSubjectResponse> {
+        val categoryEnum = category?.uppercase()?.let { SubjectCategory.valueOf(it) }
+
+        return subjectQueryRepository.findWithMember(member, categoryEnum)
+    }
 }
