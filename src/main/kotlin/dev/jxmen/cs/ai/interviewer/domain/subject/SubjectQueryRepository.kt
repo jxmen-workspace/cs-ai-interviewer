@@ -10,6 +10,6 @@ interface SubjectQueryRepository {
 
     fun findWithMember(
         member: Member,
-        valueOf: SubjectCategory?,
+        category: SubjectCategory? = null,
     ): List<MemberSubjectResponse>
 }
