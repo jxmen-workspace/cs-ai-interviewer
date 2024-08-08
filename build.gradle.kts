@@ -24,6 +24,7 @@ repositories {
 val epagesVersion = "0.17.1"
 val mockkVersion = "1.13.11"
 val kotestVersion = "5.8.1"
+val kotlinJdslVersion = "3.5.1"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -40,6 +41,11 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
     implementation("com.h2database:h2")
+
+    // kotlin jdsl dependencies
+    implementation("com.linecorp.kotlin-jdsl:jpql-dsl:$kotlinJdslVersion") // JPQL을 만들어 주도록 도와주는 라이브러리
+    implementation("com.linecorp.kotlin-jdsl:jpql-render:$kotlinJdslVersion") // DSL로 만든 쿼리를 String으로 변환해주는 라이브러리
+    implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:$kotlinJdslVersion") // Spring Data JPA를 지원하는 Kotlin JDSL 라이브러리
 
     /**
      * https://mvnrepository.com/artifact/com.epages/restdocs-api-spec-mockmvc
