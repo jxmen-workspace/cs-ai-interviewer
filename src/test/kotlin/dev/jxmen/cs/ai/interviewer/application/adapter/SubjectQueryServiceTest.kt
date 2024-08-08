@@ -10,7 +10,8 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
-import java.util.Optional
+import io.mockk.every
+import io.mockk.mockk
 
 /**
  * kotest custom test name (empty test name is not allowed.)
@@ -25,7 +26,8 @@ data class TestCase(
 
 class SubjectQueryServiceTest :
     DescribeSpec({
-        val subjectQueryService = SubjectQueryService(StubSubjectQueryRepository())
+        val subjectQueryRepository = mockk<SubjectQueryRepository>()
+        val subjectQueryService = SubjectQueryService(subjectQueryRepository)
 
         describe("getSubjectsByCategory") {
             context("만약 카테고리가 잘못된 값이라면 IllegalArgumentException을 던진다") {
@@ -37,6 +39,8 @@ class SubjectQueryServiceTest :
                         TestCase("  "),
                     ),
                 ) { tc ->
+                    every { subjectQueryRepository.findByCategory(any()) } returns emptyList()
+
                     shouldThrow<IllegalArgumentException> {
                         subjectQueryService.findBySubject(tc.input)
                     }
@@ -51,6 +55,15 @@ class SubjectQueryServiceTest :
                         TestCase("os"),
                     ),
                 ) { tc ->
+                    every { subjectQueryRepository.findByCategory(any()) } returns
+                        listOf(
+                            Subject(
+                                title = tc.input.uppercase(),
+                                question = "What is ${tc.input.uppercase()}?",
+                                category = SubjectCategory.valueOf(tc.input.uppercase()),
+                            ),
+                        )
+
                     val subjectsByCategory = subjectQueryService.findBySubject(tc.input)
                     subjectsByCategory.size shouldBe 1
                     with(subjectsByCategory[0]) {
@@ -64,6 +77,13 @@ class SubjectQueryServiceTest :
         describe("getSubjectById") {
             context("존재하는 id라면") {
                 it("발견한 주제를 리턴한다.") {
+                    every { subjectQueryRepository.findByIdOrNull(1L) } returns
+                        Subject(
+                            title = "OS",
+                            question = "What is OS?",
+                            category = SubjectCategory.OS,
+                        )
+
                     shouldNotThrow<SubjectNotFoundException> {
                         val subject = subjectQueryService.findById(1L)
                         subject.title shouldBe "OS"
@@ -74,46 +94,12 @@ class SubjectQueryServiceTest :
             }
             context("존재하지 않는 id라면") {
                 it("SubjectNotFoundException 예외를 던진다") {
+                    every { subjectQueryRepository.findByIdOrNull(-1) } returns null
+
                     shouldThrow<SubjectNotFoundException> {
-                        subjectQueryService.findById(StubSubjectQueryRepository.NOT_EXIST_ID)
+                        subjectQueryService.findById(-1)
                     }
                 }
             }
         }
     })
-
-class StubSubjectQueryRepository : SubjectQueryRepository {
-    companion object {
-        const val NOT_EXIST_ID = -1L
-    }
-
-    override fun findByCategory(category: SubjectCategory): List<Subject> =
-        when (category) {
-            SubjectCategory.DSA ->
-                listOf(
-                    Subject(title = "DSA", question = "What is DSA?", category = SubjectCategory.DSA),
-                )
-            SubjectCategory.NETWORK ->
-                listOf(
-                    Subject(title = "NETWORK", question = "What is Network?", category = SubjectCategory.NETWORK),
-                )
-            SubjectCategory.DATABASE ->
-                listOf(
-                    Subject(title = "DATABASE", question = "What is Database?", category = SubjectCategory.DATABASE),
-                )
-            SubjectCategory.OS ->
-                listOf(
-                    Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS),
-                )
-        }
-
-    override fun findById(id: Long): Optional<Subject> {
-        if (NOT_EXIST_ID == id) {
-            return Optional.empty()
-        }
-
-        return Optional.of(
-            Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS),
-        )
-    }
-}
