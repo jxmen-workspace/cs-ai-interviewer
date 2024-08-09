@@ -26,6 +26,8 @@ import org.springframework.mock.web.MockHttpSession
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.cookies.CookieDocumentation.cookieWithName
 import org.springframework.restdocs.cookies.CookieDocumentation.requestCookies
+import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
+import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post
@@ -35,6 +37,7 @@ import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
@@ -301,25 +304,29 @@ class SubjectApiTest :
             context("로그인한 사용자가 카테고리 없이 요청 시") {
                 it("200 상태코드와 전체 주제 목록을 응답한다.") {
                     mockMvc
-                        .get("/api/v1/subjects/member")
-                        .andExpect {
-                            status { isOk() }
-                            jsonPath("$.data") { isArray() }
-                            jsonPath("$.data.length()") { value(2) }
-                            jsonPath("$.data[0].id") { value(1) }
-                            jsonPath("$.data[0].title") { value("title1") }
-                            jsonPath("$.data[0].category") { value("OS") }
-                            jsonPath("$.data[0].maxScore") { value(100) }
-                            jsonPath("$.data[1].id") { value(2) }
-                            jsonPath("$.data[1].title") { value("title2") }
-                            jsonPath("$.data[1].category") { value("NETWORK") }
-                            jsonPath("$.data[1].maxScore") { value(70) }
-                        }.andDo {
+                        .perform(
+                            get("/api/v1/subjects/member")
+                                .header("Authorization", "Bearer token"),
+                        ).andExpect(status().isOk)
+                        .andExpect(jsonPath("$.data").isArray)
+                        .andExpect(jsonPath("$.data.length()").value(2))
+                        .andExpect(jsonPath("$.data[0].id").value(1))
+                        .andExpect(jsonPath("$.data[0].title").value("title1"))
+                        .andExpect(jsonPath("$.data[0].category").value("OS"))
+                        .andExpect(jsonPath("$.data[0].maxScore").value(100))
+                        .andExpect(jsonPath("$.data[1].id").value(2))
+                        .andExpect(jsonPath("$.data[1].title").value("title2"))
+                        .andExpect(jsonPath("$.data[1].category").value("NETWORK"))
+                        .andExpect(jsonPath("$.data[1].maxScore").value(70))
+                        .andDo(
                             document(
                                 identifier = "get-subjects-member",
                                 description = "로그인한 사용자의 주제 목록 조회",
                                 snippets =
                                     arrayOf(
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
+                                        ),
                                         responseFields(
                                             fieldWithPath("data").description("데이터"),
                                             fieldWithPath("data[].id").description("주제 식별자"),
@@ -328,8 +335,8 @@ class SubjectApiTest :
                                             fieldWithPath("data[].maxScore").description("최대 점수"),
                                         ),
                                     ),
-                            )
-                        }
+                            ),
+                        )
                 }
             }
 
