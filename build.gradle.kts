@@ -1,3 +1,4 @@
+import groovy.lang.Closure
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -103,8 +104,23 @@ tasks.bootJar {
     archiveFileName.set("app.jar")
 }
 
+val owner = "jxmen"
+
+// 코틀린 람다를 Groovy Closure로 감싸는 함수
+fun <T> kotlinLambdaToGroovyClosure(lambda: (T) -> Unit): Closure<T> =
+    object : Closure<T>(owner) {
+        fun doCall(it: T) {
+            lambda(it)
+        }
+    }
+
 openapi3 {
-    setServer("http://localhost:8080")
+    setServers(
+        listOf(
+            kotlinLambdaToGroovyClosure { server -> server.url = "http://localhost:8080" },
+            kotlinLambdaToGroovyClosure { server -> server.url = "https://cs-ai-api.jxmen.dev" },
+        ),
+    )
 
     format = "yaml"
 }
