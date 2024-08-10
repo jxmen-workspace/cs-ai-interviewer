@@ -22,8 +22,6 @@ class SetCustomResponseAuthenticationEntryPoint : AuthenticationEntryPoint {
         authException: AuthenticationException,
     ) {
         // 인증되지 않거나 실패할 경우 공개된 API 외 401 응답
-        logger.warn(authException.stackTraceToString())
-
         response.status = HttpStatus.UNAUTHORIZED.value()
         response.setHeader("Content-Type", MediaType.APPLICATION_JSON.type)
         response.writer.write(
