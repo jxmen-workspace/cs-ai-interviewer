@@ -16,8 +16,11 @@ class WebConfig(
     override fun addCorsMappings(registry: CorsRegistry) {
         registry
             .addMapping("/**")
-            .allowedOrigins("http://localhost:3000", "https://cs-ai-interviewer-web.vercel.app", "https://cs-ai.jxmen.dev")
-            .allowCredentials(true)
+            .allowedOrigins(
+                "http://localhost:3000",
+                "https://cs-ai-interviewer-web.vercel.app",
+                "https://cs-ai.jxmen.dev",
+            ).allowCredentials(true)
             .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
             .allowedHeaders("*")
     }
