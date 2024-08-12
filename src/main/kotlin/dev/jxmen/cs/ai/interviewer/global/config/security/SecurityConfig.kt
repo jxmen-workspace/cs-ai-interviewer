@@ -3,7 +3,6 @@ package dev.jxmen.cs.ai.interviewer.global.config.security
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -36,27 +35,10 @@ class SecurityConfig(
             }
             .csrf { it.disable() }
             .authorizeHttpRequests {
-                // resources and public pages
-                it
-                    .requestMatchers("/h2-console/i**").permitAll()
-                    .requestMatchers("/").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/error").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
-
-                // public API
-                it
-                    .requestMatchers(HttpMethod.GET, "/api/version").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/subjects").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/subjects/**").permitAll()
-
-                // v2 API
-                it
-                    .requestMatchers(HttpMethod.POST, "/api/v2/subjects/{subjectId}/answer").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v2/chat/messages").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/subjects/member").permitAll()
+                // NOTE: TokenFilter에서 처리하기 때문에 별다른 설정 없음
+                it.anyRequest().permitAll()
             }
-            .oauth2Login { }
+            .oauth2Login { } // NOTE: TokenFilter에서 처리하기 때문에 별다른 설정 없음
             .exceptionHandling {
                 // 예외 발생시 커스텀 응답 반환
                 it.authenticationEntryPoint(setCustomResponseAuthenticationEntryPoint())
