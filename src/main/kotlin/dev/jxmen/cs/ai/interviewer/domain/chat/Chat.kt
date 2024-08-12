@@ -56,27 +56,47 @@ class Chat(
         userSessionId = null,
         message = message,
         score = score,
-        chatType = chatType
+        chatType = chatType,
     )
 
     companion object {
-        fun createQuestion(subject: Subject, member: Member, nextQuestion: String): Chat {
-            return Chat(
+        const val MAX_ANSWER_COUNT = 10
+
+        fun createQuestion(
+            subject: Subject,
+            member: Member,
+            nextQuestion: String,
+        ): Chat =
+            Chat(
                 subject = subject,
                 member = member,
                 message = nextQuestion,
                 chatType = ChatType.QUESTION,
             )
-        }
 
-        fun createAnswer(subject: Subject, member: Member, answer: String, score: Int): Chat {
-            return Chat(
+        fun createAnswer(
+            subject: Subject,
+            member: Member,
+        ) = Chat(
+            subject = subject,
+            member = member,
+            message = " ",
+            score = 0,
+            chatType = ChatType.ANSWER,
+        )
+
+        fun createAnswer(
+            subject: Subject,
+            member: Member,
+            answer: String,
+            score: Int,
+        ): Chat =
+            Chat(
                 subject = subject,
                 member = member,
                 message = answer,
                 score = score,
                 chatType = ChatType.ANSWER,
             )
-        }
     }
 }

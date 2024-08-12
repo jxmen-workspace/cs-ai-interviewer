@@ -5,10 +5,8 @@ import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 
 interface ChatQuery {
-    fun findBySubjectAndUserSessionId(
+    fun findBySubjectAndMember(
         subject: Subject,
-        userSessionId: String,
+        member: Member,
     ): List<Chat>
-
-    fun findBySubjectAndMember(subject: Subject, member: Member): List<Chat>
 }

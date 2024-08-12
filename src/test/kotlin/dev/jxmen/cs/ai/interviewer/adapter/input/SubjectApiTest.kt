@@ -7,9 +7,13 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerReques
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
+import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
+import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
+import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.AllAnswersUsedException
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
@@ -42,6 +46,7 @@ class SubjectApiTest :
     DescribeSpec({
         val stubSubjectQuery = StubSubjectQuery()
         val stubSubjectUseCase = StubSubjectUseCase()
+        val stubChatQuery = StubChatQuery()
 
         /**
          * without junit5 on spring rest docs, `ManualRestDocs` to generate api spec
@@ -56,7 +61,7 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(stubSubjectQuery, stubSubjectUseCase))
+                    .standaloneSetup(SubjectApi(stubSubjectQuery, stubSubjectUseCase, stubChatQuery))
                     .setControllerAdvice(controllerAdvice)
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
@@ -195,16 +200,13 @@ class SubjectApiTest :
                     val expectResponse =
                         SubjectAnswerResponse(nextQuestion = "What is OS? (answer: answer)", score = 50)
 
-                    val perform =
-                        mockMvc.perform(
+                    mockMvc
+                        .perform(
                             post("/api/v2/subjects/$subjectId/answer")
                                 .header("Authorization", "Bearer token")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
-                        )
-
-                    perform
-                        .andExpect(status().isCreated)
+                        ).andExpect(status().isCreated)
                         .andExpect(content().json(toJson(expectResponse)))
                         .andDo(
                             document(
@@ -225,8 +227,31 @@ class SubjectApiTest :
                 }
             }
 
-            context("답변이 10번을 넘겼을 경우") {
-                // TODO: it - 400을 응답한다 추가하기
+            context("답변을 모두 사용했을 경우") {
+                it("400을 응답한다.") {
+                    val subjectId = StubSubjectQuery.MAX_LIMIT_ANSWER_SUBJECT_ID
+                    val req = SubjectAnswerRequest(answer = "answer")
+
+                    mockMvc
+                        .perform(
+                            post("/api/v2/subjects/$subjectId/answer")
+                                .header("Authorization", "Bearer token")
+                                .content(toJson(req))
+                                .contentType(MediaType.APPLICATION_JSON),
+                        ).andExpect(status().isBadRequest)
+                        .andDo(
+                            document(
+                                identifier = "post-subject-answer-bad-request",
+                                description = "답변을 모두 사용했을 경우",
+                                snippets =
+                                    arrayOf(
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer token"),
+                                        ),
+                                    ),
+                            ),
+                        )
+                }
             }
 
             context("존재하지 않는 주제에 대한 답변 요청 시") {
@@ -357,8 +382,9 @@ class SubjectApiTest :
 
     class StubSubjectQuery : SubjectQuery {
         companion object {
-            val EXIST_SUBJECT_ID = 1L
-            val NOT_FOUND_ID = 10000L
+            const val MAX_LIMIT_ANSWER_SUBJECT_ID = 10L
+            const val EXIST_SUBJECT_ID = 1L
+            const val NOT_FOUND_ID = 10000L
         }
 
         override fun findBySubject(cateStr: String): List<Subject> =
@@ -388,7 +414,20 @@ class SubjectApiTest :
 
         override fun findById(id: Long): Subject =
             when (id) {
-                EXIST_SUBJECT_ID -> Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS)
+                EXIST_SUBJECT_ID ->
+                    Subject(
+                        id = EXIST_SUBJECT_ID,
+                        title = "OS",
+                        question = "What is OS?",
+                        category = SubjectCategory.OS,
+                    )
+                MAX_LIMIT_ANSWER_SUBJECT_ID ->
+                    Subject(
+                        id = MAX_LIMIT_ANSWER_SUBJECT_ID,
+                        title = "OS",
+                        question = "What is OS?",
+                        category = SubjectCategory.OS,
+                    )
                 NOT_FOUND_ID -> throw SubjectNotFoundException(id)
                 else -> throw SubjectNotFoundException(id)
             }
@@ -426,7 +465,24 @@ class SubjectApiTest :
     }
 
     class StubSubjectUseCase : SubjectUseCase {
-        override fun answerV2(command: CreateSubjectAnswerCommandV2): SubjectAnswerResponse =
-            SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
+        override fun answerV2(command: CreateSubjectAnswerCommandV2): SubjectAnswerResponse {
+            val chats = Chats(command.chats)
+            require(!chats.useAllAnswers()) { throw AllAnswersUsedException("답변을 모두 사용했습니다.") }
+
+            return SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
+        }
+    }
+
+    class StubChatQuery : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> {
+            if (subject.id == StubSubjectQuery.MAX_LIMIT_ANSWER_SUBJECT_ID) {
+                return List(10) { Chat.createAnswer(subject = subject, member = member, answer = "hi", score = 0) }
+            }
+
+            return emptyList()
+        }
     }
 }
