@@ -13,7 +13,7 @@ enum class ClaudeModel(
     // v3 models
     OPUS_3("claude-3-opus-20240229", "응답속도는 가장 느리지만 정교한 모델"),
     SONNET_3("claude-3-sonnet-20240229", "응답속도/정확도 모두 중간 정도인 모델"),
-    HAIKU_3("claude-3-haiku-20240307", "응답속도는 가장 빠르지만 정확도는 낮은 모델"),
+    // NOTE: haiku3는 응답속도는 빠르나, 정확도가 낮아 혼자서 답변을 하는 경우도 발생하여 사용하지 않을 예정
     ;
 
     override fun toString(): String = s
