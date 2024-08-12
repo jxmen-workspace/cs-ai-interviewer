@@ -6,19 +6,13 @@ import dev.jxmen.cs.ai.interviewer.domain.chat.ChatQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ChatQueryService(
     private val chatQueryRepository: ChatQueryRepository,
 ) : ChatQuery {
-    @Transactional(readOnly = true)
-    override fun findBySubjectAndUserSessionId(
+    override fun findBySubjectAndMember(
         subject: Subject,
-        userSessionId: String,
-    ): List<Chat> = chatQueryRepository.findBySubjectAndUserSessionId(subject, userSessionId)
-
-    override fun findBySubjectAndMember(subject: Subject, member: Member): List<Chat> {
-        return chatQueryRepository.findBySubjectAndMember(subject, member)
-    }
+        member: Member,
+    ): List<Chat> = chatQueryRepository.findBySubjectAndMember(subject, member)
 }

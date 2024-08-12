@@ -5,6 +5,7 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerReques
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController
 class SubjectApi(
     private val subjectQuery: SubjectQuery,
     private val subjectUseCase: SubjectUseCase,
+    private val chatQuery: ChatQuery,
 ) {
     @GetMapping("/api/subjects")
     fun getSubjects(
@@ -66,6 +68,7 @@ class SubjectApi(
         @RequestBody @Valid req: SubjectAnswerRequest,
     ): ResponseEntity<SubjectAnswerResponse> {
         val subject = subjectQuery.findById(subjectId.toLong())
+        val chats = chatQuery.findBySubjectAndMember(subject, member)
 
         val res =
             subjectUseCase.answerV2(
@@ -73,6 +76,7 @@ class SubjectApi(
                     subject = subject,
                     answer = req.answer,
                     member = member,
+                    chats = chats,
                 ),
             )
 

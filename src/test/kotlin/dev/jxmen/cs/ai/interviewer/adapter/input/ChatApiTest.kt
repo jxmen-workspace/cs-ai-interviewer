@@ -100,6 +100,8 @@ class ChatApiTest :
                 }
             }
         }
+
+        class BACD
     })
 
 class StubSubjectQuery : SubjectQuery {
@@ -132,25 +134,6 @@ class StubSubjectQuery : SubjectQuery {
 class StubChatQuery : ChatQuery {
     companion object {
         const val EXIST_USER_SESSION_ID = "1"
-    }
-
-    override fun findBySubjectAndUserSessionId(
-        subject: Subject,
-        userSessionId: String,
-    ): List<Chat> {
-        if (userSessionId != EXIST_USER_SESSION_ID) {
-            return emptyList()
-        }
-
-        return listOf(
-            Chat(
-                subject = subject,
-                chatType = ChatType.QUESTION,
-                score = null,
-                message = "스레드와 프로세스의 차이점은 무엇인가요?",
-                userSessionId = userSessionId,
-            ),
-        )
     }
 
     override fun findBySubjectAndMember(
