@@ -13,11 +13,9 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import io.kotest.core.spec.style.DescribeSpec
-import jakarta.servlet.http.Cookie
-import org.springframework.mock.web.MockHttpSession
 import org.springframework.restdocs.ManualRestDocumentation
-import org.springframework.restdocs.cookies.CookieDocumentation.cookieWithName
-import org.springframework.restdocs.cookies.CookieDocumentation.requestCookies
+import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
+import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.restdocs.payload.JsonFieldType
@@ -31,14 +29,13 @@ import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
 class ChatApiTest :
     DescribeSpec({
         val manualRestDocumentation = ManualRestDocumentation()
-        val mockHttpSession = SetSessionIdMockHttpSession(StubChatQuery.EXIST_USER_SESSION_ID)
 
         lateinit var mockMvc: MockMvc
 
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(ChatApi(mockHttpSession, StubSubjectQuery(), StubChatQuery()))
+                    .standaloneSetup(ChatApi(StubSubjectQuery(), StubChatQuery()))
                     .setControllerAdvice(GlobalControllerAdvice())
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(
@@ -53,19 +50,12 @@ class ChatApiTest :
         }
 
         describe("GET /api/v2/chat/messages?subjectId={subjectId} 요청은") {
-            val testMember = Member.createGoogleMember(name = "test", email = "test@exmaple.com")
-
             context("subjectId와 userSessionId가 존재할경우") {
                 it("200 OK와 Chat 객체를 반환한다") {
                     mockMvc
                         .perform(
                             get("/api/v2/chat/messages?subjectId=${StubSubjectQuery.EXIST_SUBJECT_ID}")
-                                .cookie(
-                                    Cookie(
-                                        "SESSION",
-                                        StubChatQuery.EXIST_USER_SESSION_ID,
-                                    ),
-                                ),
+                                .header("Authorization", "Bearer token"),
                         ).andExpect(status().isOk)
                         .andDo(
                             document(
@@ -73,8 +63,8 @@ class ChatApiTest :
                                 description = "채팅 메시지 내역 조회",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer token"),
                                         ),
                                         responseFields(
                                             fieldWithPath("data[].message").description("메시지").type(JsonFieldType.STRING),
@@ -92,8 +82,8 @@ class ChatApiTest :
                 it("404 NOT_FOUND를 반환한다") {
                     mockMvc
                         .perform(
-                            get("/api/v2/chat/messages?subjectId=999")
-                                .cookie(Cookie("SESSION", StubChatQuery.EXIST_USER_SESSION_ID)),
+                            get("/api/v2/chat/messages?subjectId=9999999")
+                                .header("Authorization", "Bearer token"),
                         ).andExpect(status().isNotFound)
                         .andDo(
                             document(
@@ -101,8 +91,8 @@ class ChatApiTest :
                                 description = "존재하지 않는 주제 조회",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer token"),
                                         ),
                                     ),
                             ),
@@ -111,12 +101,6 @@ class ChatApiTest :
             }
         }
     })
-
-class SetSessionIdMockHttpSession(
-    private val customSessionId: String,
-) : MockHttpSession() {
-    override fun getId(): String = customSessionId
-}
 
 class StubSubjectQuery : SubjectQuery {
     companion object {

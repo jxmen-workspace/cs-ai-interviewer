@@ -7,12 +7,9 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailRespo
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
-import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpSession
 import jakarta.validation.Valid
 import org.springframework.data.repository.query.Param
 import org.springframework.http.ResponseEntity
@@ -27,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController
 class SubjectApi(
     private val subjectQuery: SubjectQuery,
     private val subjectUseCase: SubjectUseCase,
-    private val httpSession: HttpSession,
 ) {
     @GetMapping("/api/subjects")
     fun getSubjects(
@@ -61,26 +57,6 @@ class SubjectApi(
                 question = subject.question,
             ),
         )
-    }
-
-    @Deprecated(message = "V2로 대체될 예정 - POST/api/v2/subjects/{id}/answer")
-    @PostMapping("/api/subjects/{id}/answer")
-    fun answerSubject(
-        @PathVariable("id") id: String,
-        @RequestBody @Valid req: SubjectAnswerRequest,
-        httpServletRequest: HttpServletRequest,
-    ): ResponseEntity<SubjectAnswerResponse> {
-        val subject = subjectQuery.findById(id.toLong())
-        val res =
-            subjectUseCase.answer(
-                CreateSubjectAnswerCommand(
-                    subject = subject,
-                    answer = req.answer,
-                    userSessionId = httpServletRequest.session.id,
-                ),
-            )
-
-        return ResponseEntity.status(201).body(res)
     }
 
     @PostMapping("/api/v2/subjects/{subjectId}/answer")

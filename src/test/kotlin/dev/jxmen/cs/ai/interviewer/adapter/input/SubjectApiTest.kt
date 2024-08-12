@@ -9,7 +9,6 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailRespo
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
-import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
@@ -20,12 +19,8 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundExce
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
-import jakarta.servlet.http.Cookie
 import org.springframework.http.MediaType
-import org.springframework.mock.web.MockHttpSession
 import org.springframework.restdocs.ManualRestDocumentation
-import org.springframework.restdocs.cookies.CookieDocumentation.cookieWithName
-import org.springframework.restdocs.cookies.CookieDocumentation.requestCookies
 import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
 import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
@@ -55,14 +50,13 @@ class SubjectApiTest :
          */
         val manualRestDocumentation = ManualRestDocumentation()
         val controllerAdvice = GlobalControllerAdvice()
-        val mockHttpSession = MockHttpSession()
 
         lateinit var mockMvc: MockMvc
 
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(stubSubjectQuery, stubSubjectUseCase, mockHttpSession))
+                    .standaloneSetup(SubjectApi(stubSubjectQuery, stubSubjectUseCase))
                     .setControllerAdvice(controllerAdvice)
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
@@ -196,8 +190,6 @@ class SubjectApiTest :
 
             context("존재하는 주제에 대한 답변 요청 시") {
                 it("201 상태코드와 재질문이 포함된 응답을 반환한다.") {
-                    val member = Member.createGoogleMember(name = "박주영", email = "sprnd645@gmail.com")
-                    mockHttpSession.setAttribute("member", member)
                     val subjectId = StubSubjectQuery.EXIST_SUBJECT_ID
                     val req = SubjectAnswerRequest(answer = "answer")
                     val expectResponse =
@@ -206,7 +198,7 @@ class SubjectApiTest :
                     val perform =
                         mockMvc.perform(
                             post("/api/v2/subjects/$subjectId/answer")
-                                .cookie(Cookie("SESSION", mockHttpSession.id))
+                                .header("Authorization", "Bearer token")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
                         )
@@ -220,8 +212,8 @@ class SubjectApiTest :
                                 description = "주제 답변 요청",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer token"),
                                         ),
                                         responseFields(
                                             fieldWithPath("nextQuestion").description("다음 질문").type(JsonFieldType.STRING),
@@ -246,7 +238,7 @@ class SubjectApiTest :
                         mockMvc
                             .perform(
                                 post("/api/v2/subjects/$subjectId/answer")
-                                    .cookie(Cookie("SESSION", mockHttpSession.id))
+                                    .header("Authorization", "Bearer token")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -259,8 +251,8 @@ class SubjectApiTest :
                                 description = "존재하지 않는 답변 요청",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer token"),
                                         ),
                                     ),
                             ),
@@ -277,7 +269,7 @@ class SubjectApiTest :
                         mockMvc
                             .perform(
                                 post("/api/v2/subjects/$subjectId/answer")
-                                    .cookie(Cookie("SESSION", mockHttpSession.id))
+                                    .header("Authorization", "Bearer token")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -290,8 +282,8 @@ class SubjectApiTest :
                                 description = "답변이 없는 요청",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("사용자 세션 ID"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer token"),
                                         ),
                                     ),
                             ),
@@ -434,9 +426,6 @@ class SubjectApiTest :
     }
 
     class StubSubjectUseCase : SubjectUseCase {
-        override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse =
-            SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
-
         override fun answerV2(command: CreateSubjectAnswerCommandV2): SubjectAnswerResponse =
             SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
     }

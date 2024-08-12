@@ -6,7 +6,7 @@ import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 
 data class ClaudeAnswerReqeust(
-    val model: String = ClaudeModel.HAIKU_3.toString(),
+    val model: String = ClaudeModel.SONNET_3_5.toString(),
     @JsonProperty("max_tokens")
     val maxTokens: Int = 300,
     val messages: List<ClaudeMessage> = emptyList(),
