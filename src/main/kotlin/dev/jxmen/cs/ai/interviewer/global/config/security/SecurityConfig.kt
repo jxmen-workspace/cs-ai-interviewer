@@ -47,12 +47,8 @@ class SecurityConfig(
                 // public API
                 it
                     .requestMatchers(HttpMethod.GET, "/api/version").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/test/session-id").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/is-logged-in").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/subjects").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/subjects/**").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/subjects/{subjectId}/answer").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/chat/messages").permitAll()
 
                 // v2 API
                 it
