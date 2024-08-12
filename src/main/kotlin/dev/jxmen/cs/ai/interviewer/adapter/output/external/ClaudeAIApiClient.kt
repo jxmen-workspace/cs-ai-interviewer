@@ -89,7 +89,7 @@ data class ClaudeMessage(
 )
 
 data class ClaudeAnswerReqeust(
-    val model: String = "claude-3-opus-20240229",
+    val model: String = "claude-3-5-sonnet-20240620",
     @JsonProperty("max_tokens")
     val maxTokens: Int = 1000,
     val messages: List<ClaudeMessage> = emptyList(),
