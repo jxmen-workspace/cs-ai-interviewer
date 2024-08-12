@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.jxmen.cs.ai.interviewer.global.dto.ErrorResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.core.AuthenticationException
@@ -13,7 +12,6 @@ import org.springframework.security.web.AuthenticationEntryPoint
 class SetCustomResponseAuthenticationEntryPoint : AuthenticationEntryPoint {
     companion object {
         private val objectMapper = jacksonObjectMapper()
-        private val logger = LoggerFactory.getLogger(SetCustomResponseAuthenticationEntryPoint::class.java)
     }
 
     override fun commence(
