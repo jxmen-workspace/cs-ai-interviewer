@@ -31,14 +31,13 @@ import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
 class ChatApiTest :
     DescribeSpec({
         val manualRestDocumentation = ManualRestDocumentation()
-        val mockHttpSession = SetSessionIdMockHttpSession(StubChatQuery.EXIST_USER_SESSION_ID)
 
         lateinit var mockMvc: MockMvc
 
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(ChatApi(mockHttpSession, StubSubjectQuery(), StubChatQuery()))
+                    .standaloneSetup(ChatApi(StubSubjectQuery(), StubChatQuery()))
                     .setControllerAdvice(GlobalControllerAdvice())
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(
