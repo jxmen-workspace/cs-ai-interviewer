@@ -4,14 +4,11 @@ import dev.jxmen.cs.ai.interviewer.domain.BaseEntity
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import jakarta.persistence.Column
-import jakarta.persistence.Convert
+import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.Lob
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.Comment
@@ -35,31 +32,26 @@ class Chat(
     @Comment("유저 세션 아이디")
     val userSessionId: String? = null, // NOTE: 유저 도메인이 추가되면 memberId로 변경 예정
 
-    @Lob
-    @Column(nullable = false, columnDefinition = "TEXT")
-    @Comment("채팅 내용")
-    val message: String,
+    @get:Embedded
+    val content: ChatContent,
 
-    @Column(nullable = true)
-    @Comment("점수")
-    val score: Int? = null,
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    @Convert(converter = ChatTypeConverter::class)
-    @Comment("채팅 유형")
-    val chatType: ChatType, // TODO: type으로 이름 변경
 ) : BaseEntity() {
+    fun isAnswer(): Boolean = content.isAnswer()
+
     constructor(subject: Subject, member: Member, message: String, chatType: ChatType, score: Int) : this(
         subject = subject,
         member = member,
         userSessionId = null,
-        message = message,
-        score = score,
-        chatType = chatType,
+        content =
+            ChatContent(
+                message = message,
+                chatType = chatType,
+                score = score,
+            ),
     )
 
     companion object {
+        const val MAX_ANSWER_SCORE = 100
         const val MAX_ANSWER_COUNT = 10
 
         fun createQuestion(
@@ -70,8 +62,7 @@ class Chat(
             Chat(
                 subject = subject,
                 member = member,
-                message = nextQuestion,
-                chatType = ChatType.QUESTION,
+                content = ChatContent.createQuestion(nextQuestion),
             )
 
         fun createAnswer(
@@ -80,9 +71,7 @@ class Chat(
         ) = Chat(
             subject = subject,
             member = member,
-            message = " ",
-            score = 0,
-            chatType = ChatType.ANSWER,
+            content = ChatContent.createEmptyAnswer(),
         )
 
         fun createAnswer(
@@ -94,9 +83,7 @@ class Chat(
             Chat(
                 subject = subject,
                 member = member,
-                message = answer,
-                score = score,
-                chatType = ChatType.ANSWER,
+                content = ChatContent.createAnswer(answer, score),
             )
     }
 }

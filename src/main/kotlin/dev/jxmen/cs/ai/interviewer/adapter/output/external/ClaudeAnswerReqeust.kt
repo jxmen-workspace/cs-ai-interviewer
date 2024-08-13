@@ -2,7 +2,6 @@ package dev.jxmen.cs.ai.interviewer.adapter.output.external
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 
 data class ClaudeAnswerReqeust(
@@ -55,15 +54,15 @@ data class ClaudeAnswerReqeust(
 
             val beforeMessages =
                 chats.map {
-                    if (it.chatType == ChatType.ANSWER) {
+                    if (it.isAnswer()) {
                         ClaudeMessage(
                             role = ClaudeMessageRole.USER,
-                            content = it.message,
+                            content = it.content.message,
                         )
                     } else {
                         ClaudeMessage(
                             role = ClaudeMessageRole.ASSISTANT,
-                            content = it.message,
+                            content = it.content.message,
                         )
                     }
                 }

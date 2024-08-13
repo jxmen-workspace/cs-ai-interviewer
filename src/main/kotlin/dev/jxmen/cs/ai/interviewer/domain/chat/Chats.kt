@@ -6,5 +6,5 @@ class Chats(
     /**
      * 답변이 최대값을 넘었다면 true, 아니면 false
      */
-    fun useAllAnswers(): Boolean = chats.count { it.chatType == ChatType.ANSWER } >= Chat.MAX_ANSWER_COUNT
+    fun useAllAnswers(): Boolean = chats.count { it.isAnswer() } >= Chat.MAX_ANSWER_COUNT
 }

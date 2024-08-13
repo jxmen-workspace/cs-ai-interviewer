@@ -32,9 +32,9 @@ class ChatApi(
             ListDataResponse(
                 messages.map {
                     ChatMessageResponse(
-                        message = it.message,
-                        score = it.score,
-                        type = it.chatType,
+                        message = it.content.message,
+                        score = it.content.score,
+                        type = it.content.chatType,
                     )
                 },
             ),
