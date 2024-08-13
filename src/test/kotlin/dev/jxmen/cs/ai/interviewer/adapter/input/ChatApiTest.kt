@@ -5,7 +5,7 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectRespon
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
+import dev.jxmen.cs.ai.interviewer.domain.chat.ChatContent
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
@@ -143,10 +143,11 @@ class StubChatQuery : ChatQuery {
         listOf(
             Chat(
                 subject = subject,
-                chatType = ChatType.QUESTION,
-                score = null,
-                message = "스레드와 프로세스의 차이점은 무엇인가요?",
                 userSessionId = EXIST_USER_SESSION_ID,
+                content =
+                    ChatContent.createQuestion(
+                        "스레드와 프로세스의 차이점은 무엇인가요?",
+                    ),
             ),
         )
 }

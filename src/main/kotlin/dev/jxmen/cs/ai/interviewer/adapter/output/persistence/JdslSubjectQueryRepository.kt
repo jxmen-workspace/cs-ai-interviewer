@@ -5,6 +5,7 @@ import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderer
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
+import dev.jxmen.cs.ai.interviewer.domain.chat.ChatContent
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
@@ -58,7 +59,7 @@ class JdslSubjectQueryRepository(
                     path(Subject::id),
                     path(Subject::title),
                     path(Subject::category),
-                    max(path(Chat::score)),
+                    max(path(Chat::content).path(ChatContent::score)),
                 ).from(
                     entity(Subject::class),
                     leftJoin(Chat::class).on(
