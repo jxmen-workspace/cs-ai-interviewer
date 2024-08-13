@@ -72,10 +72,10 @@ spring:
     jdbc:
       initialize-schema: never
   flyway:
-    enabled: true # NOTE: dev profile is set to enable flyway
+    enabled: true
   jpa:
     hibernate:
-      ddl-auto: validate # NOTE: dev profile is set to `validate`
+      ddl-auto: validate
     properties:
       hibernate:
         show_sql: true
