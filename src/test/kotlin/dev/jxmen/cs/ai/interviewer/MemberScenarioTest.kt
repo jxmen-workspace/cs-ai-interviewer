@@ -135,6 +135,30 @@ class MemberScenarioTest {
                 jsonPath("$.data[1].message") { value("next question") }
                 jsonPath("$.data[1].score") { value(null) }
             }
+
+        // 채팅 아카이브
+        mockMvc
+            .post("/api/v1/subjects/${createdSubject.id}/chat/archive") {
+                header("Authorization", "Bearer test-token")
+            }.andExpect {
+                status { isCreated() }
+
+                // NOTE: location 헤더 값은 알 수 없으므로 검증하지 않는다.
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data") { value(null) }
+                jsonPath("$.error") { value(null) }
+            }
+
+        // 채팅 내역 재조회 - 아카이브 후 빈 값 응답 검증
+        mockMvc
+            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") {
+                header("Authorization", "Bearer test-token")
+            }.andExpect {
+                status { isOk() }
+                jsonPath("$.data") { isEmpty() }
+            }
+
+        // NOTE: 채팅 아카이브에 잘 저장이 되었는지 나중에 확인 필요
     }
 
     private fun createOAuth2AuthenticationToken(oauth2User: DefaultOAuth2User): OAuth2AuthenticationToken {

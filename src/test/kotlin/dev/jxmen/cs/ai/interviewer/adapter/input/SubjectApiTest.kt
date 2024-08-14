@@ -8,12 +8,14 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerRespo
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
+import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
 import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.AllAnswersUsedException
+import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.NoAnswerException
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
@@ -26,6 +28,7 @@ import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
 import org.springframework.http.MediaType
 import org.springframework.restdocs.ManualRestDocumentation
+import org.springframework.restdocs.headers.HeaderDocumentation
 import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
 import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
@@ -36,6 +39,7 @@ import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -62,7 +66,7 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(subjectQuery, StubSubjectUseCase(), chatQuery))
+                    .standaloneSetup(SubjectApi(subjectQuery, StubSubjectUseCase(), chatQuery, StubMemberChatUseCase()))
                     .setControllerAdvice(controllerAdvice)
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
@@ -407,11 +411,145 @@ class SubjectApiTest :
                 }
             }
         }
+
+        describe("POST /api/v1/subjects/{subjectId}/chat/archive 요청은") {
+
+            context("subjectId와 답변 채팅이 존재할 경우") {
+                val id = 1
+                subjectQuery = ExistingIdSubjectQuery()
+                chatQuery = ExistingAnswerChatQuery()
+
+                it("201과 생성한 ID를 반환한다") {
+                    mockMvc
+                        .perform(
+                            post("/api/v1/subjects/$id/chat/archive")
+                                .header("Authorization", "Bearer token"),
+                        ).andExpect(status().isCreated)
+                        .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/chat/archives/$id"))
+                        .andExpect(jsonPath("$.success").value(true))
+                        .andExpect(jsonPath("$.error").doesNotExist())
+                        .andExpect(jsonPath("$.data").doesNotExist())
+                        .andDo(
+                            document(
+                                identifier = "clear-chat",
+                                description = "채팅 내역 초기화",
+                                snippets =
+                                    arrayOf(
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer token"),
+                                        ),
+                                        HeaderDocumentation.responseHeaders(
+                                            headerWithName("Location").description("생성된 리소스 URL"),
+                                        ),
+                                        responseFields(
+                                            fieldWithPath("success").description("성공 상태 여부").type(JsonFieldType.BOOLEAN),
+                                            fieldWithPath("error").description("에러 시 에러 정보").type(JsonFieldType.NULL),
+                                            fieldWithPath("data").description("데이터").type(JsonFieldType.NULL),
+                                        ),
+                                    ),
+                            ),
+                        )
+                }
+            }
+
+            context("subjectId가 존재하지 않을 경우") {
+                val id = 99999
+                subjectQuery = NotExistingIdSubjectQueryStub()
+
+                it("404 NOT_FOUND를 반환한다") {
+                    mockMvc
+                        .perform(
+                            post("/api/v1/subjects/$id/chat/archive")
+                                .header("Authorization", "Bearer token"),
+                        ).andExpect(status().isNotFound)
+                        .andExpect(jsonPath("$.success").value(false))
+                        .andExpect(jsonPath("$.data").doesNotExist())
+                        .andExpect(jsonPath("$.error.message").value("Subject not found by id: $id"))
+                        .andExpect(jsonPath("$.error.status").value(404))
+                        .andExpect(jsonPath("$.error.code").value("SUBJECT_NOT_FOUND"))
+                        .andDo(
+                            document(
+                                identifier = "clear-chat-not-found",
+                                description = "존재하지 않는 주제 초기화",
+                                snippets =
+                                    arrayOf(
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer token"),
+                                        ),
+                                        responseFields(
+                                            fieldWithPath("success").description("상태").type(JsonFieldType.BOOLEAN),
+                                            fieldWithPath("error.code").description("에러 코드").type(JsonFieldType.STRING),
+                                            fieldWithPath("error.status")
+                                                .description("HTTP 상태 코드")
+                                                .type(JsonFieldType.NUMBER),
+                                            fieldWithPath("error.message").description("에러 메시지").type(JsonFieldType.STRING),
+                                            fieldWithPath("data").description("데이터").type(JsonFieldType.NULL),
+                                        ),
+                                    ),
+                            ),
+                        )
+                }
+            }
+
+            context("답변이 0일 경우") {
+                val id = 2
+                subjectQuery = ExistingIdSubjectQuery()
+                chatQuery = NoAnswerChatQueryStub()
+
+                it("400 BAD_REQUEST를 반환한다") {
+                    mockMvc
+                        .perform(
+                            post("/api/v1/subjects/$id/chat/archive")
+                                .header("Authorization", "Bearer token"),
+                        ).andExpect(status().isBadRequest)
+                        .andExpect(jsonPath("$.success").value(false))
+                        .andExpect(jsonPath("$.data").doesNotExist())
+                        .andExpect(jsonPath("$.error.message").value("제출한 답변이 없습니다."))
+                        .andExpect(jsonPath("$.error.status").value(400))
+                        .andExpect(jsonPath("$.error.code").value("NO_ANSWER"))
+                        .andDo(
+                            document(
+                                identifier = "clear-chat-no-answer",
+                                description = "답변이 없는 주제 초기화",
+                                snippets =
+                                    arrayOf(
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer token"),
+                                        ),
+                                        responseFields(
+                                            fieldWithPath("success").description("상태").type(JsonFieldType.BOOLEAN),
+                                            fieldWithPath("error.code").description("에러 코드").type(JsonFieldType.STRING),
+                                            fieldWithPath("error.status")
+                                                .description("HTTP 상태 코드")
+                                                .type(JsonFieldType.NUMBER),
+                                            fieldWithPath("error.message").description("에러 메시지").type(JsonFieldType.STRING),
+                                            fieldWithPath("data").description("데이터").type(JsonFieldType.NULL),
+                                        ),
+                                    ),
+                            ),
+                        )
+                }
+            }
+        }
     }) {
     companion object {
         private val objectMapper = ObjectMapper()
 
         fun toJson(res: Any): String = objectMapper.writeValueAsString(res)
+    }
+
+    class StubMemberChatUseCase : MemberChatUseCase {
+        override fun archive(
+            chats: List<Chat>,
+            member: Member,
+            subject: Subject,
+        ): Long {
+            val answerChatCount = chats.count { it.isAnswer() }
+            return when (answerChatCount) {
+                0 -> throw NoAnswerException()
+                else -> 1
+            }
+        }
     }
 
     open abstract class StubSubjectQuery : SubjectQuery {
@@ -544,6 +682,58 @@ class SubjectApiTest :
                     title = "title1",
                     category = SubjectCategory.OS,
                     maxScore = 100,
+                ),
+            )
+    }
+
+    class ExistingIdSubjectQuery : StubSubjectQuery() {
+        override fun findByIdOrThrow(id: Long): Subject =
+            Subject(
+                id = id,
+                title = "스레드와 프로세스의 차이",
+                question = "스레드와 프로세스의 차이점은 무엇인가요?",
+                category = SubjectCategory.OS,
+            )
+
+        override fun findByIdOrThrowV2(id: Long): Subject = findByIdOrThrow(id)
+    }
+
+    class ExistingAnswerChatQuery : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> =
+            listOf(
+                Chat.createQuestion(
+                    subject = subject,
+                    member = member,
+                    nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
+                ),
+                Chat.createAnswer(
+                    subject = subject,
+                    member = member,
+                    answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
+                    score = 100,
+                ),
+            )
+    }
+
+    class NotExistingIdSubjectQueryStub : StubSubjectQuery() {
+        override fun findByIdOrThrow(id: Long): Subject = throw SubjectNotFoundException(id)
+
+        override fun findByIdOrThrowV2(id: Long): Subject = throw SubjectNotFoundExceptionV2(id)
+    }
+
+    class NoAnswerChatQueryStub : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> =
+            listOf(
+                Chat.createQuestion(
+                    subject = subject,
+                    member = member,
+                    nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
                 ),
             )
     }

@@ -6,10 +6,12 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerRespo
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
+import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
+import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import jakarta.validation.Valid
 import org.springframework.data.repository.query.Param
@@ -20,12 +22,14 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.net.URI
 
 @RestController
 class SubjectApi(
     private val subjectQuery: SubjectQuery,
     private val subjectUseCase: SubjectUseCase,
     private val chatQuery: ChatQuery,
+    private val memberChatUseCase: MemberChatUseCase,
 ) {
     @GetMapping("/api/subjects")
     fun getSubjects(
@@ -91,5 +95,23 @@ class SubjectApi(
         val response = ListDataResponse(subjectQuery.findWithMember(member, category))
 
         return ResponseEntity.ok(response)
+    }
+
+    /**
+     * 채팅 내역 아카이브
+     */
+    @PostMapping("/api/v1/subjects/{subjectId}/chat/archive")
+    fun deleteMessages(
+        member: Member,
+        @PathVariable("subjectId") subjectId: String,
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        val subject = subjectQuery.findByIdOrThrowV2(subjectId.toLong())
+        val chats = chatQuery.findBySubjectAndMember(subject, member)
+
+        val id = memberChatUseCase.archive(chats, member, subject)
+
+        return ResponseEntity
+            .created(URI("/api/v1/chat/archives/$id"))
+            .body(ApiResponse.success())
     }
 }
