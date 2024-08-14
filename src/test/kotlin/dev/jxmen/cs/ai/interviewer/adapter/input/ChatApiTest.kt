@@ -37,10 +37,13 @@ class ChatApiTest :
         val manualRestDocumentation = ManualRestDocumentation()
         lateinit var mockMvc: MockMvc
 
+        lateinit var subjectQuery: SubjectQueryStub
+        lateinit var chatQuery: ChatQuery
+
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(ChatApi(ChatApiStubQuery(), StubChatQuery(), StubMemberChatUseCase()))
+                    .standaloneSetup(ChatApi(subjectQuery, chatQuery, StubMemberChatUseCase()))
                     .setControllerAdvice(GlobalControllerAdvice())
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(
@@ -56,10 +59,14 @@ class ChatApiTest :
 
         describe("GET /api/v2/chat/messages?subjectId={subjectId} 요청은") {
             context("subjectId가 존재할경우") {
+                subjectQuery = ExistingIdSubjectQueryStub()
+                chatQuery = ExistingSubjectIdChatQueryStub()
+                val id = 1
+
                 it("200 OK와 Chat 객체를 반환한다") {
                     mockMvc
                         .perform(
-                            get("/api/v2/chat/messages?subjectId=${ChatApiStubQuery.EXIST_SUBJECT_ID}")
+                            get("/api/v2/chat/messages?subjectId=$id")
                                 .header("Authorization", "Bearer token"),
                         ).andExpect(status().isOk)
                         .andExpect(jsonPath("$.data[0].message").value("스레드와 프로세스의 차이점은 무엇인가요?"))
@@ -79,7 +86,10 @@ class ChatApiTest :
                                         ),
                                         responseFields(
                                             fieldWithPath("data[].message").description("메시지").type(JsonFieldType.STRING),
-                                            fieldWithPath("data[].score").description("점수").type(JsonFieldType.NUMBER).optional(),
+                                            fieldWithPath("data[].score")
+                                                .description("점수")
+                                                .type(JsonFieldType.NUMBER)
+                                                .optional(),
                                             fieldWithPath("data[].type").description("채팅 타입").type(JsonFieldType.STRING),
                                         ),
                                     ),
@@ -89,11 +99,14 @@ class ChatApiTest :
             }
 
             context("subjectId가 존재하지 않을 경우") {
+                subjectQuery = NotExistingIdSubjectQueryStub()
+                chatQuery = DummyChatQuery()
+                val id = 99999
 
                 it("404 NOT_FOUND를 반환한다") {
                     mockMvc
                         .perform(
-                            get("/api/v2/chat/messages?subjectId=${ChatApiStubQuery.NOT_EXIST_SUBJECT_ID}")
+                            get("/api/v2/chat/messages?subjectId=$id")
                                 .header("Authorization", "Bearer token"),
                         ).andExpect(status().isNotFound)
                         .andDo(
@@ -114,14 +127,18 @@ class ChatApiTest :
 
         describe("POST /api/v1/chat/archive/{subjectId} 요청은") {
 
-            context("subjectId와 member가 존재할 경우") {
+            context("subjectId와 답변 채팅이 존재할 경우") {
+                subjectQuery = ExistingIdSubjectQueryStub()
+                chatQuery = ExistingAnswerChatQueryStub()
+                val id = 1
+
                 it("201과 생성한 ID를 반환한다") {
                     mockMvc
                         .perform(
-                            post("/api/v1/chat/archive/${ChatApiStubQuery.EXIST_SUBJECT_ID}")
+                            post("/api/v1/chat/archive/$id")
                                 .header("Authorization", "Bearer token"),
                         ).andExpect(status().isCreated)
-                        .andExpect(header().string("Location", "/api/v1/chat/archives/1"))
+                        .andExpect(header().string("Location", "/api/v1/chat/archives/$id"))
                         .andExpect(jsonPath("$.success").value(true))
                         .andExpect(jsonPath("$.error").doesNotExist())
                         .andExpect(jsonPath("$.data").doesNotExist())
@@ -149,9 +166,10 @@ class ChatApiTest :
             }
 
             context("subjectId가 존재하지 않을 경우") {
-                it("404 NOT_FOUND를 반환한다") {
-                    val id = ChatApiStubQuery.NOT_EXIST_SUBJECT_ID
+                subjectQuery = NotExistingIdSubjectQueryStub()
+                val id = 2
 
+                it("404 NOT_FOUND를 반환한다") {
                     mockMvc
                         .perform(
                             post("/api/v1/chat/archive/$id")
@@ -174,7 +192,9 @@ class ChatApiTest :
                                         responseFields(
                                             fieldWithPath("success").description("상태").type(JsonFieldType.BOOLEAN),
                                             fieldWithPath("error.code").description("에러 코드").type(JsonFieldType.STRING),
-                                            fieldWithPath("error.status").description("HTTP 상태 코드").type(JsonFieldType.NUMBER),
+                                            fieldWithPath("error.status")
+                                                .description("HTTP 상태 코드")
+                                                .type(JsonFieldType.NUMBER),
                                             fieldWithPath("error.message").description("에러 메시지").type(JsonFieldType.STRING),
                                             fieldWithPath("data").description("데이터").type(JsonFieldType.NULL),
                                         ),
@@ -185,8 +205,11 @@ class ChatApiTest :
             }
 
             context("답변이 0일 경우") {
+                subjectQuery = ExistingIdSubjectQueryStub()
+                chatQuery = NoAnswerChatQueryStub()
+                val id = 99999
+
                 it("400 BAD_REQUEST를 반환한다") {
-                    val id = ChatApiStubQuery.NO_ANSWER_CHAT_SUBJECT_ID
                     mockMvc
                         .perform(
                             post("/api/v1/chat/archive/$id")
@@ -209,7 +232,9 @@ class ChatApiTest :
                                         responseFields(
                                             fieldWithPath("success").description("상태").type(JsonFieldType.BOOLEAN),
                                             fieldWithPath("error.code").description("에러 코드").type(JsonFieldType.STRING),
-                                            fieldWithPath("error.status").description("HTTP 상태 코드").type(JsonFieldType.NUMBER),
+                                            fieldWithPath("error.status")
+                                                .description("HTTP 상태 코드")
+                                                .type(JsonFieldType.NUMBER),
                                             fieldWithPath("error.message").description("에러 메시지").type(JsonFieldType.STRING),
                                             fieldWithPath("data").description("데이터").type(JsonFieldType.NULL),
                                         ),
@@ -233,114 +258,96 @@ class ChatApiTest :
             }
         }
     }
-}
 
-abstract class BaseChatApiStubQuery : SubjectQuery {
-    override fun findBySubject(cateStr: String): List<Subject> = throw NotImplementedError()
+    abstract class SubjectQueryStub : SubjectQuery {
+        override fun findBySubject(cateStr: String): List<Subject> = throw NotImplementedError()
 
-    override fun findWithMember(
-        member: Member,
-        category: String?,
-    ): List<MemberSubjectResponse> = throw NotImplementedError()
+        override fun findWithMember(
+            member: Member,
+            category: String?,
+        ): List<MemberSubjectResponse> = throw NotImplementedError()
 
-    abstract override fun findById(id: Long): Subject
+        abstract override fun findById(id: Long): Subject
 
-    abstract override fun findByIdV2(id: Long): Subject
-}
-
-class ChatApiStubQuery : BaseChatApiStubQuery() {
-    companion object {
-        const val EXIST_SUBJECT_ID = 1L
-        const val NO_ANSWER_CHAT_SUBJECT_ID = 2L
-        const val NOT_EXIST_SUBJECT_ID = 99999L
+        abstract override fun findByIdV2(id: Long): Subject
     }
 
-    override fun findById(id: Long): Subject {
-        val subject =
-            Subject.createWithId(
+    open class ExistingIdSubjectQueryStub : SubjectQueryStub() {
+        override fun findById(id: Long): Subject =
+            Subject(
                 id = id,
                 title = "스레드와 프로세스의 차이",
                 question = "스레드와 프로세스의 차이점은 무엇인가요?",
                 category = SubjectCategory.OS,
             )
 
-        return when (id) {
-            EXIST_SUBJECT_ID -> subject
-            NO_ANSWER_CHAT_SUBJECT_ID -> subject
-            NOT_EXIST_SUBJECT_ID -> throw SubjectNotFoundException(id)
-            else -> throw IllegalArgumentException("Invalid subject id")
-        }
+        override fun findByIdV2(id: Long): Subject = findById(id)
     }
 
-    override fun findByIdV2(id: Long): Subject {
-        if (id == NOT_EXIST_SUBJECT_ID) throw SubjectNotFoundExceptionV2(id)
+    class NotExistingIdSubjectQueryStub : SubjectQueryStub() {
+        override fun findById(id: Long): Subject = throw SubjectNotFoundException(id)
 
-        return findById(id)
+        override fun findByIdV2(id: Long): Subject = throw SubjectNotFoundExceptionV2(id)
     }
-}
 
-class ExistingAnswerChatQueryStub : ChatQuery {
-    override fun findBySubjectAndMember(
-        subject: Subject,
-        member: Member,
-    ): List<Chat> =
-        listOf(
-            Chat.createQuestion(
-                subject = subject,
-                member = member,
-                nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
-            ),
-            Chat.createAnswer(
-                subject = subject,
-                member = member,
-                answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
-                score = 100,
-            ),
-        )
-}
+    class ExistingAnswerChatQueryStub : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> =
+            listOf(
+                Chat.createQuestion(
+                    subject = subject,
+                    member = member,
+                    nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
+                ),
+                Chat.createAnswer(
+                    subject = subject,
+                    member = member,
+                    answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
+                    score = 100,
+                ),
+            )
+    }
 
-class NoAnswerChatQueryStub : ChatQuery {
-    override fun findBySubjectAndMember(
-        subject: Subject,
-        member: Member,
-    ): List<Chat> =
-        listOf(
-            Chat.createQuestion(
-                subject = subject,
-                member = member,
-                nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
-            ),
-        )
-}
+    class NoAnswerChatQueryStub : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> =
+            listOf(
+                Chat.createQuestion(
+                    subject = subject,
+                    member = member,
+                    nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
+                ),
+            )
+    }
 
-class StubChatQuery : ChatQuery {
-    override fun findBySubjectAndMember(
-        subject: Subject,
-        member: Member,
-    ): List<Chat> =
-        when (subject.id) {
-            ChatApiStubQuery.NO_ANSWER_CHAT_SUBJECT_ID ->
-                listOf(
-                    Chat.createQuestion(
-                        subject = subject,
-                        member = member,
-                        nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
-                    ),
-                )
-            ChatApiStubQuery.EXIST_SUBJECT_ID ->
-                listOf(
-                    Chat.createQuestion(
-                        subject = subject,
-                        member = member,
-                        nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
-                    ),
-                    Chat.createAnswer(
-                        subject = subject,
-                        member = member,
-                        answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
-                        score = 100,
-                    ),
-                )
-            else -> error("Invalid subject id")
-        }
+    class DummyChatQuery : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> = emptyList()
+    }
+
+    class ExistingSubjectIdChatQueryStub : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> =
+            listOf(
+                Chat.createQuestion(
+                    subject = subject,
+                    member = member,
+                    nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
+                ),
+                Chat.createAnswer(
+                    subject = subject,
+                    member = member,
+                    answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
+                    score = 100,
+                ),
+            )
+    }
 }

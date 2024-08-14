@@ -43,19 +43,4 @@ class Subject(
     ) {
         super.id = id
     }
-
-    companion object {
-        fun createWithId(
-            id: Long,
-            title: String,
-            question: String,
-            category: SubjectCategory,
-        ): Subject =
-            Subject(
-                id = id,
-                title = title,
-                question = question,
-                category = category,
-            )
-    }
 }
