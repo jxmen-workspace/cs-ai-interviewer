@@ -44,7 +44,7 @@ class SubjectQueryServiceTest :
                     every { subjectQueryRepository.findByCategory(any()) } returns emptyList()
 
                     shouldThrow<IllegalArgumentException> {
-                        subjectQueryService.findBySubject(tc.input)
+                        subjectQueryService.findByCategory(tc.input)
                     }
                 }
             }
@@ -66,7 +66,7 @@ class SubjectQueryServiceTest :
                             ),
                         )
 
-                    val subjectsByCategory = subjectQueryService.findBySubject(tc.input)
+                    val subjectsByCategory = subjectQueryService.findByCategory(tc.input)
                     subjectsByCategory.size shouldBe 1
                     with(subjectsByCategory[0]) {
                         title shouldBe tc.input.uppercase()
@@ -87,7 +87,7 @@ class SubjectQueryServiceTest :
                         )
 
                     shouldNotThrow<SubjectNotFoundException> {
-                        val subject = subjectQueryService.findById(1L)
+                        val subject = subjectQueryService.findByIdOrThrow(1L)
                         subject.title shouldBe "OS"
                         subject.question shouldBe "What is OS?"
                         subject.category shouldBe SubjectCategory.OS
@@ -99,7 +99,7 @@ class SubjectQueryServiceTest :
                     every { subjectQueryRepository.findByIdOrNull(-1) } returns null
 
                     shouldThrow<SubjectNotFoundException> {
-                        subjectQueryService.findById(-1)
+                        subjectQueryService.findByIdOrThrow(-1)
                     }
                 }
             }

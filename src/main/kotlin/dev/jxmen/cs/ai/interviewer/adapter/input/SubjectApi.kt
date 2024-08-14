@@ -33,7 +33,7 @@ class SubjectApi(
     ): ResponseEntity<ListDataResponse<SubjectResponse>> {
         val response =
             ListDataResponse(
-                subjectQuery.findBySubject(cateStr).map {
+                subjectQuery.findByCategory(cateStr).map {
                     SubjectResponse(
                         id = it.id,
                         title = it.title,
@@ -49,7 +49,7 @@ class SubjectApi(
     fun getSubject(
         @PathVariable("id") id: String,
     ): ResponseEntity<SubjectDetailResponse> {
-        val subject = subjectQuery.findById(id.toLong())
+        val subject = subjectQuery.findByIdOrThrow(id.toLong())
 
         return ResponseEntity.ok(
             SubjectDetailResponse(
@@ -67,7 +67,7 @@ class SubjectApi(
         @PathVariable("subjectId") subjectId: String,
         @RequestBody @Valid req: SubjectAnswerRequest,
     ): ResponseEntity<SubjectAnswerResponse> {
-        val subject = subjectQuery.findById(subjectId.toLong())
+        val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
         val chats = chatQuery.findBySubjectAndMember(subject, member)
 
         val res =
