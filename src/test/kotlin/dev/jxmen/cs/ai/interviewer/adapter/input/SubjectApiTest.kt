@@ -411,7 +411,7 @@ class SubjectApiTest :
             }
         }
 
-        describe("POST /api/v1/subjects/{subjectId}/chat/archive 요청은") {
+        describe("POST /api/v1/subjects/{subjectId}/chats/archive 요청은") {
 
             context("subjectId와 답변 채팅이 존재할 경우") {
                 val id = 1
@@ -421,7 +421,7 @@ class SubjectApiTest :
                 it("201과 생성한 ID를 반환한다") {
                     mockMvc
                         .perform(
-                            post("/api/v1/subjects/$id/chat/archive")
+                            post("/api/v1/subjects/$id/chats/archive")
                                 .header("Authorization", "Bearer token"),
                         ).andExpect(status().isCreated)
                         .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/chat/archives/$id"))
@@ -458,7 +458,7 @@ class SubjectApiTest :
                 it("404 NOT_FOUND를 반환한다") {
                     mockMvc
                         .perform(
-                            post("/api/v1/subjects/$id/chat/archive")
+                            post("/api/v1/subjects/$id/chats/archive")
                                 .header("Authorization", "Bearer token"),
                         ).andExpect(status().isNotFound)
                         .andExpect(jsonPath("$.success").value(false))
@@ -498,7 +498,7 @@ class SubjectApiTest :
                 it("400 BAD_REQUEST를 반환한다") {
                     mockMvc
                         .perform(
-                            post("/api/v1/subjects/$id/chat/archive")
+                            post("/api/v1/subjects/$id/chats/archive")
                                 .header("Authorization", "Bearer token"),
                         ).andExpect(status().isBadRequest)
                         .andExpect(jsonPath("$.success").value(false))
