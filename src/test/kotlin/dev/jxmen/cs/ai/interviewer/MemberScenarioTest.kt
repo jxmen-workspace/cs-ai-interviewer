@@ -138,7 +138,7 @@ class MemberScenarioTest {
 
         // 채팅 아카이브
         mockMvc
-            .post("/api/v1/subjects/${createdSubject.id}/chat/archive") {
+            .post("/api/v1/subjects/${createdSubject.id}/chats/archive") {
                 header("Authorization", "Bearer test-token")
             }.andExpect {
                 status { isCreated() }

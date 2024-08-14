@@ -101,7 +101,7 @@ class SubjectApi(
     /**
      * 채팅 내역 아카이브
      */
-    @PostMapping("/api/v1/subjects/{subjectId}/chat/archive")
+    @PostMapping("/api/v1/subjects/{subjectId}/chats/archive")
     fun deleteMessages(
         member: Member,
         @PathVariable("subjectId") subjectId: String,
