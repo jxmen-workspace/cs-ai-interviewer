@@ -614,7 +614,7 @@ class SubjectApiTest :
                 Chat.createQuestion(
                     subject = subject,
                     member = member,
-                    nextQuestion = "What is OS?",
+                    message = "What is OS?",
                 ),
             )
     }
@@ -629,7 +629,7 @@ class SubjectApiTest :
                 if (i % 2 == 0) {
                     chats.add(Chat.createAnswer(subject = subject, member = member, answer = "hi", score = 0))
                 } else {
-                    chats.add(Chat.createQuestion(subject = subject, member = member, nextQuestion = "What is OS?"))
+                    chats.add(Chat.createQuestion(subject = subject, member = member, message = "What is OS?"))
                 }
             }
 
@@ -707,7 +707,7 @@ class SubjectApiTest :
                 Chat.createQuestion(
                     subject = subject,
                     member = member,
-                    nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
+                    message = "스레드와 프로세스의 차이점은 무엇인가요?",
                 ),
                 Chat.createAnswer(
                     subject = subject,
@@ -733,7 +733,7 @@ class SubjectApiTest :
                 Chat.createQuestion(
                     subject = subject,
                     member = member,
-                    nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
+                    message = "스레드와 프로세스의 차이점은 무엇인가요?",
                 ),
             )
     }

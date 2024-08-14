@@ -58,7 +58,7 @@ class JdslSubjectQueryRepositoryTest(
             listOf(
                 // subject1
                 Chat.createAnswer(subject = subject1, member = member, answer = "test", score = 50),
-                Chat.createQuestion(subject = subject1, member = member, nextQuestion = "test"),
+                Chat.createQuestion(subject = subject1, member = member, message = "test"),
                 Chat.createAnswer(subject = subject1, member = member, answer = "test", score = 100),
                 // subject2
                 Chat.createAnswer(subject = subject2, member = member, answer = "test", score = 70),
