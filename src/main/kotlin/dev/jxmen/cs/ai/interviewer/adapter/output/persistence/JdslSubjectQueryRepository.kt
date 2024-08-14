@@ -16,8 +16,8 @@ import org.springframework.stereotype.Repository
 @Repository
 class JdslSubjectQueryRepository(
     private val entityManager: EntityManager,
+    private val jpqlRenderContext: JpqlRenderContext,
 ) : SubjectQueryRepository {
-    private val context = JpqlRenderContext()
     private val renderer = JpqlRenderer()
 
     override fun findByCategory(category: SubjectCategory): List<Subject> {
@@ -35,7 +35,7 @@ class JdslSubjectQueryRepository(
                         path(Subject::category).eq(category),
                     )
                 },
-                context,
+                jpqlRenderContext,
             )
 
         return entityManager
@@ -76,7 +76,7 @@ class JdslSubjectQueryRepository(
                     path(Subject::id).asc(),
                 )
             }
-        val rendered = renderer.render(jpql, context)
+        val rendered = renderer.render(jpql, jpqlRenderContext)
 
         return entityManager
             .createQuery(rendered.query, MemberSubjectResponse::class.java)
