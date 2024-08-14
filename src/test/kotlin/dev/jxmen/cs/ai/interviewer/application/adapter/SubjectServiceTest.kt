@@ -1,6 +1,5 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
-import dev.jxmen.cs.ai.interviewer.application.port.input.ChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
 import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
 import dev.jxmen.cs.ai.interviewer.application.port.output.dto.AiApiAnswerResponse
@@ -19,8 +18,8 @@ class SubjectServiceTest :
     StringSpec({
 
         val aiApiClient: AIApiClient = mockk()
-        val chatUseCase: ChatUseCase = mockk()
-        val subjectService = SubjectService(aiApiClient, chatUseCase)
+        val chatAppender: ChatAppender = mockk()
+        val subjectService = SubjectService(aiApiClient, chatAppender)
 
         val subject =
             Subject(
@@ -54,11 +53,19 @@ class SubjectServiceTest :
                 )
             val apiResponse = AiApiAnswerResponse("nextQuestion", 50)
             every { aiApiClient.requestAnswer(any(), any(), any()) } returns apiResponse
-            every { chatUseCase.add(any(), any(), any(), any(), any()) } returns Unit
+            every { chatAppender.addAnswerAndNextQuestion(any(), any(), any(), any(), any()) } returns Unit
 
             subjectService.answerV2(command)
 
             verify { aiApiClient.requestAnswer(command.subject, command.answer, command.chats) }
-            verify { chatUseCase.add(command.subject, command.member, command.answer, apiResponse.nextQuestion, apiResponse.score) }
+            verify {
+                chatAppender.addAnswerAndNextQuestion(
+                    command.subject,
+                    command.member,
+                    command.answer,
+                    apiResponse.nextQuestion,
+                    apiResponse.score,
+                )
+            }
         }
     })
