@@ -1,5 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.adapter.output
 
+import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
 import dev.jxmen.cs.ai.interviewer.adapter.output.persistence.JdslSubjectQueryRepository
 import dev.jxmen.cs.ai.interviewer.adapter.output.persistence.JpaChatCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
@@ -9,32 +10,35 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectQueryRepository
+import dev.jxmen.cs.ai.interviewer.global.config.KotlinJdslConfig
 import io.kotest.matchers.shouldBe
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestConstructor
 import org.springframework.transaction.annotation.Transactional
 
 @DataJpaTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @Transactional
+@Import(KotlinJdslConfig::class)
 class JdslSubjectQueryRepositoryTest(
     private val entityManager: EntityManager,
     private val subjectCommandRepository: SubjectCommandRepository,
     private val chatCommandRepository: JpaChatCommandRepository,
     private val memberCommandRepository: MemberCommandRepository,
+    private val context: JpqlRenderContext,
 ) {
     private lateinit var subjectQueryRepository: SubjectQueryRepository
-
     private lateinit var subject1: Subject
     private lateinit var subject2: Subject
     private lateinit var member: Member
 
     @BeforeEach
     fun setUp() {
-        subjectQueryRepository = JdslSubjectQueryRepository(entityManager)
+        subjectQueryRepository = JdslSubjectQueryRepository(entityManager, context)
 
         subject1 =
             subjectCommandRepository.save(

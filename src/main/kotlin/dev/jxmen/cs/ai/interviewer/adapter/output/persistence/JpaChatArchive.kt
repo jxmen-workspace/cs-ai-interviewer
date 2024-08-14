@@ -34,4 +34,8 @@ class JpaChatArchive(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     val member: Member,
-) : BaseEntity()
+) : BaseEntity() {
+    constructor(id: Long, subject: Subject, member: Member) : this(subject, member) {
+        this.id = id
+    }
+}

@@ -2,17 +2,19 @@ package dev.jxmen.cs.ai.interviewer
 
 import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
 import dev.jxmen.cs.ai.interviewer.application.port.output.dto.AiApiAnswerResponse
+import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveContentQueryRepository
+import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.member.MemberCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturn
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
@@ -20,25 +22,26 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.test.context.TestConstructor
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
 @SpringBootTest
-class MemberScenarioTest {
+@Transactional
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class MemberScenarioTest(
+    private val context: WebApplicationContext,
+    private val subjectCommandRepository: SubjectCommandRepository,
+    private val memberCommandRepository: MemberCommandRepository,
+    private val chatArchiveQueryRepository: ChatArchiveQueryRepository,
+    private val chatArchiveContentQueryRepository: ChatArchiveContentQueryRepository,
+) {
     @MockBean // 해당 빈만 모킹해서 사용한다.
     private lateinit var aiApiClient: AIApiClient
-
-    @Autowired
-    private lateinit var context: WebApplicationContext
-
-    @Autowired
-    private lateinit var subjectCommandRepository: SubjectCommandRepository
-
-    @Autowired
-    private lateinit var memberCommandRepository: MemberCommandRepository
 
     private lateinit var mockMvc: MockMvc
 
@@ -158,7 +161,12 @@ class MemberScenarioTest {
                 jsonPath("$.data") { isEmpty() }
             }
 
-        // NOTE: 채팅 아카이브에 잘 저장이 되었는지 나중에 확인 필요
+        // NOTE: 추후 API 개발 완료 시 API 호출로 변경
+        val archives = chatArchiveQueryRepository.findBySubjectAndMember(createdSubject, createdMember)
+        archives.size shouldBe 1
+
+        val archiveContents = chatArchiveContentQueryRepository.findByArchive(archives[0])
+        archiveContents.size shouldBe 2
     }
 
     private fun createOAuth2AuthenticationToken(oauth2User: DefaultOAuth2User): OAuth2AuthenticationToken {
