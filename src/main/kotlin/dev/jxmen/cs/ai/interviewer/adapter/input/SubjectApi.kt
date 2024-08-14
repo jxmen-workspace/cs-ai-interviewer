@@ -8,8 +8,7 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
-import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
-import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
+import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
@@ -27,7 +26,6 @@ import java.net.URI
 @RestController
 class SubjectApi(
     private val subjectQuery: SubjectQuery,
-    private val subjectUseCase: SubjectUseCase,
     private val chatQuery: ChatQuery,
     private val memberChatUseCase: MemberChatUseCase,
 ) {
@@ -35,14 +33,12 @@ class SubjectApi(
     fun getSubjects(
         @RequestParam("category") cateStr: String,
     ): ResponseEntity<ListDataResponse<SubjectResponse>> {
+        val subjects = subjectQuery.findByCategory(cateStr)
+
         val response =
             ListDataResponse(
-                subjectQuery.findByCategory(cateStr).map {
-                    SubjectResponse(
-                        id = it.id,
-                        title = it.title,
-                        category = it.category,
-                    )
+                subjects.map {
+                    SubjectResponse(id = it.id, title = it.title, category = it.category)
                 },
             )
 
@@ -65,6 +61,9 @@ class SubjectApi(
         )
     }
 
+    /**
+     * 답변 등록
+     */
     @PostMapping("/api/v2/subjects/{subjectId}/answer")
     fun answerSubjectV2(
         member: Member,
@@ -74,19 +73,21 @@ class SubjectApi(
         val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
         val chats = chatQuery.findBySubjectAndMember(subject, member)
 
-        val res =
-            subjectUseCase.answerV2(
-                CreateSubjectAnswerCommandV2(
-                    subject = subject,
-                    answer = req.answer,
-                    member = member,
-                    chats = chats,
-                ),
+        val command =
+            CreateSubjectAnswerCommand(
+                subject = subject,
+                answer = req.answer,
+                member = member,
+                chats = chats,
             )
+        val answerResponse = memberChatUseCase.answer(command)
 
-        return ResponseEntity.status(201).body(res)
+        return ResponseEntity.status(201).body(answerResponse)
     }
 
+    /**
+     * 로그인한 회원의 주제 목록 조회 (회원 관련 정보 포함 - ex)채팅 최대 점수)
+     */
     @GetMapping("/api/v1/subjects/member")
     fun getMemberSubjects(
         member: Member,

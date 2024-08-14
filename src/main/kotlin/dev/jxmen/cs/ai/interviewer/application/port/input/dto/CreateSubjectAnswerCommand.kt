@@ -4,7 +4,7 @@ import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 
-data class CreateSubjectAnswerCommandV2(
+data class CreateSubjectAnswerCommand(
     val subject: Subject,
     val answer: String,
     val member: Member,
