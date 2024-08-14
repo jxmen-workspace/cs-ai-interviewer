@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional
 @DataJpaTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @Transactional
-@Import(KotlinJdslConfig::class)
+@Import(KotlinJdslConfig::class) // NOTE: DataJpaTest는 KotlinJdslConfig를 찾지 못함
 class JdslSubjectQueryRepositoryTest(
     private val entityManager: EntityManager,
     private val subjectCommandRepository: SubjectCommandRepository,
