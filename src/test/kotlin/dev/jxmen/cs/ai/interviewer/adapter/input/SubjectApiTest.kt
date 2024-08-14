@@ -10,8 +10,7 @@ import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
-import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectUseCase
-import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommandV2
+import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
 import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.AllAnswersUsedException
@@ -66,7 +65,7 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(subjectQuery, StubSubjectUseCase(), chatQuery, StubMemberChatUseCase()))
+                    .standaloneSetup(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase()))
                     .setControllerAdvice(controllerAdvice)
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
@@ -539,6 +538,13 @@ class SubjectApiTest :
     }
 
     class StubMemberChatUseCase : MemberChatUseCase {
+        override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse {
+            val chats = Chats(command.chats)
+            require(!chats.useAllAnswers()) { throw AllAnswersUsedException("답변을 모두 사용했습니다.") }
+
+            return SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
+        }
+
         override fun archive(
             chats: List<Chat>,
             member: Member,
@@ -569,15 +575,6 @@ class SubjectApiTest :
         override fun findByIdOrThrow(id: Long): Subject = Subject.createOS(id = id, title = "test subject", question = "test question")
 
         override fun findByIdOrThrowV2(id: Long): Subject = findByIdOrThrow(id)
-    }
-
-    class StubSubjectUseCase : SubjectUseCase {
-        override fun answerV2(command: CreateSubjectAnswerCommandV2): SubjectAnswerResponse {
-            val chats = Chats(command.chats)
-            require(!chats.useAllAnswers()) { throw AllAnswersUsedException("답변을 모두 사용했습니다.") }
-
-            return SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
-        }
     }
 
     class ExistCategorySubjectQueryStub : StubSubjectQuery() {
