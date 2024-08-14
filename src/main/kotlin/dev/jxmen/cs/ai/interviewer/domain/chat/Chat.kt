@@ -57,12 +57,12 @@ class Chat(
         fun createQuestion(
             subject: Subject,
             member: Member,
-            nextQuestion: String, // TODO: message로 변경
+            message: String,
         ): Chat =
             Chat(
                 subject = subject,
                 member = member,
-                content = ChatContent.createQuestion(nextQuestion),
+                content = ChatContent.createQuestion(message),
             )
 
         fun createAnswer(

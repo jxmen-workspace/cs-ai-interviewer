@@ -161,7 +161,7 @@ class ChatApiTest :
                 Chat.createQuestion(
                     subject = subject,
                     member = member,
-                    nextQuestion = "스레드와 프로세스의 차이점은 무엇인가요?",
+                    message = "스레드와 프로세스의 차이점은 무엇인가요?",
                 ),
                 Chat.createAnswer(
                     subject = subject,
