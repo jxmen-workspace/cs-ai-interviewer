@@ -462,6 +462,8 @@ class SubjectApiTest :
                         ),
                     )
             }
+
+        override fun findByIdV2(id: Long): Subject = findById(id)
     }
 
     class StubSubjectUseCase : SubjectUseCase {

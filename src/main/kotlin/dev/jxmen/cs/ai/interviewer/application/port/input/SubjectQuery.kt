@@ -13,4 +13,6 @@ interface SubjectQuery {
         member: Member,
         category: String? = null,
     ): List<MemberSubjectResponse>
+
+    fun findByIdV2(id: Long): Subject
 }

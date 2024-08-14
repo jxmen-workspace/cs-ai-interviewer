@@ -6,8 +6,10 @@ import dev.jxmen.cs.ai.interviewer.domain.chat.ChatCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
+@Transactional
 class ChatService(
     private val chatCommandRepository: ChatCommandRepository,
 ) : ChatUseCase {
