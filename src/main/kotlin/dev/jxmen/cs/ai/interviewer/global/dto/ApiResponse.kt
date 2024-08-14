@@ -21,6 +21,13 @@ data class ApiResponse<T>(
                         message = message,
                     ),
             )
+
+        fun success(): ApiResponse<Nothing> =
+            ApiResponse(
+                success = true,
+                data = null,
+                error = null,
+            )
     }
 }
 
