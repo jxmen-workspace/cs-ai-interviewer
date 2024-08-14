@@ -43,4 +43,12 @@ class Subject(
     ) {
         super.id = id
     }
+
+    companion object {
+        fun createOS(
+            id: Long,
+            title: String,
+            question: String,
+        ): Subject = Subject(id, title, question, SubjectCategory.OS)
+    }
 }

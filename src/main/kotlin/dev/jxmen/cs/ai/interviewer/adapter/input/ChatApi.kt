@@ -26,7 +26,7 @@ class ChatApi(
         member: Member,
         @Param("subjectId") subjectId: String,
     ): ResponseEntity<ListDataResponse<ChatMessageResponse>> {
-        val subject = subjectQuery.findById(subjectId.toLong())
+        val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
 
         val messages =
             chatQuery.findBySubjectAndMember(
@@ -55,7 +55,7 @@ class ChatApi(
         member: Member,
         @PathVariable("subjectId") subjectId: String,
     ): ResponseEntity<ApiResponse<Nothing>> {
-        val subject = subjectQuery.findByIdV2(subjectId.toLong())
+        val subject = subjectQuery.findByIdOrThrowV2(subjectId.toLong())
         val chats = chatQuery.findBySubjectAndMember(subject, member)
 
         val id = memberChatUseCase.archive(chats, member, subject)

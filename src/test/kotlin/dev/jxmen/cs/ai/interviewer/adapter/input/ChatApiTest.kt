@@ -59,9 +59,9 @@ class ChatApiTest :
 
         describe("GET /api/v2/chat/messages?subjectId={subjectId} 요청은") {
             context("subjectId가 존재할경우") {
+                val id = 1
                 subjectQuery = ExistingIdSubjectQueryStub()
                 chatQuery = ExistingSubjectIdChatQueryStub()
-                val id = 1
 
                 it("200 OK와 Chat 객체를 반환한다") {
                     mockMvc
@@ -99,9 +99,9 @@ class ChatApiTest :
             }
 
             context("subjectId가 존재하지 않을 경우") {
+                val id = 99999
                 subjectQuery = NotExistingIdSubjectQueryStub()
                 chatQuery = DummyChatQuery()
-                val id = 99999
 
                 it("404 NOT_FOUND를 반환한다") {
                     mockMvc
@@ -128,9 +128,9 @@ class ChatApiTest :
         describe("POST /api/v1/chat/archive/{subjectId} 요청은") {
 
             context("subjectId와 답변 채팅이 존재할 경우") {
+                val id = 1
                 subjectQuery = ExistingIdSubjectQueryStub()
                 chatQuery = ExistingAnswerChatQueryStub()
-                val id = 1
 
                 it("201과 생성한 ID를 반환한다") {
                     mockMvc
@@ -166,8 +166,8 @@ class ChatApiTest :
             }
 
             context("subjectId가 존재하지 않을 경우") {
+                val id = 99999
                 subjectQuery = NotExistingIdSubjectQueryStub()
-                val id = 2
 
                 it("404 NOT_FOUND를 반환한다") {
                     mockMvc
@@ -205,9 +205,9 @@ class ChatApiTest :
             }
 
             context("답변이 0일 경우") {
+                val id = 2
                 subjectQuery = ExistingIdSubjectQueryStub()
                 chatQuery = NoAnswerChatQueryStub()
-                val id = 99999
 
                 it("400 BAD_REQUEST를 반환한다") {
                     mockMvc
@@ -260,20 +260,20 @@ class ChatApiTest :
     }
 
     abstract class SubjectQueryStub : SubjectQuery {
-        override fun findBySubject(cateStr: String): List<Subject> = throw NotImplementedError()
+        override fun findByCategory(cateStr: String): List<Subject> = throw NotImplementedError()
 
         override fun findWithMember(
             member: Member,
             category: String?,
         ): List<MemberSubjectResponse> = throw NotImplementedError()
 
-        abstract override fun findById(id: Long): Subject
+        abstract override fun findByIdOrThrow(id: Long): Subject
 
-        abstract override fun findByIdV2(id: Long): Subject
+        abstract override fun findByIdOrThrowV2(id: Long): Subject
     }
 
     open class ExistingIdSubjectQueryStub : SubjectQueryStub() {
-        override fun findById(id: Long): Subject =
+        override fun findByIdOrThrow(id: Long): Subject =
             Subject(
                 id = id,
                 title = "스레드와 프로세스의 차이",
@@ -281,13 +281,13 @@ class ChatApiTest :
                 category = SubjectCategory.OS,
             )
 
-        override fun findByIdV2(id: Long): Subject = findById(id)
+        override fun findByIdOrThrowV2(id: Long): Subject = findByIdOrThrow(id)
     }
 
     class NotExistingIdSubjectQueryStub : SubjectQueryStub() {
-        override fun findById(id: Long): Subject = throw SubjectNotFoundException(id)
+        override fun findByIdOrThrow(id: Long): Subject = throw SubjectNotFoundException(id)
 
-        override fun findByIdV2(id: Long): Subject = throw SubjectNotFoundExceptionV2(id)
+        override fun findByIdOrThrowV2(id: Long): Subject = throw SubjectNotFoundExceptionV2(id)
     }
 
     class ExistingAnswerChatQueryStub : ChatQuery {

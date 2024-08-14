@@ -16,13 +16,13 @@ import org.springframework.transaction.annotation.Transactional
 class SubjectQueryService(
     private val subjectQueryRepository: SubjectQueryRepository,
 ) : SubjectQuery {
-    override fun findBySubject(cateStr: String): List<Subject> {
+    override fun findByCategory(cateStr: String): List<Subject> {
         val subjectCategory = SubjectCategory.valueOf(cateStr.uppercase())
 
         return this.subjectQueryRepository.findByCategory(subjectCategory)
     }
 
-    override fun findById(id: Long): Subject = this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundException(id)
+    override fun findByIdOrThrow(id: Long): Subject = this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundException(id)
 
     override fun findWithMember(
         member: Member,
@@ -36,5 +36,6 @@ class SubjectQueryService(
     /**
      * @throws SubjectNotFoundExceptionV2 if the subject is not found
      */
-    override fun findByIdV2(id: Long): Subject = this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundExceptionV2(id)
+    override fun findByIdOrThrowV2(id: Long): Subject =
+        this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundExceptionV2(id)
 }

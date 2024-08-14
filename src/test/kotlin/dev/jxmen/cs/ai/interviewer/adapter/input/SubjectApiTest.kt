@@ -20,6 +20,7 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
+import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundExceptionV2
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
@@ -44,9 +45,9 @@ import org.springframework.util.LinkedMultiValueMap
 
 class SubjectApiTest :
     DescribeSpec({
-        val stubSubjectQuery = StubSubjectQuery()
-        val stubSubjectUseCase = StubSubjectUseCase()
-        val stubChatQuery = StubChatQuery()
+
+        lateinit var subjectQuery: SubjectQuery
+        lateinit var chatQuery: ChatQuery
 
         /**
          * without junit5 on spring rest docs, `ManualRestDocs` to generate api spec
@@ -61,7 +62,7 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(stubSubjectQuery, stubSubjectUseCase, stubChatQuery))
+                    .standaloneSetup(SubjectApi(subjectQuery, StubSubjectUseCase(), chatQuery))
                     .setControllerAdvice(controllerAdvice)
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
@@ -75,11 +76,16 @@ class SubjectApiTest :
         }
 
         describe("GET /api/subjects") {
+            chatQuery = DummyChatQuery()
+
             context("존재하는 카테고리 주제 목록 조회 요청 시") {
+                subjectQuery = ExistCategorySubjectQueryStub()
+                val category = "os"
+
                 it("200 상태코드와 주제 목록을 응답한다.") {
                     val expectResponse =
                         ListDataResponse(
-                            stubSubjectQuery.findBySubject("os").map {
+                            subjectQuery.findByCategory(category).map {
                                 SubjectResponse(
                                     id = it.id,
                                     title = it.title,
@@ -87,7 +93,7 @@ class SubjectApiTest :
                                 )
                             },
                         )
-                    val queryParams = LinkedMultiValueMap<String, String>().apply { add("category", "os") }
+                    val queryParams = LinkedMultiValueMap<String, String>().apply { add("category", category) }
 
                     mockMvc
                         .perform(get("/api/subjects").queryParams(queryParams))
@@ -112,6 +118,8 @@ class SubjectApiTest :
             }
 
             context("존재하지 않는 카테고리 주제 목록 조회 요청 시") {
+                subjectQuery = NotExistCategorySubjectQuery()
+
                 it("400를 응답한다.") {
                     val queryParams = LinkedMultiValueMap<String, String>().apply { add("category", "not_exist") }
 
@@ -128,6 +136,8 @@ class SubjectApiTest :
             }
 
             context("카테고리 파라미터가 없는 요청일 경우") {
+                subjectQuery = DummySubjectQuery()
+
                 it("400을 응답한다.") {
                     mockMvc
                         .perform(get("/api/subjects"))
@@ -143,19 +153,22 @@ class SubjectApiTest :
         }
 
         describe("GET /api/subjects/{id}") {
+            chatQuery = DummyChatQuery()
+
             context("존재하는 주제 조회 시") {
+                val id = 1
+                subjectQuery = ExistIdSubjectQuery()
                 it("should return 200 with subject") {
-                    val subject = stubSubjectQuery.findById(StubSubjectQuery.EXIST_SUBJECT_ID)
                     val expectResponse =
                         SubjectDetailResponse(
-                            id = subject.id,
-                            category = subject.category,
-                            title = subject.title,
-                            question = subject.question,
+                            id = id.toLong(),
+                            title = "test subject",
+                            question = "test question",
+                            category = SubjectCategory.OS,
                         )
 
                     mockMvc
-                        .perform(get("/api/subjects/1"))
+                        .perform(get("/api/subjects/$id"))
                         .andExpect(status().isOk)
                         .andExpect(content().json(toJson(expectResponse)))
                         .andDo(
@@ -177,9 +190,12 @@ class SubjectApiTest :
             }
 
             context("존재하지 않는 주제 조회 시") {
+                subjectQuery = NotExistIdSubjectQuery()
+                val id = 99999
+
                 it("404를 응답한다.") {
                     mockMvc
-                        .perform(get("/api/subjects/${StubSubjectQuery.NOT_FOUND_ID}"))
+                        .perform(get("/api/subjects/$id"))
                         .andExpect(status().isNotFound)
                         .andDo(
                             document(
@@ -194,15 +210,18 @@ class SubjectApiTest :
         describe("POST /api/v2/subjects/{id}/answer 요청은") {
 
             context("존재하는 주제에 대한 답변 요청 시") {
+                val id = 1
+                subjectQuery = ExistIdSubjectQuery()
+                chatQuery = ExistSubjectIdChatQuery()
+
                 it("201 상태코드와 재질문이 포함된 응답을 반환한다.") {
-                    val subjectId = StubSubjectQuery.EXIST_SUBJECT_ID
                     val req = SubjectAnswerRequest(answer = "answer")
                     val expectResponse =
                         SubjectAnswerResponse(nextQuestion = "What is OS? (answer: answer)", score = 50)
 
                     mockMvc
                         .perform(
-                            post("/api/v2/subjects/$subjectId/answer")
+                            post("/api/v2/subjects/$id/answer")
                                 .header("Authorization", "Bearer token")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
@@ -228,13 +247,16 @@ class SubjectApiTest :
             }
 
             context("답변을 모두 사용했을 경우") {
+                val id = 2
+                subjectQuery = ExistIdSubjectQuery()
+                chatQuery = UseAllAnswersChatQuery()
+
                 it("400을 응답한다.") {
-                    val subjectId = StubSubjectQuery.MAX_LIMIT_ANSWER_SUBJECT_ID
                     val req = SubjectAnswerRequest(answer = "answer")
 
                     mockMvc
                         .perform(
-                            post("/api/v2/subjects/$subjectId/answer")
+                            post("/api/v2/subjects/$id/answer")
                                 .header("Authorization", "Bearer token")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
@@ -255,14 +277,17 @@ class SubjectApiTest :
             }
 
             context("존재하지 않는 주제에 대한 답변 요청 시") {
+                val id = 99999
+                subjectQuery = NotExistIdSubjectQuery()
+                chatQuery = DummyChatQuery()
+
                 it("404를 응답한다.") {
-                    val subjectId = StubSubjectQuery.NOT_FOUND_ID
                     val req = SubjectAnswerRequest(answer = "answer")
 
                     val perform =
                         mockMvc
                             .perform(
-                                post("/api/v2/subjects/$subjectId/answer")
+                                post("/api/v2/subjects/$id/answer")
                                     .header("Authorization", "Bearer token")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
@@ -286,14 +311,17 @@ class SubjectApiTest :
             }
 
             context("답변이 없는 요청 시") {
+                val id = 3
+                subjectQuery = DummySubjectQuery()
+                chatQuery = DummyChatQuery()
+
                 it("400를 응답한다.") {
-                    val subjectId = StubSubjectQuery.EXIST_SUBJECT_ID
                     val req = SubjectAnswerRequest(answer = "")
 
                     val perform =
                         mockMvc
                             .perform(
-                                post("/api/v2/subjects/$subjectId/answer")
+                                post("/api/v2/subjects/$id/answer")
                                     .header("Authorization", "Bearer token")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
@@ -318,7 +346,11 @@ class SubjectApiTest :
         }
 
         describe("GET /api/v1/subjects/member 요청은") {
+            chatQuery = DummyChatQuery()
+
             context("로그인한 사용자가 카테고리 없이 요청 시") {
+                subjectQuery = NoCategoryMemberSubjectQuery()
+
                 it("200 상태코드와 전체 주제 목록을 응답한다.") {
                     mockMvc
                         .perform(
@@ -358,6 +390,8 @@ class SubjectApiTest :
             }
 
             context("로그인한 사용자가 카테고리와 함께 요청 시") {
+                subjectQuery = WithCategoryMemberSubjectQuery()
+
                 it("200 상태코드와 해당 카테고리 주제 목록을 응답한다.") {
                     mockMvc
                         .get("/api/v1/subjects/member") { param("category", "os") }
@@ -380,90 +414,23 @@ class SubjectApiTest :
         fun toJson(res: Any): String = objectMapper.writeValueAsString(res)
     }
 
-    class StubSubjectQuery : SubjectQuery {
-        companion object {
-            const val MAX_LIMIT_ANSWER_SUBJECT_ID = 10L
-            const val EXIST_SUBJECT_ID = 1L
-            const val NOT_FOUND_ID = 10000L
-        }
-
-        override fun findBySubject(cateStr: String): List<Subject> =
-            when (cateStr) {
-                "dsa" -> listOf(Subject(title = "DSA", question = "What is DSA?", category = SubjectCategory.DSA))
-                "network" ->
-                    listOf(
-                        Subject(
-                            title = "NETWORK",
-                            question = "What is Network?",
-                            category = SubjectCategory.NETWORK,
-                        ),
-                    )
-
-                "database" ->
-                    listOf(
-                        Subject(
-                            title = "DATABASE",
-                            question = "What is Database?",
-                            category = SubjectCategory.DATABASE,
-                        ),
-                    )
-
-                "os" -> listOf(Subject(title = "OS", question = "What is OS?", category = SubjectCategory.OS))
-                else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
-            }
-
-        override fun findById(id: Long): Subject =
-            when (id) {
-                EXIST_SUBJECT_ID ->
-                    Subject(
-                        id = EXIST_SUBJECT_ID,
-                        title = "OS",
-                        question = "What is OS?",
-                        category = SubjectCategory.OS,
-                    )
-                MAX_LIMIT_ANSWER_SUBJECT_ID ->
-                    Subject(
-                        id = MAX_LIMIT_ANSWER_SUBJECT_ID,
-                        title = "OS",
-                        question = "What is OS?",
-                        category = SubjectCategory.OS,
-                    )
-                NOT_FOUND_ID -> throw SubjectNotFoundException(id)
-                else -> throw SubjectNotFoundException(id)
-            }
+    open abstract class StubSubjectQuery : SubjectQuery {
+        override fun findByCategory(cateStr: String): List<Subject> = throw NotImplementedError("Not implemented")
 
         override fun findWithMember(
             member: Member,
             category: String?,
-        ): List<MemberSubjectResponse> =
-            when (category) {
-                "os" ->
-                    listOf(
-                        MemberSubjectResponse(
-                            id = 1,
-                            title = "title1",
-                            category = SubjectCategory.OS,
-                            maxScore = 100,
-                        ),
-                    )
-                else ->
-                    listOf(
-                        MemberSubjectResponse(
-                            id = 1,
-                            title = "title1",
-                            category = SubjectCategory.OS,
-                            maxScore = 100,
-                        ),
-                        MemberSubjectResponse(
-                            id = 2,
-                            title = "title2",
-                            category = SubjectCategory.NETWORK,
-                            maxScore = 70,
-                        ),
-                    )
-            }
+        ): List<MemberSubjectResponse> = throw NotImplementedError("Not implemented")
 
-        override fun findByIdV2(id: Long): Subject = findById(id)
+        override fun findByIdOrThrow(id: Long): Subject = throw NotImplementedError("Not implemented")
+
+        override fun findByIdOrThrowV2(id: Long): Subject = throw NotImplementedError("Not implemented")
+    }
+
+    class ExistIdSubjectQuery : StubSubjectQuery() {
+        override fun findByIdOrThrow(id: Long): Subject = Subject.createOS(id = id, title = "test subject", question = "test question")
+
+        override fun findByIdOrThrowV2(id: Long): Subject = findByIdOrThrow(id)
     }
 
     class StubSubjectUseCase : SubjectUseCase {
@@ -475,16 +442,109 @@ class SubjectApiTest :
         }
     }
 
-    class StubChatQuery : ChatQuery {
+    class ExistCategorySubjectQueryStub : StubSubjectQuery() {
+        override fun findByCategory(cateStr: String): List<Subject> =
+            when (cateStr) {
+                "os" -> listOf(Subject.createOS(id = 1, title = "OS", question = "What is OS?"))
+                else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
+            }
+    }
+
+    class DummyChatQuery : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> = throw NotImplementedError("Not implemented")
+    }
+
+    class NotExistCategorySubjectQuery : StubSubjectQuery() {
+        override fun findByCategory(cateStr: String) = throw SubjectCategoryNotFoundException(cateStr)
+    }
+
+    class NotExistIdSubjectQuery : StubSubjectQuery() {
+        override fun findByIdOrThrow(id: Long): Subject = throw SubjectNotFoundException(id)
+
+        override fun findByIdOrThrowV2(id: Long): Subject = throw SubjectNotFoundExceptionV2(id)
+    }
+
+    class ExistSubjectIdChatQuery : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> =
+            listOf(
+                Chat.createQuestion(
+                    subject = subject,
+                    member = member,
+                    nextQuestion = "What is OS?",
+                ),
+            )
+    }
+
+    class UseAllAnswersChatQuery : ChatQuery {
         override fun findBySubjectAndMember(
             subject: Subject,
             member: Member,
         ): List<Chat> {
-            if (subject.id == StubSubjectQuery.MAX_LIMIT_ANSWER_SUBJECT_ID) {
-                return List(10) { Chat.createAnswer(subject = subject, member = member, answer = "hi", score = 0) }
+            val chats = mutableListOf<Chat>()
+            for (i in 1..Chat.MAX_ANSWER_COUNT * 2) {
+                if (i % 2 == 0) {
+                    chats.add(Chat.createAnswer(subject = subject, member = member, answer = "hi", score = 0))
+                } else {
+                    chats.add(Chat.createQuestion(subject = subject, member = member, nextQuestion = "What is OS?"))
+                }
             }
 
-            return emptyList()
+            return chats
         }
+    }
+
+    class DummySubjectQuery : SubjectQuery {
+        override fun findByCategory(cateStr: String): List<Subject> = throw NotImplementedError()
+
+        override fun findByIdOrThrow(id: Long): Subject = throw NotImplementedError()
+
+        override fun findWithMember(
+            member: Member,
+            category: String?,
+        ): List<MemberSubjectResponse> = throw NotImplementedError()
+
+        override fun findByIdOrThrowV2(id: Long): Subject = throw NotImplementedError()
+    }
+
+    class NoCategoryMemberSubjectQuery : StubSubjectQuery() {
+        override fun findWithMember(
+            member: Member,
+            category: String?,
+        ): List<MemberSubjectResponse> =
+            listOf(
+                MemberSubjectResponse(
+                    id = 1,
+                    title = "title1",
+                    category = SubjectCategory.OS,
+                    maxScore = 100,
+                ),
+                MemberSubjectResponse(
+                    id = 2,
+                    title = "title2",
+                    category = SubjectCategory.NETWORK,
+                    maxScore = 70,
+                ),
+            )
+    }
+
+    class WithCategoryMemberSubjectQuery : StubSubjectQuery() {
+        override fun findWithMember(
+            member: Member,
+            category: String?,
+        ): List<MemberSubjectResponse> =
+            listOf(
+                MemberSubjectResponse(
+                    id = 1,
+                    title = "title1",
+                    category = SubjectCategory.OS,
+                    maxScore = 100,
+                ),
+            )
     }
 }
