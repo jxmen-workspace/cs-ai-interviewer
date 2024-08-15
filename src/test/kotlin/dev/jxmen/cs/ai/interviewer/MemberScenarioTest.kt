@@ -115,7 +115,7 @@ class MemberScenarioTest(
 
         // 특정 주제에 대해 답변
         mockMvc
-            .post("/api/v2/subjects/${createdSubject.id}/answer") {
+            .post("/api/v3/subjects/${createdSubject.id}/answer") {
                 header("Authorization", "Bearer test-token")
                 contentType = MediaType.APPLICATION_JSON
                 content =
