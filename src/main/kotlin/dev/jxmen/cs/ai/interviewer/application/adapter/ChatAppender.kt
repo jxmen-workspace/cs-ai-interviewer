@@ -35,10 +35,10 @@ class ChatAppender(
     private fun addAnswer(
         subject: Subject,
         member: Member,
-        answer: String,
+        message: String,
         score: Int,
     ) {
-        val answer = Chat.createAnswer(subject, member, answer, score)
+        val answer = Chat.createAnswer(subject, member, message, score)
         chatCommandRepository.save(answer)
     }
 }
