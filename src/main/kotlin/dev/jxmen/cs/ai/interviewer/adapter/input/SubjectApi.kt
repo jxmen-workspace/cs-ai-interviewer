@@ -62,31 +62,6 @@ class SubjectApi(
     }
 
     /**
-     * 답변 등록 (V2)
-     */
-    @Deprecated("V3로 변경 예정")
-    @PostMapping("/api/v2/subjects/{subjectId}/answer")
-    fun answerSubjectV2(
-        member: Member,
-        @PathVariable("subjectId") subjectId: String,
-        @RequestBody @Valid req: SubjectAnswerRequest,
-    ): ResponseEntity<SubjectAnswerResponse> {
-        val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
-        val chats = chatQuery.findBySubjectAndMember(subject, member)
-
-        val command =
-            CreateSubjectAnswerCommand(
-                subject = subject,
-                answer = req.answer,
-                member = member,
-                chats = chats,
-            )
-        val answerResponse = memberChatUseCase.answerV2(command)
-
-        return ResponseEntity.status(201).body(answerResponse)
-    }
-
-    /**
      * 답변 등록
      */
     @PostMapping("/api/v3/subjects/{subjectId}/answer")
@@ -105,7 +80,7 @@ class SubjectApi(
                 member = member,
                 chats = chats,
             )
-        val answerResponse = memberChatUseCase.answerV3(command)
+        val answerResponse = memberChatUseCase.answer(command)
 
         return ResponseEntity.status(201).body(answerResponse)
     }

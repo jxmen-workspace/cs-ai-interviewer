@@ -538,7 +538,7 @@ class SubjectApiTest :
     }
 
     class StubMemberChatUseCase : MemberChatUseCase {
-        override fun answerV3(command: CreateSubjectAnswerCommand): SubjectAnswerResponse {
+        override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse {
             val chats = Chats(command.chats)
             require(!chats.useAllAnswers()) { throw AllAnswersUsedException("답변을 모두 사용했습니다.") }
 
@@ -556,8 +556,6 @@ class SubjectApiTest :
                 else -> 1
             }
         }
-
-        override fun answerV2(command: CreateSubjectAnswerCommand): SubjectAnswerResponse? = answerV3(command)
     }
 
     open abstract class StubSubjectQuery : SubjectQuery {
