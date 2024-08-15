@@ -19,7 +19,7 @@ class MemberChatService(
     private val aiApiClient: AIApiClient,
     private val chatAppender: ChatAppender,
     private val chatRemover: ChatRemover,
-    private val chatArchiveAdder: ChatArchiveAdder,
+    private val chatArchiveAppender: ChatArchiveAppender,
 ) : MemberChatUseCase {
     override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse? {
         // 1. 답변을 모두 사용하지 않았는지 확인
@@ -58,8 +58,8 @@ class MemberChatService(
         chatRemover.removeAll(chats)
 
         // add archive and contents
-        val archive = chatArchiveAdder.addArchive(subject, member)
-        chatArchiveAdder.addContents(archive, chats.map { it.content })
+        val archive = chatArchiveAppender.addArchive(subject, member)
+        chatArchiveAppender.addContents(archive, chats.map { it.content })
 
         return archive.id
     }

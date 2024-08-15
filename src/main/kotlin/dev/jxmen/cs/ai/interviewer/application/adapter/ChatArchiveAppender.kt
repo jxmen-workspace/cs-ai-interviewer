@@ -10,7 +10,7 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import org.springframework.stereotype.Component
 
 @Component
-class ChatArchiveAdder(
+class ChatArchiveAppender(
     private val chatArchiveCommandRepository: ChatArchiveCommandRepository,
     private val chatArchiveContentCommandRepository: ChatArchiveContentCommandRepository,
 ) {
