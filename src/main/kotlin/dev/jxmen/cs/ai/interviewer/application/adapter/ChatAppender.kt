@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional
 class ChatAppender(
     private val chatCommandRepository: ChatCommandRepository,
 ) {
+    /**
+     * 답변과 다음 질문을 추가한다. 이 작업은 원자성을 지켜야 한다.
+     */
     @Transactional
     fun addAnswerAndNextQuestion(
         subject: Subject,
