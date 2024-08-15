@@ -19,9 +19,13 @@ class ChatAppender(
         subject: Subject,
         member: Member,
         answer: String,
+        chats: List<Chat>,
         nextQuestion: String,
         score: Int,
     ) {
+        if (chats.isEmpty()) {
+            addFirstQuestion(subject, member)
+        }
         addAnswer(subject, member, answer, score)
         addNextQuestion(subject, member, nextQuestion)
     }
@@ -33,6 +37,14 @@ class ChatAppender(
     ) {
         val question = Chat.createQuestion(subject, member, nextQuestion)
         chatCommandRepository.save(question)
+    }
+
+    private fun addFirstQuestion(
+        subject: Subject,
+        member: Member,
+    ) {
+        val firstQuestion = Chat.createFirstQuestion(subject, member)
+        chatCommandRepository.save(firstQuestion)
     }
 
     private fun addAnswer(

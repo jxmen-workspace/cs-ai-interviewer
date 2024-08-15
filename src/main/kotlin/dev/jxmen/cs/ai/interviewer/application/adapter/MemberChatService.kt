@@ -34,6 +34,7 @@ class MemberChatService(
             subject = command.subject,
             member = command.member,
             answer = command.answer,
+            chats = command.chats,
             nextQuestion = apiResponse.nextQuestion,
             score = apiResponse.score,
         )
