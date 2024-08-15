@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
+import java.time.LocalDateTime
 
 class ChatApiTest :
     DescribeSpec({
@@ -55,8 +56,9 @@ class ChatApiTest :
         describe("GET /api/v2/chat/messages?subjectId={subjectId} 요청은") {
             context("subjectId가 존재할경우") {
                 val id = 1
+                val date = LocalDateTime.of(2024, 8, 15, 21, 0, 0)
                 subjectQuery = ExistingIdSubjectQueryStub()
-                chatQuery = ExistingSubjectIdChatQueryStub()
+                chatQuery = ExistingSubjectIdChatQueryStub(date)
 
                 it("200 OK와 Chat 객체를 반환한다") {
                     mockMvc
@@ -67,9 +69,11 @@ class ChatApiTest :
                         .andExpect(jsonPath("$.data[0].message").value("스레드와 프로세스의 차이점은 무엇인가요?"))
                         .andExpect(jsonPath("$.data[0].score").doesNotExist())
                         .andExpect(jsonPath("$.data[0].type").value("question"))
+                        .andExpect(jsonPath("$.data[0].createdAt").doesNotExist())
                         .andExpect(jsonPath("$.data[1].message").value("스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다."))
                         .andExpect(jsonPath("$.data[1].score").value(100))
                         .andExpect(jsonPath("$.data[1].type").value("answer"))
+                        .andExpect(jsonPath("$.data[1].createdAt").value("2024-08-15T21:00:00"))
                         .andDo(
                             document(
                                 identifier = "get-chat-message",
@@ -86,6 +90,10 @@ class ChatApiTest :
                                                 .type(JsonFieldType.NUMBER)
                                                 .optional(),
                                             fieldWithPath("data[].type").description("채팅 타입").type(JsonFieldType.STRING),
+                                            fieldWithPath("data[].createdAt")
+                                                .description("생성일")
+                                                .type(JsonFieldType.STRING)
+                                                .optional(),
                                         ),
                                     ),
                             ),
@@ -152,7 +160,9 @@ class ChatApiTest :
         ): List<Chat> = emptyList()
     }
 
-    class ExistingSubjectIdChatQueryStub : ChatQuery {
+    class ExistingSubjectIdChatQueryStub(
+        private val date: LocalDateTime? = null,
+    ) : ChatQuery {
         override fun findBySubjectAndMember(
             subject: Subject,
             member: Member,
@@ -168,6 +178,7 @@ class ChatApiTest :
                     member = member,
                     answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
                     score = 100,
+                    createdAt = date,
                 ),
             )
     }
