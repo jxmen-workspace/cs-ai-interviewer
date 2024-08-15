@@ -39,6 +39,8 @@ class Chat(
 ) : BaseEntity() {
     fun isAnswer(): Boolean = content.isAnswer()
 
+    fun isQuestion(): Boolean = content.isQuestion()
+
     companion object {
         const val MAX_ANSWER_SCORE = 100
         const val MAX_ANSWER_COUNT = 10

@@ -28,6 +28,8 @@ data class ChatContent(
 ) {
     fun isAnswer(): Boolean = chatType == ChatType.ANSWER
 
+    fun isQuestion(): Boolean = chatType == ChatType.QUESTION
+
     companion object {
         fun createQuestion(nextQuestion: String): ChatContent =
             ChatContent(
