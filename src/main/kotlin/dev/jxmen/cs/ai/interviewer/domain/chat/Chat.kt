@@ -67,5 +67,15 @@ class Chat(
             createdAt?.let { chat.createdAt = it }
             return chat
         }
+
+        fun createFirstQuestion(
+            subject: Subject,
+            member: Member,
+        ): Chat {
+            val content = ChatContent.createQuestion(subject.question)
+            val chat = Chat(subject = subject, member = member, content = content)
+
+            return chat
+        }
     }
 }

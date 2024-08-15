@@ -20,6 +20,7 @@ class TokenFilter : OncePerRequestFilter() {
             mapOf(
                 Regex("/api/v2/chat/messages") to HttpMethod.GET,
                 Regex("/api/v2/subjects/\\d+/answer") to HttpMethod.POST,
+                Regex("/api/v3/subjects/\\d+/answer") to HttpMethod.POST,
                 Regex("/api/v1/subjects/member") to HttpMethod.GET,
                 Regex("/api/v1/subjects/\\d+/chats/archive") to HttpMethod.POST,
             )

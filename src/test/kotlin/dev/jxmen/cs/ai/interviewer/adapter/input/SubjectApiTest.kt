@@ -210,7 +210,7 @@ class SubjectApiTest :
             }
         }
 
-        describe("POST /api/v2/subjects/{id}/answer 요청은") {
+        describe("POST /api/v3/subjects/{id}/answer 요청은") {
 
             context("존재하는 주제에 대한 답변 요청 시") {
                 val id = 1
@@ -224,7 +224,7 @@ class SubjectApiTest :
 
                     mockMvc
                         .perform(
-                            post("/api/v2/subjects/$id/answer")
+                            post("/api/v3/subjects/$id/answer")
                                 .header("Authorization", "Bearer token")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
@@ -259,7 +259,7 @@ class SubjectApiTest :
 
                     mockMvc
                         .perform(
-                            post("/api/v2/subjects/$id/answer")
+                            post("/api/v3/subjects/$id/answer")
                                 .header("Authorization", "Bearer token")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
@@ -290,7 +290,7 @@ class SubjectApiTest :
                     val perform =
                         mockMvc
                             .perform(
-                                post("/api/v2/subjects/$id/answer")
+                                post("/api/v3/subjects/$id/answer")
                                     .header("Authorization", "Bearer token")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
@@ -324,7 +324,7 @@ class SubjectApiTest :
                     val perform =
                         mockMvc
                             .perform(
-                                post("/api/v2/subjects/$id/answer")
+                                post("/api/v3/subjects/$id/answer")
                                     .header("Authorization", "Bearer token")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
@@ -538,7 +538,7 @@ class SubjectApiTest :
     }
 
     class StubMemberChatUseCase : MemberChatUseCase {
-        override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse {
+        override fun answerV3(command: CreateSubjectAnswerCommand): SubjectAnswerResponse {
             val chats = Chats(command.chats)
             require(!chats.useAllAnswers()) { throw AllAnswersUsedException("답변을 모두 사용했습니다.") }
 
@@ -556,6 +556,8 @@ class SubjectApiTest :
                 else -> 1
             }
         }
+
+        override fun answerV2(command: CreateSubjectAnswerCommand): SubjectAnswerResponse? = answerV3(command)
     }
 
     open abstract class StubSubjectQuery : SubjectQuery {

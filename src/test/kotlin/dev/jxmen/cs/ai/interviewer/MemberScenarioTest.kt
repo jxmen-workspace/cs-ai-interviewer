@@ -115,7 +115,7 @@ class MemberScenarioTest(
 
         // 특정 주제에 대해 답변
         mockMvc
-            .post("/api/v2/subjects/${createdSubject.id}/answer") {
+            .post("/api/v3/subjects/${createdSubject.id}/answer") {
                 header("Authorization", "Bearer test-token")
                 contentType = MediaType.APPLICATION_JSON
                 content =
@@ -135,15 +135,19 @@ class MemberScenarioTest(
             }.andExpect {
                 status { isOk() }
                 jsonPath("$.data") { isNotEmpty() }
-                jsonPath("$.data.length()") { value(2) }
-                jsonPath("$.data[0].type") { value("answer") }
-                jsonPath("$.data[0].message") { value("test answer") }
-                jsonPath("$.data[0].score") { value(10) }
-                jsonPath("$.data[0].createdAt") { value(matcher = BeforeDateMatcher(now)) }
-                jsonPath("$.data[1].type") { value("question") }
-                jsonPath("$.data[1].message") { value("next question") }
-                jsonPath("$.data[1].score") { value(null) }
-                jsonPath("$.data[1].createdAt") { value(null) }
+                jsonPath("$.data.length()") { value(3) }
+                jsonPath("$.data[0].type") { value("question") }
+                jsonPath("$.data[0].message") { value(testSubject.question) }
+                jsonPath("$.data[0].score") { value(null) }
+                jsonPath("$.data[0].createdAt") { value(null) }
+                jsonPath("$.data[1].type") { value("answer") }
+                jsonPath("$.data[1].message") { value("test answer") }
+                jsonPath("$.data[1].score") { value(10) }
+                jsonPath("$.data[1].createdAt") { value(matcher = BeforeDateMatcher(now)) }
+                jsonPath("$.data[2].type") { value("question") }
+                jsonPath("$.data[2].message") { value("next question") }
+                jsonPath("$.data[2].score") { value(null) }
+                jsonPath("$.data[2].createdAt") { value(null) }
             }
 
         // 채팅 아카이브
@@ -173,7 +177,7 @@ class MemberScenarioTest(
         archives.size shouldBe 1
 
         val archiveContents = chatArchiveContentQueryRepository.findByArchive(archives[0])
-        archiveContents.size shouldBe 2
+        archiveContents.size shouldBe 3
     }
 
     private fun createOAuth2AuthenticationToken(oauth2User: DefaultOAuth2User): OAuth2AuthenticationToken {
