@@ -50,8 +50,15 @@ class MemberChatService(
         val chatsWrapper = Chats(command.chats)
         require(!chatsWrapper.useAllAnswers()) { throw AllAnswersUsedException() }
 
-        // 2. API 호출해서 다음 질문과 점수 받아오기
-        val apiResponse = aiApiClient.requestAnswer(command.subject, command.answer, command.chats)
+        // 2. API 호출해서 다음 질문과 점수 받아오기 (처음 질문은 제외)
+        val apiRequestChats =
+            if (command.chats.isEmpty()) {
+                emptyList()
+            } else {
+                require(command.chats[0].isQuestion()) { "처음 채팅은 question이어야 합니다." }
+                command.chats.subList(1, command.chats.size)
+            }
+        val apiResponse = aiApiClient.requestAnswer(command.subject, command.answer, apiRequestChats)
 
         // 3. 기존 답변과 다음 질문 저장
         chatAppender.addAnswerAndNextQuestionV3(
