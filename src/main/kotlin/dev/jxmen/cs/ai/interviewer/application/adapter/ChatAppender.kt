@@ -20,7 +20,6 @@ class ChatAppender(
         subject: Subject,
         member: Member,
         answer: String,
-        chats: List<Chat>,
         nextQuestion: String,
         score: Int,
     ) {
