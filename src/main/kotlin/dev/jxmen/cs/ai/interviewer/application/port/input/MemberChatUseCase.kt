@@ -7,14 +7,11 @@ import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 
 interface MemberChatUseCase {
-    fun answerV3(command: CreateSubjectAnswerCommand): SubjectAnswerResponse?
+    fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse?
 
     fun archive(
         chats: List<Chat>,
         member: Member,
         subject: Subject,
     ): Long
-
-    @Deprecated("V3로 대체 예정")
-    fun answerV2(command: CreateSubjectAnswerCommand): SubjectAnswerResponse?
 }

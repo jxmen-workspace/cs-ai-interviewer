@@ -14,22 +14,6 @@ class ChatAppender(
     /**
      * 답변과 다음 질문을 추가한다. 이 작업은 원자성을 지켜야 한다.
      */
-    @Deprecated("V3로 대체 예정")
-    @Transactional
-    fun addAnswerAndNextQuestionV2(
-        subject: Subject,
-        member: Member,
-        answer: String,
-        nextQuestion: String,
-        score: Int,
-    ) {
-        addAnswer(subject, member, answer, score)
-        addNextQuestion(subject, member, nextQuestion)
-    }
-
-    /**
-     * 답변과 다음 질문을 추가한다. 이 작업은 원자성을 지켜야 한다.
-     */
     @Transactional
     fun addAnswerAndNextQuestionV3(
         subject: Subject,
