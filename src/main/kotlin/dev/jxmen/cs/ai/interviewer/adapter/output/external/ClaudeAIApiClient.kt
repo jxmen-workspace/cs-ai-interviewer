@@ -16,9 +16,7 @@ class ClaudeAIApiClient(
 ) : AIApiClient {
     companion object {
         private const val BASE_URL = "https://api.anthropic.com/v1"
-
         private val client = RestClient.create()
-
         private val scoreRegex = "답변에 대한 점수: (\\d+)점".toRegex()
     }
 
@@ -27,6 +25,11 @@ class ClaudeAIApiClient(
         answer: String,
         chats: List<Chat>,
     ): AiApiAnswerResponse {
+        if (chats.isNotEmpty()) {
+            require(chats[0].isQuestion()) { "처음 채팅은 question이어야 합니다." }
+            chats as MutableList
+            chats.removeAt(0)
+        }
         val response =
             client
                 .post()
