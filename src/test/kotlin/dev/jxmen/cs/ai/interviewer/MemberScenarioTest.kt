@@ -10,6 +10,8 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
 import io.kotest.matchers.shouldBe
+import org.hamcrest.BaseMatcher
+import org.hamcrest.Description
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -29,6 +31,7 @@ import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
+import java.time.LocalDateTime
 
 @SpringBootTest
 @Transactional
@@ -124,6 +127,8 @@ class MemberScenarioTest(
             }.andExpect { status { isCreated() } }
 
         // 채팅 API 조회 - 답변과 다음 질문이 생성되었는지 검증
+
+        val now = LocalDateTime.now()
         mockMvc
             .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") {
                 header("Authorization", "Bearer test-token")
@@ -134,9 +139,11 @@ class MemberScenarioTest(
                 jsonPath("$.data[0].type") { value("answer") }
                 jsonPath("$.data[0].message") { value("test answer") }
                 jsonPath("$.data[0].score") { value(10) }
+                jsonPath("$.data[0].createdAt") { value(matcher = BeforeDateMatcher(now)) }
                 jsonPath("$.data[1].type") { value("question") }
                 jsonPath("$.data[1].message") { value("next question") }
                 jsonPath("$.data[1].score") { value(null) }
+                jsonPath("$.data[1].createdAt") { value(null) }
             }
 
         // 채팅 아카이브
@@ -191,5 +198,21 @@ class MemberScenarioTest(
                 "sub",
             )
         return oauth2User
+    }
+}
+
+class BeforeDateMatcher(
+    private val date: LocalDateTime,
+) : BaseMatcher<LocalDateTime>() {
+    override fun describeTo(description: Description?) {
+        description?.appendText("date is $date")
+    }
+
+    /**
+     * 생성자에서 받은 시간이 현재 시간보다 이전이면 true를 반환한다.
+     */
+    override fun matches(actual: Any?): Boolean {
+        val now = LocalDateTime.now()
+        return now.isAfter(date)
     }
 }

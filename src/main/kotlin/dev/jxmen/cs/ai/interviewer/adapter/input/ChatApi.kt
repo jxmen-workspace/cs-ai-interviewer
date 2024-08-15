@@ -35,6 +35,7 @@ class ChatApi(
                         message = it.content.message,
                         score = it.content.score,
                         type = it.content.chatType,
+                        createdAt = it.createdAt,
                     )
                 },
             ),

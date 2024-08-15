@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.Comment
+import java.time.LocalDateTime
 
 @Suppress("ktlint:standard:no-blank-line-in-list")
 @Entity
@@ -38,18 +39,6 @@ class Chat(
 ) : BaseEntity() {
     fun isAnswer(): Boolean = content.isAnswer()
 
-    constructor(subject: Subject, member: Member, message: String, chatType: ChatType, score: Int) : this(
-        subject = subject,
-        member = member,
-        userSessionId = null,
-        content =
-            ChatContent(
-                message = message,
-                chatType = chatType,
-                score = score,
-            ),
-    )
-
     companion object {
         const val MAX_ANSWER_SCORE = 100
         const val MAX_ANSWER_COUNT = 10
@@ -58,32 +47,25 @@ class Chat(
             subject: Subject,
             member: Member,
             message: String,
-        ): Chat =
-            Chat(
-                subject = subject,
-                member = member,
-                content = ChatContent.createQuestion(message),
-            )
+        ): Chat {
+            val content = ChatContent.createQuestion(message)
+            val chat = Chat(subject = subject, member = member, content = content)
 
-        fun createAnswer(
-            subject: Subject,
-            member: Member,
-        ) = Chat(
-            subject = subject,
-            member = member,
-            content = ChatContent.createEmptyAnswer(),
-        )
+            return chat
+        }
 
         fun createAnswer(
             subject: Subject,
             member: Member,
             answer: String,
             score: Int,
-        ): Chat =
-            Chat(
-                subject = subject,
-                member = member,
-                content = ChatContent.createAnswer(answer, score),
-            )
+            createdAt: LocalDateTime? = null,
+        ): Chat {
+            val content = ChatContent.createAnswer(answer, score)
+            val chat = Chat(subject = subject, member = member, content = content)
+
+            createdAt?.let { chat.createdAt = it }
+            return chat
+        }
     }
 }
