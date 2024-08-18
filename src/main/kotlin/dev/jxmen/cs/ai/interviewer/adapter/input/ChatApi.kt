@@ -15,6 +15,7 @@ class ChatApi(
     private val subjectQuery: SubjectQuery,
     private val chatQuery: ChatQuery,
 ) {
+    @Deprecated("Use /api/v1/subjects/{subjectId}/chats")
     @GetMapping("/api/v2/chat/messages")
     fun getMessagesV2(
         member: Member,

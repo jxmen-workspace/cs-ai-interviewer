@@ -5,9 +5,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import org.springframework.web.filter.OncePerRequestFilter
 
@@ -29,16 +30,14 @@ class SecurityConfig(
         }
 
         http
-            .sessionManagement {
-                // 세션 유지하지 않도록 설정
-                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
             .csrf { it.disable() }
             .authorizeHttpRequests {
-                // NOTE: TokenFilter에서 처리하기 때문에 별다른 설정 없음
                 it.anyRequest().permitAll()
             }
-            .oauth2Login { } // NOTE: TokenFilter에서 처리하기 때문에 별다른 설정 없음
+            .addFilterBefore(refererCaptureFilter(), OAuth2AuthorizationRequestRedirectFilter::class.java)
+            .oauth2Login {
+                it.successHandler(oAuth2LoginSuccessHandler())
+            } // NOTE: TokenFilter에서 처리하기 때문에 별다른 설정 없음
             .exceptionHandling {
                 // 예외 발생시 커스텀 응답 반환
                 it.authenticationEntryPoint(setCustomResponseAuthenticationEntryPoint())
@@ -49,7 +48,13 @@ class SecurityConfig(
     }
 
     @Bean
+    fun oAuth2LoginSuccessHandler(): AuthenticationSuccessHandler = OAuth2LoginSuccessHandler()
+
+    @Bean
     fun setCustomResponseAuthenticationEntryPoint(): AuthenticationEntryPoint = SetCustomResponseAuthenticationEntryPoint()
+
+    @Bean
+    fun refererCaptureFilter(): OncePerRequestFilter = RefererCaptureFilter()
 
     @Bean
     fun tokenFilter(): OncePerRequestFilter = TokenFilter()

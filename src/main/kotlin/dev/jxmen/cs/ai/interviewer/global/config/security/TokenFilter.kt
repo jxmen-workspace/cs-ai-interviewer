@@ -15,14 +15,15 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 class TokenFilter : OncePerRequestFilter() {
     companion object {
-        private val restTemplate = RestTemplate()
-        private val authRequireUrlMap =
+        val authRequireUrlMap =
             mapOf(
                 Regex("/api/v2/chat/messages") to HttpMethod.GET,
                 Regex("/api/v3/subjects/\\d+/answer") to HttpMethod.POST,
                 Regex("/api/v1/subjects/member") to HttpMethod.GET,
                 Regex("/api/v1/subjects/\\d+/chats/archive") to HttpMethod.POST,
             )
+
+        private val restTemplate = RestTemplate()
     }
 
     override fun doFilterInternal(

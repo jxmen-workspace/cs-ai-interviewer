@@ -1,6 +1,5 @@
 package dev.jxmen.cs.ai.interviewer.adapter.input
 
-import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
@@ -13,24 +12,15 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundExce
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundExceptionV2
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import io.kotest.core.spec.style.DescribeSpec
-import org.springframework.restdocs.ManualRestDocumentation
-import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
-import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
-import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
-import org.springframework.restdocs.payload.JsonFieldType
-import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
-import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
 import java.time.LocalDateTime
 
 class ChatApiTest :
     DescribeSpec({
-        val manualRestDocumentation = ManualRestDocumentation()
         lateinit var mockMvc: MockMvc
 
         lateinit var subjectQuery: StubSubjectQuery
@@ -42,15 +32,7 @@ class ChatApiTest :
                     .standaloneSetup(ChatApi(subjectQuery, chatQuery))
                     .setControllerAdvice(GlobalControllerAdvice())
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
-                    .apply<StandaloneMockMvcBuilder>(
-                        MockMvcRestDocumentation.documentationConfiguration(manualRestDocumentation),
-                    ).build()
-
-            manualRestDocumentation.beforeTest(javaClass, javaClass.simpleName) // manual rest docs 사용시 필요
-        }
-
-        afterEach {
-            manualRestDocumentation.afterTest() // manual rest docs 사용시 필요
+                    .build()
         }
 
         describe("GET /api/v2/chat/messages?subjectId={subjectId} 요청은") {
@@ -74,30 +56,6 @@ class ChatApiTest :
                         .andExpect(jsonPath("$.data[1].score").value(100))
                         .andExpect(jsonPath("$.data[1].type").value("answer"))
                         .andExpect(jsonPath("$.data[1].createdAt").value("2024-08-15T21:00:00"))
-                        .andDo(
-                            document(
-                                identifier = "get-chat-message",
-                                description = "채팅 메시지 내역 조회",
-                                snippets =
-                                    arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer token"),
-                                        ),
-                                        responseFields(
-                                            fieldWithPath("data[].message").description("메시지").type(JsonFieldType.STRING),
-                                            fieldWithPath("data[].score")
-                                                .description("점수")
-                                                .type(JsonFieldType.NUMBER)
-                                                .optional(),
-                                            fieldWithPath("data[].type").description("채팅 타입").type(JsonFieldType.STRING),
-                                            fieldWithPath("data[].createdAt")
-                                                .description("생성일")
-                                                .type(JsonFieldType.STRING)
-                                                .optional(),
-                                        ),
-                                    ),
-                            ),
-                        )
                 }
             }
 
@@ -112,18 +70,6 @@ class ChatApiTest :
                             get("/api/v2/chat/messages?subjectId=$id")
                                 .header("Authorization", "Bearer token"),
                         ).andExpect(status().isNotFound)
-                        .andDo(
-                            document(
-                                identifier = "get-chat-message-not-found",
-                                description = "존재하지 않는 주제 조회",
-                                snippets =
-                                    arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer token"),
-                                        ),
-                                    ),
-                            ),
-                        )
                 }
             }
         }

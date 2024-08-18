@@ -97,11 +97,13 @@ class MemberScenarioTest(
 
         // 채팅 API 조회 시 빈 값 응답 검증
         mockMvc
-            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") {
+            .get("/api/v1/subjects/${createdSubject.id}/chats") {
                 header("Authorization", "Bearer test-token")
             }.andExpect {
                 status { isOk() }
+                jsonPath("$.success") { value(true) }
                 jsonPath("$.data") { isEmpty() }
+                jsonPath("$.error") { isEmpty() }
             }
 
         // aiApiClient는 모킹한 정보를 리턴하도록 설정
@@ -115,7 +117,7 @@ class MemberScenarioTest(
 
         // 특정 주제에 대해 답변
         mockMvc
-            .post("/api/v3/subjects/${createdSubject.id}/answer") {
+            .post("/api/v4/subjects/${createdSubject.id}/answer") {
                 header("Authorization", "Bearer test-token")
                 contentType = MediaType.APPLICATION_JSON
                 content =
@@ -124,13 +126,19 @@ class MemberScenarioTest(
                         "answer": "test answer"
                     }
                     """.trimIndent()
-            }.andExpect { status { isCreated() } }
+            }.andExpect {
+                status { isCreated() }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data.nextQuestion") { value("next question") }
+                jsonPath("$.data.score") { value(10) }
+                jsonPath("$.error") { value(null) }
+            }
 
         // 채팅 API 조회 - 답변과 다음 질문이 생성되었는지 검증
 
         val now = LocalDateTime.now()
         mockMvc
-            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") {
+            .get("/api/v1/subjects/${createdSubject.id}/chats") {
                 header("Authorization", "Bearer test-token")
             }.andExpect {
                 status { isOk() }
@@ -152,7 +160,7 @@ class MemberScenarioTest(
 
         // 채팅 아카이브
         mockMvc
-            .post("/api/v1/subjects/${createdSubject.id}/chats/archive") {
+            .post("/api/v2/subjects/${createdSubject.id}/chats/archive") {
                 header("Authorization", "Bearer test-token")
             }.andExpect {
                 status { isCreated() }
@@ -165,7 +173,7 @@ class MemberScenarioTest(
 
         // 채팅 내역 재조회 - 아카이브 후 빈 값 응답 검증
         mockMvc
-            .get("/api/v2/chat/messages?subjectId=${createdSubject.id}") {
+            .get("/api/v1/subjects/${createdSubject.id}/chats") {
                 header("Authorization", "Bearer test-token")
             }.andExpect {
                 status { isOk() }
