@@ -21,7 +21,6 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
-import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundExceptionV2
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
@@ -673,14 +672,10 @@ class SubjectApiTest :
         ): List<MemberSubjectResponse> = throw NotImplementedError("Not implemented")
 
         override fun findByIdOrThrow(id: Long): Subject = throw NotImplementedError("Not implemented")
-
-        override fun findByIdOrThrowV2(id: Long): Subject = throw NotImplementedError("Not implemented")
     }
 
     class ExistIdSubjectQuery : StubSubjectQuery() {
         override fun findByIdOrThrow(id: Long): Subject = Subject.createOS(id = id, title = "test subject", question = "test question")
-
-        override fun findByIdOrThrowV2(id: Long): Subject = findByIdOrThrow(id)
     }
 
     class ExistCategorySubjectQueryStub : StubSubjectQuery() {
@@ -704,8 +699,6 @@ class SubjectApiTest :
 
     class NotExistIdSubjectQuery : StubSubjectQuery() {
         override fun findByIdOrThrow(id: Long): Subject = throw SubjectNotFoundException(id)
-
-        override fun findByIdOrThrowV2(id: Long): Subject = throw SubjectNotFoundExceptionV2(id)
     }
 
     class ExistSubjectIdChatQuery : ChatQuery {
@@ -743,14 +736,12 @@ class SubjectApiTest :
     class DummySubjectQuery : SubjectQuery {
         override fun findByCategory(cateStr: String): List<Subject> = throw NotImplementedError()
 
-        override fun findByIdOrThrow(id: Long): Subject = throw NotImplementedError()
-
         override fun findWithMember(
             member: Member,
             category: String?,
         ): List<MemberSubjectResponse> = throw NotImplementedError()
 
-        override fun findByIdOrThrowV2(id: Long): Subject = throw NotImplementedError()
+        override fun findByIdOrThrow(id: Long): Subject = throw NotImplementedError()
     }
 
     class NoCategoryMemberSubjectQuery : StubSubjectQuery() {
@@ -797,8 +788,6 @@ class SubjectApiTest :
                 question = "스레드와 프로세스의 차이점은 무엇인가요?",
                 category = SubjectCategory.OS,
             )
-
-        override fun findByIdOrThrowV2(id: Long): Subject = findByIdOrThrow(id)
     }
 
     class ExistingAnswerChatQuery : ChatQuery {
@@ -823,8 +812,6 @@ class SubjectApiTest :
 
     class NotExistingIdSubjectQuery : StubSubjectQuery() {
         override fun findByIdOrThrow(id: Long): Subject = throw SubjectNotFoundException(id)
-
-        override fun findByIdOrThrowV2(id: Long): Subject = throw SubjectNotFoundExceptionV2(id)
     }
 
     class NoAnswerChatQuery : ChatQuery {
