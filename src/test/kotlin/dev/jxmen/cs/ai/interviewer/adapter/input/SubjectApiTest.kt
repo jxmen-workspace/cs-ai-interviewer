@@ -23,13 +23,16 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotF
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundExceptionV2
 import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
+import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
+import jakarta.servlet.http.Cookie
 import org.springframework.http.MediaType
 import org.springframework.restdocs.ManualRestDocumentation
+import org.springframework.restdocs.cookies.CookieDocumentation.cookieWithName
+import org.springframework.restdocs.cookies.CookieDocumentation.requestCookies
 import org.springframework.restdocs.headers.HeaderDocumentation
 import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
-import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post
@@ -45,6 +48,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
 import org.springframework.util.LinkedMultiValueMap
+import java.time.LocalDateTime
 
 class SubjectApiTest :
     DescribeSpec({
@@ -65,7 +69,7 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase()))
+                    .standaloneSetup(SubjectLoginRequireApi(subjectQuery, chatQuery, StubMemberChatUseCase()))
                     .setControllerAdvice(controllerAdvice)
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
@@ -78,7 +82,7 @@ class SubjectApiTest :
             manualRestDocumentation.afterTest() // manual rest docs 사용시 필요
         }
 
-        describe("GET /api/subjects") {
+        describe("GET /api/v1/subjects") {
             chatQuery = DummyChatQuery()
 
             context("존재하는 카테고리 주제 목록 조회 요청 시") {
@@ -99,7 +103,7 @@ class SubjectApiTest :
                     val queryParams = LinkedMultiValueMap<String, String>().apply { add("category", category) }
 
                     mockMvc
-                        .perform(get("/api/subjects").queryParams(queryParams))
+                        .perform(get("/api/v1/subjects").queryParams(queryParams))
                         .andExpect(status().isOk)
                         .andExpect(content().json(toJson(expectResponse)))
                         .andDo(
@@ -109,10 +113,14 @@ class SubjectApiTest :
                                 snippets =
                                     arrayOf(
                                         responseFields(
-                                            fieldWithPath("data").description("데이터"),
-                                            fieldWithPath("data[].id").description("주제 식별자"),
-                                            fieldWithPath("data[].title").description("제목"),
-                                            fieldWithPath("data[].category").description("카테고리"),
+                                            fieldWithPath("success").description("성공 여부").type(JsonFieldType.BOOLEAN),
+                                            fieldWithPath("data[].id").description("주제 식별자").type(JsonFieldType.NUMBER),
+                                            fieldWithPath("data[].title").description("제목").type(JsonFieldType.STRING),
+                                            fieldWithPath("data[].category").description("카테고리").type(JsonFieldType.STRING),
+                                            fieldWithPath("error")
+                                                .description("에러 정보")
+                                                .type(JsonFieldType.OBJECT)
+                                                .optional(),
                                         ),
                                     ),
                             ),
@@ -127,7 +135,7 @@ class SubjectApiTest :
                     val queryParams = LinkedMultiValueMap<String, String>().apply { add("category", "not_exist") }
 
                     mockMvc
-                        .perform(get("/api/subjects").queryParams(queryParams))
+                        .perform(get("/api/v1/subjects").queryParams(queryParams))
                         .andExpect(status().isBadRequest)
                         .andDo(
                             document(
@@ -143,7 +151,7 @@ class SubjectApiTest :
 
                 it("400을 응답한다.") {
                     mockMvc
-                        .perform(get("/api/subjects"))
+                        .perform(get("/api/v1/subjects"))
                         .andExpect(status().isBadRequest)
                         .andDo(
                             document(
@@ -155,7 +163,7 @@ class SubjectApiTest :
             }
         }
 
-        describe("GET /api/subjects/{id}") {
+        describe("GET /api/v1/subjects/{id}") {
             chatQuery = DummyChatQuery()
 
             context("존재하는 주제 조회 시") {
@@ -163,15 +171,17 @@ class SubjectApiTest :
                 subjectQuery = ExistIdSubjectQuery()
                 it("should return 200 with subject") {
                     val expectResponse =
-                        SubjectDetailResponse(
-                            id = id.toLong(),
-                            title = "test subject",
-                            question = "test question",
-                            category = SubjectCategory.OS,
+                        ApiResponse.success(
+                            SubjectDetailResponse(
+                                id = id.toLong(),
+                                title = "test subject",
+                                question = "test question",
+                                category = SubjectCategory.OS,
+                            ),
                         )
 
                     mockMvc
-                        .perform(get("/api/subjects/$id"))
+                        .perform(get("/api/v1/subjects/$id"))
                         .andExpect(status().isOk)
                         .andExpect(content().json(toJson(expectResponse)))
                         .andDo(
@@ -181,10 +191,15 @@ class SubjectApiTest :
                                 snippets =
                                     arrayOf(
                                         responseFields(
-                                            fieldWithPath("id").description("주제 식별자").type(JsonFieldType.NUMBER),
-                                            fieldWithPath("title").description("제목").type(JsonFieldType.STRING),
-                                            fieldWithPath("category").description("카테고리").type(JsonFieldType.STRING),
-                                            fieldWithPath("question").description("질문").type(JsonFieldType.STRING),
+                                            fieldWithPath("success").description("성공 여부").type(JsonFieldType.BOOLEAN),
+                                            fieldWithPath("data.id").description("주제 식별자").type(JsonFieldType.NUMBER),
+                                            fieldWithPath("data.title").description("제목").type(JsonFieldType.STRING),
+                                            fieldWithPath("data.category").description("카테고리").type(JsonFieldType.STRING),
+                                            fieldWithPath("data.question").description("질문").type(JsonFieldType.STRING),
+                                            fieldWithPath("error")
+                                                .description("에러 정보")
+                                                .type(JsonFieldType.OBJECT)
+                                                .optional(),
                                         ),
                                     ),
                             ),
@@ -198,7 +213,7 @@ class SubjectApiTest :
 
                 it("404를 응답한다.") {
                     mockMvc
-                        .perform(get("/api/subjects/$id"))
+                        .perform(get("/api/v1/subjects/$id"))
                         .andExpect(status().isNotFound)
                         .andDo(
                             document(
@@ -210,7 +225,7 @@ class SubjectApiTest :
             }
         }
 
-        describe("POST /api/v3/subjects/{id}/answer 요청은") {
+        describe("POST /api/v4/subjects/{id}/answer 요청은") {
 
             context("존재하는 주제에 대한 답변 요청 시") {
                 val id = 1
@@ -220,12 +235,14 @@ class SubjectApiTest :
                 it("201 상태코드와 재질문이 포함된 응답을 반환한다.") {
                     val req = SubjectAnswerRequest(answer = "answer")
                     val expectResponse =
-                        SubjectAnswerResponse(nextQuestion = "What is OS? (answer: answer)", score = 50)
+                        ApiResponse.success(
+                            SubjectAnswerResponse(nextQuestion = "What is OS? (answer: answer)", score = 50),
+                        )
 
                     mockMvc
                         .perform(
-                            post("/api/v3/subjects/$id/answer")
-                                .header("Authorization", "Bearer token")
+                            post("/api/v4/subjects/$id/answer")
+                                .cookie(Cookie("SESSION", "sessionId"))
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
                         ).andExpect(status().isCreated)
@@ -236,12 +253,19 @@ class SubjectApiTest :
                                 description = "주제 답변 요청",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer token"),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("세션 ID"),
                                         ),
                                         responseFields(
-                                            fieldWithPath("nextQuestion").description("다음 질문").type(JsonFieldType.STRING),
-                                            fieldWithPath("score").description("답변에 대한 점수").type(JsonFieldType.NUMBER),
+                                            fieldWithPath("success").description("성공 여부").type(JsonFieldType.BOOLEAN),
+                                            fieldWithPath("data.nextQuestion")
+                                                .description("다음 질문")
+                                                .type(JsonFieldType.STRING),
+                                            fieldWithPath("data.score").description("답변에 대한 점수").type(JsonFieldType.NUMBER),
+                                            fieldWithPath("error")
+                                                .description("에러 정보")
+                                                .type(JsonFieldType.OBJECT)
+                                                .optional(),
                                         ),
                                     ),
                             ),
@@ -259,8 +283,8 @@ class SubjectApiTest :
 
                     mockMvc
                         .perform(
-                            post("/api/v3/subjects/$id/answer")
-                                .header("Authorization", "Bearer token")
+                            post("/api/v4/subjects/$id/answer")
+                                .cookie(Cookie("SESSION", "sessionId"))
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
                         ).andExpect(status().isBadRequest)
@@ -270,8 +294,8 @@ class SubjectApiTest :
                                 description = "답변을 모두 사용했을 경우",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer token"),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("세션 아이디"),
                                         ),
                                     ),
                             ),
@@ -290,8 +314,8 @@ class SubjectApiTest :
                     val perform =
                         mockMvc
                             .perform(
-                                post("/api/v3/subjects/$id/answer")
-                                    .header("Authorization", "Bearer token")
+                                post("/api/v4/subjects/$id/answer")
+                                    .cookie(Cookie("SESSION", "sessionId"))
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -304,8 +328,8 @@ class SubjectApiTest :
                                 description = "존재하지 않는 답변 요청",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer token"),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("세션 아이디"),
                                         ),
                                     ),
                             ),
@@ -324,8 +348,8 @@ class SubjectApiTest :
                     val perform =
                         mockMvc
                             .perform(
-                                post("/api/v3/subjects/$id/answer")
-                                    .header("Authorization", "Bearer token")
+                                post("/api/v4/subjects/$id/answer")
+                                    .cookie(Cookie("SESSION", "sessionId"))
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -338,8 +362,8 @@ class SubjectApiTest :
                                 description = "답변이 없는 요청",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer token"),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("세션 아이디"),
                                         ),
                                     ),
                             ),
@@ -348,7 +372,7 @@ class SubjectApiTest :
             }
         }
 
-        describe("GET /api/v1/subjects/member 요청은") {
+        describe("GET /api/v1/subjects/my 요청은") {
             chatQuery = DummyChatQuery()
 
             context("로그인한 사용자가 카테고리 없이 요청 시") {
@@ -357,8 +381,8 @@ class SubjectApiTest :
                 it("200 상태코드와 전체 주제 목록을 응답한다.") {
                     mockMvc
                         .perform(
-                            get("/api/v1/subjects/member")
-                                .header("Authorization", "Bearer token"),
+                            get("/api/v1/subjects/my")
+                                .cookie(Cookie("SESSION", "sessionId")),
                         ).andExpect(status().isOk)
                         .andExpect(jsonPath("$.data").isArray)
                         .andExpect(jsonPath("$.data.length()").value(2))
@@ -372,19 +396,22 @@ class SubjectApiTest :
                         .andExpect(jsonPath("$.data[1].maxScore").value(70))
                         .andDo(
                             document(
-                                identifier = "get-subjects-member",
+                                identifier = "get-subjects-my",
                                 description = "로그인한 사용자의 주제 목록 조회",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer 토큰"),
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("세션 ID"),
                                         ),
                                         responseFields(
-                                            fieldWithPath("data").description("데이터"),
-                                            fieldWithPath("data[].id").description("주제 식별자"),
-                                            fieldWithPath("data[].title").description("제목"),
-                                            fieldWithPath("data[].category").description("카테고리"),
-                                            fieldWithPath("data[].maxScore").description("최대 점수"),
+                                            fieldWithPath("success").description("성공 여부").type(JsonFieldType.BOOLEAN),
+                                            fieldWithPath("data[].id").description("주제 식별자").type(JsonFieldType.NUMBER),
+                                            fieldWithPath("data[].title").description("제목").type(JsonFieldType.STRING),
+                                            fieldWithPath("data[].category").description("카테고리").type(JsonFieldType.STRING),
+                                            fieldWithPath("data[].maxScore")
+                                                .description("최대 점수")
+                                                .type(JsonFieldType.NUMBER),
+                                            fieldWithPath("error").description("에러").type(JsonFieldType.OBJECT).optional(),
                                         ),
                                     ),
                             ),
@@ -397,21 +424,106 @@ class SubjectApiTest :
 
                 it("200 상태코드와 해당 카테고리 주제 목록을 응답한다.") {
                     mockMvc
-                        .get("/api/v1/subjects/member") { param("category", "os") }
-                        .andExpect {
+                        .get("/api/v1/subjects/my") {
+                            param("category", "os")
+                            header("Cookie", "SESSION=sessionId")
+                        }.andExpect {
                             status { isOk() }
-                            jsonPath("$.data") { isArray() }
+                            jsonPath("$.success") { value(true) }
                             jsonPath("$.data.length()") { value(1) }
                             jsonPath("$.data[0].id") { value(1) }
                             jsonPath("$.data[0].title") { value("title1") }
                             jsonPath("$.data[0].category") { value("OS") }
                             jsonPath("$.data[0].maxScore") { value(100) }
+                            jsonPath("$.error") { isEmpty() }
                         }
                 }
             }
         }
 
-        describe("POST /api/v1/subjects/{subjectId}/chats/archive 요청은") {
+        describe("GET /api/v1/subjects/{subjectId}/chats 요청은") {
+
+            context("subjectId가 존재할경우") {
+                val id = 1
+                val date = LocalDateTime.of(2024, 8, 15, 21, 0, 0)
+                subjectQuery = ChatApiTest.ExistingIdSubjectQueryStub()
+                chatQuery = ChatApiTest.ExistingSubjectIdChatQueryStub(date)
+
+                it("200 OK와 Chat 객체를 반환한다") {
+                    mockMvc
+                        .perform(
+                            get("/api/v1/subjects/$id/chats")
+                                .cookie(Cookie("SESSION", "sessionId")),
+                        ).andExpect(status().isOk)
+                        .andExpect(jsonPath("$.success").value(true))
+                        .andExpect(jsonPath("$.data[0].message").value("스레드와 프로세스의 차이점은 무엇인가요?"))
+                        .andExpect(jsonPath("$.data[0].score").doesNotExist())
+                        .andExpect(jsonPath("$.data[0].type").value("question"))
+                        .andExpect(jsonPath("$.data[0].createdAt").doesNotExist())
+                        .andExpect(jsonPath("$.data[1].message").value("스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다."))
+                        .andExpect(jsonPath("$.data[1].score").value(100))
+                        .andExpect(jsonPath("$.data[1].type").value("answer"))
+                        .andExpect(jsonPath("$.data[1].createdAt").value("2024-08-15T21:00:00"))
+                        .andExpect(jsonPath("$.data[2]").doesNotExist())
+                        .andExpect(jsonPath("$.error").isEmpty())
+                        .andDo(
+                            document(
+                                identifier = "get-chat-message",
+                                description = "채팅 메시지 내역 조회",
+                                snippets =
+                                    arrayOf(
+                                        requestCookies(cookieWithName("SESSION").description("세션 아이디")),
+                                        responseFields(
+                                            fieldWithPath("success").description("성공 여부").type(JsonFieldType.BOOLEAN),
+                                            fieldWithPath("data[].message").description("메시지").type(JsonFieldType.STRING),
+                                            fieldWithPath("data[].score")
+                                                .description("점수")
+                                                .type(JsonFieldType.NUMBER)
+                                                .optional(),
+                                            fieldWithPath("data[].type").description("채팅 타입").type(JsonFieldType.STRING),
+                                            fieldWithPath("data[].createdAt")
+                                                .description("생성일")
+                                                .type(JsonFieldType.STRING)
+                                                .optional(),
+                                            fieldWithPath("error")
+                                                .description("에러 정보")
+                                                .type(JsonFieldType.OBJECT)
+                                                .optional(),
+                                        ),
+                                    ),
+                            ),
+                        )
+                }
+            }
+
+            context("subjectId가 존재하지 않을 경우") {
+                val id = 99999
+                subjectQuery = ChatApiTest.NotExistingIdSubjectQueryStub()
+                chatQuery = ChatApiTest.DummyChatQuery()
+
+                it("404 NOT_FOUND를 반환한다") {
+                    mockMvc
+                        .perform(
+                            get("/api/v1/subjects/$id/chats")
+                                .cookie(Cookie("SESSION", "sessionId")),
+                        ).andExpect(status().isNotFound)
+                        .andDo(
+                            document(
+                                identifier = "get-chat-message-not-found",
+                                description = "존재하지 않는 주제 조회",
+                                snippets =
+                                    arrayOf(
+                                        requestCookies(
+                                            cookieWithName("SESSION").description("세션 아이디"),
+                                        ),
+                                    ),
+                            ),
+                        )
+                }
+            }
+        }
+
+        describe("POST /api/v2/subjects/{subjectId}/chats/archive 요청은") {
 
             context("subjectId와 답변 채팅이 존재할 경우") {
                 val id = 1
@@ -421,8 +533,8 @@ class SubjectApiTest :
                 it("201과 생성한 ID를 반환한다") {
                     mockMvc
                         .perform(
-                            post("/api/v1/subjects/$id/chats/archive")
-                                .header("Authorization", "Bearer token"),
+                            post("/api/v2/subjects/$id/chats/archive")
+                                .cookie(Cookie("SESSION", "sessionId")),
                         ).andExpect(status().isCreated)
                         .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/chat/archives/$id"))
                         .andExpect(jsonPath("$.success").value(true))
@@ -434,9 +546,7 @@ class SubjectApiTest :
                                 description = "채팅 내역 초기화",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer token"),
-                                        ),
+                                        requestCookies(cookieWithName("SESSION").description("세션 아이디")),
                                         HeaderDocumentation.responseHeaders(
                                             headerWithName("Location").description("생성된 리소스 URL"),
                                         ),
@@ -458,8 +568,8 @@ class SubjectApiTest :
                 it("404 NOT_FOUND를 반환한다") {
                     mockMvc
                         .perform(
-                            post("/api/v1/subjects/$id/chats/archive")
-                                .header("Authorization", "Bearer token"),
+                            post("/api/v2/subjects/$id/chats/archive")
+                                .cookie(Cookie("SESSION", "sessionId")),
                         ).andExpect(status().isNotFound)
                         .andExpect(jsonPath("$.success").value(false))
                         .andExpect(jsonPath("$.data").doesNotExist())
@@ -472,9 +582,7 @@ class SubjectApiTest :
                                 description = "존재하지 않는 주제 초기화",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer token"),
-                                        ),
+                                        requestCookies(cookieWithName("SESSION").description("세션 아이디")),
                                         responseFields(
                                             fieldWithPath("success").description("상태").type(JsonFieldType.BOOLEAN),
                                             fieldWithPath("error.code").description("에러 코드").type(JsonFieldType.STRING),
@@ -498,8 +606,8 @@ class SubjectApiTest :
                 it("400 BAD_REQUEST를 반환한다") {
                     mockMvc
                         .perform(
-                            post("/api/v1/subjects/$id/chats/archive")
-                                .header("Authorization", "Bearer token"),
+                            post("/api/v2/subjects/$id/chats/archive")
+                                .cookie(Cookie("SESSION", "sessionId")),
                         ).andExpect(status().isBadRequest)
                         .andExpect(jsonPath("$.success").value(false))
                         .andExpect(jsonPath("$.data").doesNotExist())
@@ -512,9 +620,7 @@ class SubjectApiTest :
                                 description = "답변이 없는 주제 초기화",
                                 snippets =
                                     arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer token"),
-                                        ),
+                                        requestCookies(cookieWithName("SESSION").description("세션 아이디")),
                                         responseFields(
                                             fieldWithPath("success").description("상태").type(JsonFieldType.BOOLEAN),
                                             fieldWithPath("error.code").description("에러 코드").type(JsonFieldType.STRING),

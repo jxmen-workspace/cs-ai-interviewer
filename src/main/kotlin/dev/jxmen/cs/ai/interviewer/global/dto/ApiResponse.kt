@@ -28,6 +28,15 @@ data class ApiResponse<T>(
                 data = null,
                 error = null,
             )
+
+        fun <T> success(list: ListDataResponse<T>): ApiResponse<List<T>> = success(list.data)
+
+        fun <T> success(data: T?): ApiResponse<T> =
+            ApiResponse(
+                success = true,
+                data = data,
+                error = null,
+            )
     }
 }
 
