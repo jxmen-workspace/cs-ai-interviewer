@@ -2,7 +2,7 @@ package dev.jxmen.cs.ai.interviewer.adapter.input
 
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerRequest
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
+import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.ChatMessageResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
@@ -29,11 +29,13 @@ class SubjectApi(
     private val chatQuery: ChatQuery,
     private val memberChatUseCase: MemberChatUseCase,
 ) {
-    @Deprecated("Use /api/v1 prefix")
-    @GetMapping("/api/subjects")
+    /**
+     * 주제 목록 조회
+     */
+    @GetMapping("/api/v1/subjects")
     fun getSubjects(
         @RequestParam("category") cateStr: String,
-    ): ResponseEntity<ListDataResponse<SubjectResponse>> {
+    ): ResponseEntity<ApiResponse<List<SubjectResponse>>> {
         val subjects = subjectQuery.findByCategory(cateStr)
 
         val response =
@@ -43,22 +45,54 @@ class SubjectApi(
                 },
             )
 
-        return ResponseEntity.ok(response)
+        return ResponseEntity.ok(ApiResponse.success(response))
     }
 
-    @Deprecated("Use /api/v1 prefix")
-    @GetMapping("/api/subjects/{id}")
+    /**
+     * 특정 주제 조회
+     */
+    @GetMapping("/api/v1/subjects/{id}")
     fun getSubject(
         @PathVariable("id") id: String,
-    ): ResponseEntity<SubjectDetailResponse> {
+    ): ResponseEntity<ApiResponse<SubjectDetailResponse>> {
         val subject = subjectQuery.findByIdOrThrow(id.toLong())
 
         return ResponseEntity.ok(
-            SubjectDetailResponse(
-                id = subject.id,
-                category = subject.category,
-                title = subject.title,
-                question = subject.question,
+            ApiResponse.success(
+                SubjectDetailResponse(
+                    id = subject.id,
+                    category = subject.category,
+                    title = subject.title,
+                    question = subject.question,
+                ),
+            ),
+        )
+    }
+
+    /**
+     * 특정 주제 채팅 내역 조회
+     */
+    @GetMapping("/api/v1/subjects/{subjectId}/chats")
+    fun getChats(
+        member: Member,
+        @PathVariable("subjectId") subjectId: String,
+    ): ResponseEntity<ApiResponse<List<ChatMessageResponse>>> {
+        val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
+        val messages = chatQuery.findBySubjectAndMember(subject = subject, member = member)
+
+        val list =
+            messages.map {
+                ChatMessageResponse(
+                    message = it.content.message,
+                    score = it.content.score,
+                    type = it.content.chatType,
+                    createdAt = it.createdAt,
+                )
+            }
+
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                ListDataResponse(list),
             ),
         )
     }
@@ -66,13 +100,12 @@ class SubjectApi(
     /**
      * 답변 등록
      */
-    @Deprecated("Use v4")
-    @PostMapping("/api/v3/subjects/{subjectId}/answer")
-    fun answerSubjectV3(
+    @PostMapping("/api/v4/subjects/{subjectId}/answer")
+    fun answerSubjectV4(
         member: Member,
         @PathVariable("subjectId") subjectId: String,
         @RequestBody @Valid req: SubjectAnswerRequest,
-    ): ResponseEntity<SubjectAnswerResponse> {
+    ): ResponseEntity<ApiResponse<Any>> {
         val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
         val chats = chatQuery.findBySubjectAndMember(subject, member)
 
@@ -85,28 +118,28 @@ class SubjectApi(
             )
         val answerResponse = memberChatUseCase.answer(command)
 
-        return ResponseEntity.status(201).body(answerResponse)
+        return ResponseEntity.status(201).body(
+            ApiResponse.success(answerResponse),
+        )
     }
 
     /**
      * 로그인한 회원의 주제 목록 조회 (회원 관련 정보 포함 - ex)채팅 최대 점수)
      */
-    @Deprecated("Use v1 /subjects/my")
-    @GetMapping("/api/v1/subjects/member")
+    @GetMapping("/api/v1/subjects/my")
     fun getMemberSubjects(
         member: Member,
         @Param("category") category: String?,
-    ): ResponseEntity<ListDataResponse<MemberSubjectResponse>> {
+    ): ResponseEntity<ApiResponse<List<MemberSubjectResponse>>> {
         val response = ListDataResponse(subjectQuery.findWithMember(member, category))
 
-        return ResponseEntity.ok(response)
+        return ResponseEntity.ok(ApiResponse.success(response))
     }
 
     /**
      * 채팅 내역 아카이브
      */
-    @Deprecated("Use v2")
-    @PostMapping("/api/v1/subjects/{subjectId}/chats/archive")
+    @PostMapping("/api/v2/subjects/{subjectId}/chats/archive")
     fun deleteMessages(
         member: Member,
         @PathVariable("subjectId") subjectId: String,

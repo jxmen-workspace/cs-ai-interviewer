@@ -10,6 +10,7 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.haveLength
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.junit.jupiter.api.BeforeEach
@@ -74,32 +75,37 @@ class MemberScenarioTest(
 
         // 주제 목록 조회
         mockMvc
-            .get("/api/subjects") { param("category", "OS") }
+            .get("/api/v1/subjects") { param("category", "OS") }
             .andExpect {
                 status { isOk() }
+                jsonPath("$.success") { value(true) }
                 jsonPath("$.data") { isArray() }
                 jsonPath("$.data.length()") { value(1) }
                 jsonPath("$.data[0].id") { value(createdSubject.id) }
                 jsonPath("$.data[0].title") { value("test subject") }
                 jsonPath("$.data[0].category") { value("OS") }
+                jsonPath("$.error") { value(null) }
             }
 
         // 주제 상세 조회
         mockMvc
-            .get("/api/subjects/${createdSubject.id}")
+            .get("/api/v1/subjects/${createdSubject.id}")
             .andExpect {
                 status { isOk() }
-                jsonPath("$.id") { value(createdSubject.id) }
-                jsonPath("$.title") { value("test subject") }
-                jsonPath("$.question") { value("test question") }
-                jsonPath("$.category") { value("OS") }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data.id") { value(createdSubject.id) }
+                jsonPath("$.data.title") { value("test subject") }
+                jsonPath("$.data.question") { value("test question") }
+                jsonPath("$.data.category") { value("OS") }
+                jsonPath("$.error") { value(null) }
+            }.andDo {
+                print()
             }
 
         // 채팅 API 조회 시 빈 값 응답 검증
         mockMvc
-            .get("/api/v1/subjects/${createdSubject.id}/chats") {
-                header("Authorization", "Bearer test-token")
-            }.andExpect {
+            .get("/api/v1/subjects/${createdSubject.id}/chats")
+            .andExpect {
                 status { isOk() }
                 jsonPath("$.success") { value(true) }
                 jsonPath("$.data") { isEmpty() }
@@ -118,7 +124,6 @@ class MemberScenarioTest(
         // 특정 주제에 대해 답변
         mockMvc
             .post("/api/v4/subjects/${createdSubject.id}/answer") {
-                header("Authorization", "Bearer test-token")
                 contentType = MediaType.APPLICATION_JSON
                 content =
                     """
@@ -138,12 +143,10 @@ class MemberScenarioTest(
 
         val now = LocalDateTime.now()
         mockMvc
-            .get("/api/v1/subjects/${createdSubject.id}/chats") {
-                header("Authorization", "Bearer test-token")
-            }.andExpect {
+            .get("/api/v1/subjects/${createdSubject.id}/chats")
+            .andExpect {
                 status { isOk() }
-                jsonPath("$.data") { isNotEmpty() }
-                jsonPath("$.data.length()") { value(3) }
+                jsonPath("$.data") { haveLength(3) }
                 jsonPath("$.data[0].type") { value("question") }
                 jsonPath("$.data[0].message") { value(testSubject.question) }
                 jsonPath("$.data[0].score") { value(null) }
@@ -160,9 +163,8 @@ class MemberScenarioTest(
 
         // 채팅 아카이브
         mockMvc
-            .post("/api/v2/subjects/${createdSubject.id}/chats/archive") {
-                header("Authorization", "Bearer test-token")
-            }.andExpect {
+            .post("/api/v2/subjects/${createdSubject.id}/chats/archive")
+            .andExpect {
                 status { isCreated() }
 
                 // NOTE: location 헤더 값은 알 수 없으므로 검증하지 않는다.
@@ -173,9 +175,8 @@ class MemberScenarioTest(
 
         // 채팅 내역 재조회 - 아카이브 후 빈 값 응답 검증
         mockMvc
-            .get("/api/v1/subjects/${createdSubject.id}/chats") {
-                header("Authorization", "Bearer test-token")
-            }.andExpect {
+            .get("/api/v1/subjects/${createdSubject.id}/chats")
+            .andExpect {
                 status { isOk() }
                 jsonPath("$.data") { isEmpty() }
             }

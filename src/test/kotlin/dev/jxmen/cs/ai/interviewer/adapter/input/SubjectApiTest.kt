@@ -69,7 +69,7 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectLoginRequireApi(subjectQuery, chatQuery, StubMemberChatUseCase()))
+                    .standaloneSetup(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase()))
                     .setControllerAdvice(controllerAdvice)
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
@@ -446,8 +446,8 @@ class SubjectApiTest :
             context("subjectId가 존재할경우") {
                 val id = 1
                 val date = LocalDateTime.of(2024, 8, 15, 21, 0, 0)
-                subjectQuery = ChatApiTest.ExistingIdSubjectQueryStub()
-                chatQuery = ChatApiTest.ExistingSubjectIdChatQueryStub(date)
+                subjectQuery = ExistingIdSubjectQuery()
+                chatQuery = ExistingSubjectIdChatQuery(date)
 
                 it("200 OK와 Chat 객체를 반환한다") {
                     mockMvc
@@ -498,8 +498,8 @@ class SubjectApiTest :
 
             context("subjectId가 존재하지 않을 경우") {
                 val id = 99999
-                subjectQuery = ChatApiTest.NotExistingIdSubjectQueryStub()
-                chatQuery = ChatApiTest.DummyChatQuery()
+                subjectQuery = NotExistingIdSubjectQuery()
+                chatQuery = DummyChatQuery()
 
                 it("404 NOT_FOUND를 반환한다") {
                     mockMvc
@@ -563,7 +563,7 @@ class SubjectApiTest :
 
             context("subjectId가 존재하지 않을 경우") {
                 val id = 99999
-                subjectQuery = NotExistingIdSubjectQueryStub()
+                subjectQuery = NotExistingIdSubjectQuery()
 
                 it("404 NOT_FOUND를 반환한다") {
                     mockMvc
@@ -601,7 +601,7 @@ class SubjectApiTest :
             context("답변이 0일 경우") {
                 val id = 2
                 subjectQuery = ExistingIdSubjectQuery()
-                chatQuery = NoAnswerChatQueryStub()
+                chatQuery = NoAnswerChatQuery()
 
                 it("400 BAD_REQUEST를 반환한다") {
                     mockMvc
@@ -821,13 +821,13 @@ class SubjectApiTest :
             )
     }
 
-    class NotExistingIdSubjectQueryStub : StubSubjectQuery() {
+    class NotExistingIdSubjectQuery : StubSubjectQuery() {
         override fun findByIdOrThrow(id: Long): Subject = throw SubjectNotFoundException(id)
 
         override fun findByIdOrThrowV2(id: Long): Subject = throw SubjectNotFoundExceptionV2(id)
     }
 
-    class NoAnswerChatQueryStub : ChatQuery {
+    class NoAnswerChatQuery : ChatQuery {
         override fun findBySubjectAndMember(
             subject: Subject,
             member: Member,
@@ -837,6 +837,29 @@ class SubjectApiTest :
                     subject = subject,
                     member = member,
                     message = "스레드와 프로세스의 차이점은 무엇인가요?",
+                ),
+            )
+    }
+
+    class ExistingSubjectIdChatQuery(
+        private val date: LocalDateTime? = null,
+    ) : ChatQuery {
+        override fun findBySubjectAndMember(
+            subject: Subject,
+            member: Member,
+        ): List<Chat> =
+            listOf(
+                Chat.createQuestion(
+                    subject = subject,
+                    member = member,
+                    message = "스레드와 프로세스의 차이점은 무엇인가요?",
+                ),
+                Chat.createAnswer(
+                    subject = subject,
+                    member = member,
+                    answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
+                    score = 100,
+                    createdAt = date,
                 ),
             )
     }
