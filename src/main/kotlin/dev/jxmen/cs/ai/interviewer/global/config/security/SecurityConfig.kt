@@ -31,9 +31,7 @@ class SecurityConfig(
 
         http
             .csrf { it.disable() }
-            .authorizeHttpRequests {
-                it.anyRequest().permitAll()
-            }
+            // authorizeHttpRequests는 controller에서 설정
             .addFilterBefore(refererCaptureFilter(), OAuth2AuthorizationRequestRedirectFilter::class.java)
             .oauth2Login {
                 it.successHandler(oAuth2LoginSuccessHandler())

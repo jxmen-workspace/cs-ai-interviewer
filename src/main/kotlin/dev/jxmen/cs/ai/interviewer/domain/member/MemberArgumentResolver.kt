@@ -1,5 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.domain.member
 
+import dev.jxmen.cs.ai.interviewer.domain.member.exceptions.UnAuthorizedException
+import dev.jxmen.cs.ai.interviewer.global.enum.ErrorType
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.user.OAuth2User
@@ -21,6 +23,8 @@ class MemberArgumentResolver(
         binderFactory: WebDataBinderFactory?,
     ): Member {
         val authentication = SecurityContextHolder.getContext().authentication
+        require(authentication.principal != "anonymousUser") { throw UnAuthorizedException(ErrorType.REQUIRE_LOGIN) }
+
         val oAuth2User = authentication.principal as OAuth2User
         val attributes = oAuth2User.attributes
 
