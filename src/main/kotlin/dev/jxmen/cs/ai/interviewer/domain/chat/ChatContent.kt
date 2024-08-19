@@ -38,13 +38,6 @@ data class ChatContent(
                 score = null,
             )
 
-        fun createEmptyAnswer(): ChatContent =
-            ChatContent(
-                message = "",
-                chatType = ChatType.ANSWER,
-                score = 0,
-            )
-
         fun createAnswer(
             answer: String,
             score: Int? = 0,

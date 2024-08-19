@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Suppress("ktlint:standard:chain-method-continuation") // NOTE: 활성화시 오히려 가독성이 저하되어 비활성화
@@ -31,16 +30,15 @@ class SecurityConfig(
 
         http
             .csrf { it.disable() }
-            // authorizeHttpRequests는 controller에서 설정
+            // NOTE: authorizeHttpRequests는 controller에서 설정
             .addFilterBefore(refererCaptureFilter(), OAuth2AuthorizationRequestRedirectFilter::class.java)
             .oauth2Login {
                 it.successHandler(oAuth2LoginSuccessHandler())
-            } // NOTE: TokenFilter에서 처리하기 때문에 별다른 설정 없음
+            }
             .exceptionHandling {
                 // 예외 발생시 커스텀 응답 반환
                 it.authenticationEntryPoint(setCustomResponseAuthenticationEntryPoint())
             }
-            .addFilterBefore(tokenFilter(), BasicAuthenticationFilter::class.java)
 
         return http.build()
     }
@@ -53,7 +51,4 @@ class SecurityConfig(
 
     @Bean
     fun refererCaptureFilter(): OncePerRequestFilter = RefererCaptureFilter()
-
-    @Bean
-    fun tokenFilter(): OncePerRequestFilter = TokenFilter()
 }
