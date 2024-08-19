@@ -663,15 +663,15 @@ class SubjectApiTest :
         }
     }
 
-    open abstract class StubSubjectQuery : SubjectQuery {
-        override fun findByCategory(cateStr: String): List<Subject> = throw NotImplementedError("Not implemented")
+    abstract class StubSubjectQuery : SubjectQuery {
+        override fun findByCategory(cateStr: String): List<Subject> = throw NotImplementedError()
 
         override fun findWithMember(
             member: Member,
             category: String?,
-        ): List<MemberSubjectResponse> = throw NotImplementedError("Not implemented")
+        ): List<MemberSubjectResponse> = throw NotImplementedError()
 
-        override fun findByIdOrThrow(id: Long): Subject = throw NotImplementedError("Not implemented")
+        override fun findByIdOrThrow(id: Long): Subject = throw NotImplementedError()
     }
 
     class ExistIdSubjectQuery : StubSubjectQuery() {
@@ -690,7 +690,7 @@ class SubjectApiTest :
         override fun findBySubjectAndMember(
             subject: Subject,
             member: Member,
-        ): List<Chat> = throw NotImplementedError("Not implemented")
+        ): List<Chat> = throw NotImplementedError()
     }
 
     class NotExistCategorySubjectQuery : StubSubjectQuery() {
