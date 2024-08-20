@@ -16,7 +16,7 @@ class TokenManager(
     private val jwtSecret: String,
 ) {
     companion object {
-        const val ACCESS_TOKEN_VALIDITY = 1000L * 60L * 10L // 10 minutes
+        const val ACCESS_TOKEN_VALIDITY = 1000L * 60L * 60L // 60 minutes
         const val REFRESH_TOKEN_VALIDITY = 1000L * 60L * 60L * 24L * 30L * 3L // 3 months
     }
 
