@@ -8,7 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Suppress("ktlint:standard:chain-method-continuation") // NOTE: 활성화시 오히려 가독성이 저하되어 비활성화
@@ -17,6 +17,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 class SecurityConfig(
     @Value("\${spring.profiles.active:default}") // NOTE: 값이 없을시 콜론 뒤에 기본값 지정 가능
     private val activeProfile: String,
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val oAuth2LoginSuccessHandler: OAuth2LoginSuccessHandler,
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -31,9 +33,10 @@ class SecurityConfig(
         http
             .csrf { it.disable() }
             // NOTE: authorizeHttpRequests는 controller에서 설정
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .addFilterBefore(refererCaptureFilter(), OAuth2AuthorizationRequestRedirectFilter::class.java)
             .oauth2Login {
-                it.successHandler(oAuth2LoginSuccessHandler())
+                it.successHandler(oAuth2LoginSuccessHandler)
             }
             .exceptionHandling {
                 // 예외 발생시 커스텀 응답 반환
@@ -42,9 +45,6 @@ class SecurityConfig(
 
         return http.build()
     }
-
-    @Bean
-    fun oAuth2LoginSuccessHandler(): AuthenticationSuccessHandler = OAuth2LoginSuccessHandler()
 
     @Bean
     fun setCustomResponseAuthenticationEntryPoint(): AuthenticationEntryPoint = SetCustomResponseAuthenticationEntryPoint()
