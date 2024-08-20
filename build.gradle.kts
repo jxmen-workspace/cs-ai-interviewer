@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "dev.jxmen"
-version = "1.2.6"
+version = "1.2.7"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
