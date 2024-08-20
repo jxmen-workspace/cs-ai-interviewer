@@ -28,12 +28,18 @@ val kotestVersion = "5.8.1"
 val kotlinJdslVersion = "3.5.1"
 
 dependencies {
+    // spring boot
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // template engine
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-    implementation("org.springframework.boot:spring-boot-starter-web")
+
+    // kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.boot:spring-boot-starter-aop")
-    implementation("org.springframework.session:spring-session-jdbc") // redis로 변경은 추후 검토
+
+    // spring security, oauth2
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.security:spring-security-oauth2-client")
 
@@ -42,6 +48,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
     implementation("com.h2database:h2")
+    implementation("org.springframework.session:spring-session-jdbc") // redis로 변경은 추후 검토
 
     // kotlin jdsl dependencies
     implementation("com.linecorp.kotlin-jdsl:jpql-dsl:$kotlinJdslVersion") // JPQL을 만들어 주도록 도와주는 라이브러리
@@ -49,13 +56,13 @@ dependencies {
     implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:$kotlinJdslVersion") // Spring Data JPA를 지원하는 Kotlin JDSL 라이브러리
 
     /**
+     * for generating OpenAPI 3.0 spec
+     *
      * https://mvnrepository.com/artifact/com.epages/restdocs-api-spec-mockmvc
      */
     implementation("com.epages:restdocs-api-spec:$epagesVersion")
     implementation("com.epages:restdocs-api-spec-mockmvc:$epagesVersion")
     implementation("com.epages:restdocs-api-spec-openapi3-generator:$epagesVersion")
-
-    implementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
 
     // jwt
     implementation("io.jsonwebtoken:jjwt-api:0.12.6") // 인터페이스
@@ -64,6 +71,8 @@ dependencies {
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
+    // for test
+    implementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
