@@ -20,6 +20,10 @@ java {
 
 repositories {
     mavenCentral()
+
+    // NOTE: Spring AI 추가를 위해 필요
+    maven { url = uri("https://repo.spring.io/milestone") }
+    maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
 val epagesVersion = "0.17.1"
@@ -29,8 +33,13 @@ val kotlinJdslVersion = "3.5.1"
 
 dependencies {
     // spring boot
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // spring ai
+    implementation("org.springframework.ai:spring-ai-anthropic-spring-boot-starter:1.0.0-M1")
+    implementation("org.springframework.ai:spring-ai-anthropic:1.0.0-M1")
 
     // template engine
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -87,7 +96,14 @@ dependencies {
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.1.0") {
         exclude(group = "com.github.waffle", module = "waffle-jna")
     }
+
+    if (isAppleSilicon()) {
+        // MacOS에서 Netty 사용 시 Apple Silicon 지원을 위해 추가
+        runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.72.Final:osx-aarch_64")
+    }
 }
+
+fun isAppleSilicon() = System.getProperty("os.name") == "Mac OS X" && System.getProperty("os.arch") == "aarch64"
 
 kotlin {
     compilerOptions {
