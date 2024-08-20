@@ -1,5 +1,8 @@
 package dev.jxmen.cs.ai.interviewer.global.config.security
 
+import dev.jxmen.cs.ai.interviewer.global.enum.ErrorType
+import dev.jxmen.cs.ai.interviewer.global.exceptions.UnAuthorizedException
+import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
@@ -28,48 +31,35 @@ class TokenManager(
         email: String,
         now: Date = Date(),
     ): Token {
-        val accessToken =
-            Jwts
-                .builder()
-                .subject(id.toString())
-                .claim("email", email)
-                .issuedAt(now)
-                .expiration(Date(now.time + ACCESS_TOKEN_VALIDITY))
-                .signWith(key)
-                .compact()
+        val builder = builder(id = id, email = email, issuedAt = now)
 
-        val refreshToken =
-            Jwts
-                .builder()
-                .subject(id.toString())
-                .issuedAt(now)
-                .expiration(Date(now.time + REFRESH_TOKEN_VALIDITY))
-                .signWith(key)
-                .compact()
+        val accessToken = builder.expiration(Date(now.time + ACCESS_TOKEN_VALIDITY)).compact()
+        val refreshToken = builder.expiration(Date(now.time + REFRESH_TOKEN_VALIDITY)).compact()
 
         return Token(accessToken, refreshToken)
     }
 
-    fun refreshAccessToken(
+    fun renewAccessToken(
         refreshToken: String,
         now: Date = Date(),
     ): String {
         val claims =
-            Jwts
-                .parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(refreshToken)
-                .payload
+            try {
+                Jwts
+                    .parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(refreshToken)
+                    .payload
+            } catch (e: Exception) {
+                throw UnAuthorizedException(ErrorType.INVALID_TOKEN)
+            }
 
-        val userId = claims.subject.toLong()
+        val memberId = claims.subject
+        val builder = builder(id = memberId, email = claims["email"].toString(), issuedAt = now)
 
-        return Jwts
-            .builder()
-            .subject(userId.toString())
-            .issuedAt(now)
+        return builder
             .expiration(Date(now.time + ACCESS_TOKEN_VALIDITY))
-            .signWith(key)
             .compact()
     }
 
@@ -86,6 +76,24 @@ class TokenManager(
             email = parseSignedClaims.payload["email"].toString(),
         )
     }
+
+    private fun builder(
+        id: Long,
+        email: String,
+        issuedAt: Date,
+    ): JwtBuilder = builder(id.toString(), email, issuedAt)
+
+    private fun builder(
+        id: String,
+        email: String,
+        issuedAt: Date,
+    ): JwtBuilder =
+        Jwts
+            .builder()
+            .subject(id)
+            .claim("email", email)
+            .issuedAt(issuedAt)
+            .signWith(key)
 }
 
 data class Token(
