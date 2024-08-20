@@ -27,8 +27,11 @@ spring:
 claude:
   api-key: ${CLAUDE_API_KEY}
 
+jwt:
+  secret: "12345678901234567890123456789012345678901234567890123456789012"
+
 ---
-spring.config.activate.on-profile: local, default
+spring.config.activate.on-profile: local, default, test
 
 spring:
   datasource:
@@ -52,6 +55,11 @@ logging:
     org:
       hibernate:
         SQL: DEBUG
+    dev:
+      jxmen:
+        cs:
+          ai:
+            interviewer: DEBUG
 
 ---
 spring.config.activate.on-profile: dev
@@ -93,3 +101,6 @@ spring:
       initialize-schema: never
   flyway:
     enabled: true
+
+jwt:
+  secret: ${JWT_SECRET}

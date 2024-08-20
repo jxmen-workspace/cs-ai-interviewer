@@ -20,13 +20,17 @@ import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturn
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.security.test.context.support.WithAnonymousUser
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestConstructor
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MockMvcResultMatchersDsl
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -37,6 +41,7 @@ import java.time.LocalDateTime
 @SpringBootTest
 @Transactional
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@ActiveProfiles("test")
 class MemberScenarioTest(
     private val context: WebApplicationContext,
     private val subjectCommandRepository: SubjectCommandRepository,
@@ -56,6 +61,30 @@ class MemberScenarioTest(
             MockMvcBuilders
                 .webAppContextSetup(context)
                 .build()
+    }
+
+    @Test
+    @WithAnonymousUser
+    fun `인증되지 않은 유저가 인증이 필요한 로그인 요청 시 401을 응답한다`() {
+        listOf(
+            Pair(HttpMethod.GET, "/api/v1/subjects/1/chats"),
+            Pair(HttpMethod.GET, "/api/v1/subjects/my"),
+            Pair(HttpMethod.POST, "/api/v4/subjects/1/answer"),
+            Pair(HttpMethod.POST, "/api/v2/subjects/1/chats/archive"),
+        ).forEach {
+            when (it.first) {
+                HttpMethod.GET -> mockMvc.get(it.second).andExpect { expectRequireLogin() }
+                HttpMethod.POST -> mockMvc.post(it.second).andExpect { expectRequireLogin() }
+                else -> throw IllegalArgumentException("Unsupported method: ${it.first}")
+            }
+        }
+    }
+
+    private fun MockMvcResultMatchersDsl.expectRequireLogin() {
+        status { isUnauthorized() }
+        jsonPath("$.success") { value(false) }
+        jsonPath("$.error.code") { value("REQUIRE_LOGIN") }
+        jsonPath("$.error.status") { value(401) }
     }
 
     @Test
@@ -100,6 +129,20 @@ class MemberScenarioTest(
                 jsonPath("$.error") { value(null) }
             }.andDo {
                 print()
+            }
+
+        // 내 주제 목록 조회
+        mockMvc
+            .get("/api/v1/subjects/my")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data") { haveLength(1) }
+                jsonPath("$.data[0].id") { value(createdSubject.id) }
+                jsonPath("$.data[0].title") { value("test subject") }
+                jsonPath("$.data[0].category") { value("OS") }
+                jsonPath("$.data[0].maxScore") { value(null) }
+                jsonPath("$.error") { value(null) }
             }
 
         // 채팅 API 조회 시 빈 값 응답 검증
@@ -161,6 +204,13 @@ class MemberScenarioTest(
                 jsonPath("$.data[2].createdAt") { value(null) }
             }
 
+        mockMvc
+            .get("/api/v1/subjects/my")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.data[0].maxScore") { value(10) }
+            }
+
         // 채팅 아카이브
         mockMvc
             .post("/api/v2/subjects/${createdSubject.id}/chats/archive")
@@ -181,6 +231,13 @@ class MemberScenarioTest(
                 jsonPath("$.data") { isEmpty() }
             }
 
+        mockMvc
+            .get("/api/v1/subjects/my")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.data[0].maxScore") { value(null) }
+            }
+
         // NOTE: 추후 API 개발 완료 시 API 호출로 변경
         val archives = chatArchiveQueryRepository.findBySubjectAndMember(createdSubject, createdMember)
         archives.size shouldBe 1
@@ -189,12 +246,15 @@ class MemberScenarioTest(
         archiveContents.size shouldBe 3
     }
 
-    private fun createOAuth2AuthenticationToken(oauth2User: DefaultOAuth2User): OAuth2AuthenticationToken {
+    private fun createOAuth2AuthenticationToken(
+        oauth2User: DefaultOAuth2User,
+        provider: String = "google",
+    ): OAuth2AuthenticationToken {
         val authentication =
             OAuth2AuthenticationToken(
                 oauth2User,
                 emptyList<GrantedAuthority>(),
-                "google", // NOTE: 구글 외 다른 로그인 수단 추가 시 변경 필요
+                provider, // NOTE: 구글 외 다른 로그인 수단 추가 시 변경 필요
             )
         return authentication
     }

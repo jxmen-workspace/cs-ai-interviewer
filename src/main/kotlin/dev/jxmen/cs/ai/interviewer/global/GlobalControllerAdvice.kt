@@ -2,10 +2,11 @@ package dev.jxmen.cs.ai.interviewer.global
 
 import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.AllAnswersUsedException
 import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.NoAnswerException
-import dev.jxmen.cs.ai.interviewer.domain.member.exceptions.UnAuthorizedException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ErrorResponse
+import dev.jxmen.cs.ai.interviewer.global.exceptions.ServerError
+import dev.jxmen.cs.ai.interviewer.global.exceptions.UnAuthorizedException
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -55,6 +56,16 @@ class GlobalControllerAdvice {
                 code = e.errorType.toString(),
                 status = 401,
                 message = e.message ?: "Unauthorized",
+            ),
+        )
+
+    @ExceptionHandler(ServerError::class)
+    fun handleServerError(e: ServerError): ResponseEntity<ApiResponse<Nothing>> =
+        ResponseEntity.status(500).body(
+            ApiResponse.failure(
+                code = e.errorType.toString(),
+                status = 500,
+                message = e.message ?: "Internal Server Error",
             ),
         )
 }

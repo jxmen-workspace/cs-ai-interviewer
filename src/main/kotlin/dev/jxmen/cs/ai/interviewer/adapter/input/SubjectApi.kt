@@ -10,12 +10,12 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
+import dev.jxmen.cs.ai.interviewer.global.RequireLoginApi
 import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import jakarta.validation.Valid
 import org.springframework.data.repository.query.Param
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -34,7 +34,6 @@ class SubjectApi(
      * 주제 목록 조회
      */
     @GetMapping("/api/v1/subjects")
-    @PreAuthorize("permitAll()")
     fun getSubjects(
         @RequestParam("category") cateStr: String,
     ): ResponseEntity<ApiResponse<List<SubjectResponse>>> {
@@ -54,7 +53,6 @@ class SubjectApi(
      * 특정 주제 조회
      */
     @GetMapping("/api/v1/subjects/{id}")
-    @PreAuthorize("permitAll()")
     fun getSubject(
         @PathVariable("id") id: String,
     ): ResponseEntity<ApiResponse<SubjectDetailResponse>> {
@@ -76,7 +74,7 @@ class SubjectApi(
      * 특정 주제 채팅 내역 조회
      */
     @GetMapping("/api/v1/subjects/{subjectId}/chats")
-    @PreAuthorize("isAuthenticated()")
+    @RequireLoginApi
     fun getChats(
         member: Member,
         @PathVariable("subjectId") subjectId: String,
@@ -105,7 +103,7 @@ class SubjectApi(
      * 답변 등록
      */
     @PostMapping("/api/v4/subjects/{subjectId}/answer")
-    @PreAuthorize("isAuthenticated()")
+    @RequireLoginApi
     fun answerSubjectV4(
         member: Member,
         @PathVariable("subjectId") subjectId: String,
@@ -132,7 +130,7 @@ class SubjectApi(
      * 로그인한 회원의 주제 목록 조회 (회원 관련 정보 포함 - ex)채팅 최대 점수)
      */
     @GetMapping("/api/v1/subjects/my")
-    @PreAuthorize("isAuthenticated()")
+    @RequireLoginApi
     fun getMemberSubjects(
         member: Member,
         @Param("category") category: String?,
@@ -146,7 +144,7 @@ class SubjectApi(
      * 채팅 내역 아카이브
      */
     @PostMapping("/api/v2/subjects/{subjectId}/chats/archive")
-    @PreAuthorize("isAuthenticated()")
+    @RequireLoginApi
     fun deleteMessages(
         member: Member,
         @PathVariable("subjectId") subjectId: String,
