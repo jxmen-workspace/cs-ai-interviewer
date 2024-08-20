@@ -25,13 +25,11 @@ import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
-import jakarta.servlet.http.Cookie
 import org.springframework.http.MediaType
 import org.springframework.restdocs.ManualRestDocumentation
-import org.springframework.restdocs.cookies.CookieDocumentation.cookieWithName
-import org.springframework.restdocs.cookies.CookieDocumentation.requestCookies
-import org.springframework.restdocs.headers.HeaderDocumentation
 import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
+import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
+import org.springframework.restdocs.headers.HeaderDocumentation.responseHeaders
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post
@@ -241,7 +239,7 @@ class SubjectApiTest :
                     mockMvc
                         .perform(
                             post("/api/v4/subjects/$id/answer")
-                                .cookie(Cookie("SESSION", "sessionId"))
+                                .header("Authorization", "Bearer token")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
                         ).andExpect(status().isCreated)
@@ -252,8 +250,8 @@ class SubjectApiTest :
                                 description = "주제 답변 요청",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("세션 ID"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
                                         ),
                                         responseFields(
                                             fieldWithPath("success").description("성공 여부").type(JsonFieldType.BOOLEAN),
@@ -283,7 +281,7 @@ class SubjectApiTest :
                     mockMvc
                         .perform(
                             post("/api/v4/subjects/$id/answer")
-                                .cookie(Cookie("SESSION", "sessionId"))
+                                .header("Authorization", "Bearer token")
                                 .content(toJson(req))
                                 .contentType(MediaType.APPLICATION_JSON),
                         ).andExpect(status().isBadRequest)
@@ -293,8 +291,8 @@ class SubjectApiTest :
                                 description = "답변을 모두 사용했을 경우",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("세션 아이디"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
                                         ),
                                     ),
                             ),
@@ -314,7 +312,7 @@ class SubjectApiTest :
                         mockMvc
                             .perform(
                                 post("/api/v4/subjects/$id/answer")
-                                    .cookie(Cookie("SESSION", "sessionId"))
+                                    .header("Authorization", "Bearer token")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -327,8 +325,8 @@ class SubjectApiTest :
                                 description = "존재하지 않는 답변 요청",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("세션 아이디"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
                                         ),
                                     ),
                             ),
@@ -348,7 +346,7 @@ class SubjectApiTest :
                         mockMvc
                             .perform(
                                 post("/api/v4/subjects/$id/answer")
-                                    .cookie(Cookie("SESSION", "sessionId"))
+                                    .header("Authorization", "Bearer token")
                                     .content(toJson(req))
                                     .contentType(MediaType.APPLICATION_JSON),
                             )
@@ -361,8 +359,8 @@ class SubjectApiTest :
                                 description = "답변이 없는 요청",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("세션 아이디"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
                                         ),
                                     ),
                             ),
@@ -381,7 +379,7 @@ class SubjectApiTest :
                     mockMvc
                         .perform(
                             get("/api/v1/subjects/my")
-                                .cookie(Cookie("SESSION", "sessionId")),
+                                .header("Authorization", "Bearer token"),
                         ).andExpect(status().isOk)
                         .andExpect(jsonPath("$.data").isArray)
                         .andExpect(jsonPath("$.data.length()").value(2))
@@ -399,8 +397,8 @@ class SubjectApiTest :
                                 description = "로그인한 사용자의 주제 목록 조회",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("세션 ID"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
                                         ),
                                         responseFields(
                                             fieldWithPath("success").description("성공 여부").type(JsonFieldType.BOOLEAN),
@@ -452,7 +450,7 @@ class SubjectApiTest :
                     mockMvc
                         .perform(
                             get("/api/v1/subjects/$id/chats")
-                                .cookie(Cookie("SESSION", "sessionId")),
+                                .header("Authorization", "Bearer token"),
                         ).andExpect(status().isOk)
                         .andExpect(jsonPath("$.success").value(true))
                         .andExpect(jsonPath("$.data[0].message").value("스레드와 프로세스의 차이점은 무엇인가요?"))
@@ -471,7 +469,9 @@ class SubjectApiTest :
                                 description = "채팅 메시지 내역 조회",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(cookieWithName("SESSION").description("세션 아이디")),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
+                                        ),
                                         responseFields(
                                             fieldWithPath("success").description("성공 여부").type(JsonFieldType.BOOLEAN),
                                             fieldWithPath("data[].message").description("메시지").type(JsonFieldType.STRING),
@@ -504,7 +504,7 @@ class SubjectApiTest :
                     mockMvc
                         .perform(
                             get("/api/v1/subjects/$id/chats")
-                                .cookie(Cookie("SESSION", "sessionId")),
+                                .header("Authorization", "Bearer token"),
                         ).andExpect(status().isNotFound)
                         .andDo(
                             document(
@@ -512,8 +512,8 @@ class SubjectApiTest :
                                 description = "존재하지 않는 주제 조회",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(
-                                            cookieWithName("SESSION").description("세션 아이디"),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
                                         ),
                                     ),
                             ),
@@ -533,7 +533,7 @@ class SubjectApiTest :
                     mockMvc
                         .perform(
                             post("/api/v2/subjects/$id/chats/archive")
-                                .cookie(Cookie("SESSION", "sessionId")),
+                                .header("Authorization", "Bearer token"),
                         ).andExpect(status().isCreated)
                         .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/chat/archives/$id"))
                         .andExpect(jsonPath("$.success").value(true))
@@ -545,8 +545,10 @@ class SubjectApiTest :
                                 description = "채팅 내역 초기화",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(cookieWithName("SESSION").description("세션 아이디")),
-                                        HeaderDocumentation.responseHeaders(
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
+                                        ),
+                                        responseHeaders(
                                             headerWithName("Location").description("생성된 리소스 URL"),
                                         ),
                                         responseFields(
@@ -568,7 +570,7 @@ class SubjectApiTest :
                     mockMvc
                         .perform(
                             post("/api/v2/subjects/$id/chats/archive")
-                                .cookie(Cookie("SESSION", "sessionId")),
+                                .header("Authorization", "Bearer token"),
                         ).andExpect(status().isNotFound)
                         .andExpect(jsonPath("$.success").value(false))
                         .andExpect(jsonPath("$.data").doesNotExist())
@@ -581,7 +583,9 @@ class SubjectApiTest :
                                 description = "존재하지 않는 주제 초기화",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(cookieWithName("SESSION").description("세션 아이디")),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
+                                        ),
                                         responseFields(
                                             fieldWithPath("success").description("상태").type(JsonFieldType.BOOLEAN),
                                             fieldWithPath("error.code").description("에러 코드").type(JsonFieldType.STRING),
@@ -606,7 +610,7 @@ class SubjectApiTest :
                     mockMvc
                         .perform(
                             post("/api/v2/subjects/$id/chats/archive")
-                                .cookie(Cookie("SESSION", "sessionId")),
+                                .header("Authorization", "Bearer token"),
                         ).andExpect(status().isBadRequest)
                         .andExpect(jsonPath("$.success").value(false))
                         .andExpect(jsonPath("$.data").doesNotExist())
@@ -619,7 +623,9 @@ class SubjectApiTest :
                                 description = "답변이 없는 주제 초기화",
                                 snippets =
                                     arrayOf(
-                                        requestCookies(cookieWithName("SESSION").description("세션 아이디")),
+                                        requestHeaders(
+                                            headerWithName("Authorization").description("Bearer 토큰"),
+                                        ),
                                         responseFields(
                                             fieldWithPath("success").description("상태").type(JsonFieldType.BOOLEAN),
                                             fieldWithPath("error.code").description("에러 코드").type(JsonFieldType.STRING),
