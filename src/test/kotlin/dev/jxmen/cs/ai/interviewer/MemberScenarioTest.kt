@@ -80,13 +80,6 @@ class MemberScenarioTest(
         }
     }
 
-    private fun MockMvcResultMatchersDsl.expectRequireLogin() {
-        status { isUnauthorized() }
-        jsonPath("$.success") { value(false) }
-        jsonPath("$.error.code") { value("REQUIRE_LOGIN") }
-        jsonPath("$.error.status") { value(401) }
-    }
-
     @Test
     fun `멤버 답변 및 채팅 내역 시나리오 테스트`() {
         // 멤버 생성
@@ -244,6 +237,13 @@ class MemberScenarioTest(
 
         val archiveContents = chatArchiveContentQueryRepository.findByArchive(archives[0])
         archiveContents.size shouldBe 3
+    }
+
+    private fun MockMvcResultMatchersDsl.expectRequireLogin() {
+        status { isUnauthorized() }
+        jsonPath("$.success") { value(false) }
+        jsonPath("$.error.code") { value("REQUIRE_LOGIN") }
+        jsonPath("$.error.status") { value(401) }
     }
 
     private fun createOAuth2AuthenticationToken(
