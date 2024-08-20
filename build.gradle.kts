@@ -57,6 +57,11 @@ dependencies {
 
     implementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
 
+    // jwt
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6") // 인터페이스
+    implementation("io.jsonwebtoken:jjwt-gson:0.12.6") // Gson을 사용하는 구현체
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6") // 실제 구현체
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
