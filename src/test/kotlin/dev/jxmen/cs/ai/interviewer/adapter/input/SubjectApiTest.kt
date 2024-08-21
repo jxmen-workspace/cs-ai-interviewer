@@ -25,6 +25,7 @@ import dev.jxmen.cs.ai.interviewer.global.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import io.kotest.core.spec.style.DescribeSpec
+import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.http.MediaType
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
@@ -45,6 +46,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
 import org.springframework.util.LinkedMultiValueMap
+import reactor.core.publisher.Flux
 import java.time.LocalDateTime
 
 class SubjectApiTest :
@@ -666,6 +668,10 @@ class SubjectApiTest :
                 0 -> throw NoAnswerException()
                 else -> 1
             }
+        }
+
+        override fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
+            TODO("Not yet implemented")
         }
     }
 
