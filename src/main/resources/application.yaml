@@ -28,7 +28,7 @@ spring:
       api-key: ${CLAUDE_API_KEY}
       chat:
         options:
-          max-tokens: 300
+          max-tokens: 500
           model: claude-3-5-sonnet-20240620
           temperature: 0.7 # 분석/객관식에는 0.0에 가까운 온도를 사용하고, 창의적이고 생성적인 작업에는 1.0에 가까운 온도를 사용하세요.
 
