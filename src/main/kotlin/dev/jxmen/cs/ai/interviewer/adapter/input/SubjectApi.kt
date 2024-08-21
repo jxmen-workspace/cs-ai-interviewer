@@ -14,6 +14,7 @@ import dev.jxmen.cs.ai.interviewer.global.RequireLoginApi
 import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import jakarta.validation.Valid
+import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.data.repository.query.Param
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import reactor.core.publisher.Flux
 import java.net.URI
 
 @RestController
@@ -104,6 +106,7 @@ class SubjectApi(
      */
     @PostMapping("/api/v4/subjects/{subjectId}/answer")
     @RequireLoginApi
+    @Deprecated("Use v5 async api")
     fun answerSubjectV4(
         member: Member,
         @PathVariable("subjectId") subjectId: String,
@@ -124,6 +127,30 @@ class SubjectApi(
         return ResponseEntity.status(201).body(
             ApiResponse.success(answerResponse),
         )
+    }
+
+    /**
+     * 답변 등록 (비동기)
+     */
+    @GetMapping("/api/v5/subjects/{subjectId}/answer")
+    @RequireLoginApi
+    fun answerSubjectV5Async(
+        member: Member,
+        @PathVariable("subjectId") subjectId: String,
+        @Param("message") message: String,
+    ): Flux<ChatResponse> {
+        val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
+        val chats = chatQuery.findBySubjectAndMember(subject, member)
+
+        val command =
+            CreateSubjectAnswerCommand(
+                subject = subject,
+                answer = message,
+                member = member,
+                chats = chats,
+            )
+
+        return memberChatUseCase.answerAsync(command)
     }
 
     /**

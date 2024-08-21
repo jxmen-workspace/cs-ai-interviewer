@@ -15,9 +15,10 @@ class ClaudeAIApiClient(
     private val claudeApiKey: String,
 ) : AIApiClient {
     companion object {
+        val SCORE_REGEX = "답변에 대한 점수: (\\d+)점".toRegex()
+
         private const val BASE_URL = "https://api.anthropic.com/v1"
         private val client = RestClient.create()
-        private val scoreRegex = "답변에 대한 점수: (\\d+)점".toRegex()
     }
 
     override fun requestAnswer(
@@ -64,7 +65,7 @@ class ClaudeAIApiClient(
                 ?.content
                 ?.get(0)
                 ?.text
-                ?.let { scoreRegex.find(it) }
+                ?.let { SCORE_REGEX.find(it) }
 
         return scoreMatchResult
             ?.groups
