@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.adapter.input
+package dev.jxmen.cs.ai.interviewer.presentation
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
