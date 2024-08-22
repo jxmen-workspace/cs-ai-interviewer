@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.adapter.input
+package dev.jxmen.cs.ai.interviewer.presentation
 
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerRequest

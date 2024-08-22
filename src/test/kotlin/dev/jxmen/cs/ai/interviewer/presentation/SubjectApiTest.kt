@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.adapter.input
+package dev.jxmen.cs.ai.interviewer.presentation
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.fasterxml.jackson.databind.ObjectMapper
