@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.global.config
+package dev.jxmen.cs.ai.interviewer.common.config
 
 import dev.jxmen.cs.ai.interviewer.domain.member.MemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.domain.member.MemberQueryRepository

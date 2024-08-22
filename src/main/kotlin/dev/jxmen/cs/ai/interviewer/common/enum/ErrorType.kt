@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.global.enum
+package dev.jxmen.cs.ai.interviewer.common.enum
 
 enum class ErrorType {
     REQUIRE_LOGIN,

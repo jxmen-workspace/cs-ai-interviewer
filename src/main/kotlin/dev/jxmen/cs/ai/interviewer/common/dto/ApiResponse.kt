@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.global.dto
+package dev.jxmen.cs.ai.interviewer.common.dto
 
 data class ApiResponse<T>(
     val success: Boolean,

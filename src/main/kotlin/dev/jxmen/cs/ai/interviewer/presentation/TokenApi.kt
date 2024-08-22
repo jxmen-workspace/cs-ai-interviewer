@@ -1,7 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.presentation
 
-import dev.jxmen.cs.ai.interviewer.global.config.security.TokenManager
-import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
+import dev.jxmen.cs.ai.interviewer.common.config.security.TokenManager
+import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
 import org.springframework.data.repository.query.Param
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

@@ -1,10 +1,10 @@
-package dev.jxmen.cs.ai.interviewer.global.config.security
+package dev.jxmen.cs.ai.interviewer.common.config.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.common.contenttype.ContentType
-import dev.jxmen.cs.ai.interviewer.global.RequireLoginApi
-import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
-import dev.jxmen.cs.ai.interviewer.global.enum.ErrorType
+import dev.jxmen.cs.ai.interviewer.common.RequireLoginApi
+import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
+import dev.jxmen.cs.ai.interviewer.common.enum.ErrorType
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

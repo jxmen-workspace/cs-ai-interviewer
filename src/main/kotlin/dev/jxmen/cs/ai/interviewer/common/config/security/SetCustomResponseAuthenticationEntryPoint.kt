@@ -1,7 +1,7 @@
-package dev.jxmen.cs.ai.interviewer.global.config.security
+package dev.jxmen.cs.ai.interviewer.common.config.security
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import dev.jxmen.cs.ai.interviewer.global.dto.ErrorResponse
+import dev.jxmen.cs.ai.interviewer.common.dto.ErrorResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus

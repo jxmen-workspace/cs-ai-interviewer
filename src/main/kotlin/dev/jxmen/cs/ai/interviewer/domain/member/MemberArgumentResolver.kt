@@ -1,8 +1,8 @@
 package dev.jxmen.cs.ai.interviewer.domain.member
 
-import dev.jxmen.cs.ai.interviewer.global.enum.ErrorType
-import dev.jxmen.cs.ai.interviewer.global.exceptions.ServerError
-import dev.jxmen.cs.ai.interviewer.global.exceptions.UnAuthorizedException
+import dev.jxmen.cs.ai.interviewer.common.enum.ErrorType
+import dev.jxmen.cs.ai.interviewer.common.exceptions.ServerError
+import dev.jxmen.cs.ai.interviewer.common.exceptions.UnAuthorizedException
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.user.OAuth2User

@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.global
+package dev.jxmen.cs.ai.interviewer.common
 
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
