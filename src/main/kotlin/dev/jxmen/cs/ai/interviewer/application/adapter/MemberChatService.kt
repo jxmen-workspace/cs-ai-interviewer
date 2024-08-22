@@ -1,6 +1,5 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
@@ -13,6 +12,7 @@ import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.infrastructure.ClaudeAIApiClient
 import dev.jxmen.cs.ai.interviewer.infrastructure.GrantRoleMessageFactory
+import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectAnswerResponse
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage

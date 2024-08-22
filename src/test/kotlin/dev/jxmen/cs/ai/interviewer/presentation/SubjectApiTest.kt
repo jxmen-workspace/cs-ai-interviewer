@@ -2,11 +2,6 @@ package dev.jxmen.cs.ai.interviewer.presentation
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerRequest
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
@@ -24,6 +19,11 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
+import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
+import dev.jxmen.cs.ai.interviewer.presentation.dto.request.SubjectAnswerRequest
+import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectAnswerResponse
+import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectDetailResponse
+import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectResponse
 import io.kotest.core.spec.style.DescribeSpec
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.http.MediaType

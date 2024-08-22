@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.adapter.input.dto.request
+package dev.jxmen.cs.ai.interviewer.presentation.dto.request
 
 import jakarta.validation.constraints.NotBlank
 
