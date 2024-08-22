@@ -1,10 +1,5 @@
 package dev.jxmen.cs.ai.interviewer.presentation
 
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.MemberSubjectResponse
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.request.SubjectAnswerRequest
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.ChatMessageResponse
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectDetailResponse
-import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectResponse
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
@@ -13,6 +8,11 @@ import dev.jxmen.cs.ai.interviewer.common.RequireLoginApi
 import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.common.dto.ListDataResponse
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
+import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
+import dev.jxmen.cs.ai.interviewer.presentation.dto.request.SubjectAnswerRequest
+import dev.jxmen.cs.ai.interviewer.presentation.dto.response.ChatMessageResponse
+import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectDetailResponse
+import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectResponse
 import jakarta.validation.Valid
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.data.repository.query.Param
