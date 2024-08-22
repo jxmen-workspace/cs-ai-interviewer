@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.adapter.output.external
+package dev.jxmen.cs.ai.interviewer.infrastructure
 
 import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
 import dev.jxmen.cs.ai.interviewer.application.port.output.dto.AiApiAnswerResponse
