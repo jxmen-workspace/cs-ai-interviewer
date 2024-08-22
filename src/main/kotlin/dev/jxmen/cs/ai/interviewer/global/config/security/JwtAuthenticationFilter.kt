@@ -42,7 +42,7 @@ class JwtAuthenticationFilter(
 
         val authorizationHeader = request.getHeader("Authorization")
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            setTokenRequired(response)
+            setTokenRequiredErrorResponse(response)
             return
         }
 
@@ -55,7 +55,7 @@ class JwtAuthenticationFilter(
             SecurityContextHolder.getContext().authentication = authentication
         } catch (e: Exception) {
             // Handle token parsing or validation errors
-            setInvalidToken(response)
+            setInvalidTokenErrorResponse(response)
             return
         }
 
@@ -88,7 +88,7 @@ class JwtAuthenticationFilter(
         return oauth2User
     }
 
-    private fun setTokenRequired(response: HttpServletResponse) {
+    private fun setTokenRequiredErrorResponse(response: HttpServletResponse) {
         response.status = HttpServletResponse.SC_UNAUTHORIZED
         response.contentType = ContentType.APPLICATION_JSON.toString()
         response.writer.write(
@@ -98,7 +98,7 @@ class JwtAuthenticationFilter(
         )
     }
 
-    private fun setInvalidToken(response: HttpServletResponse) {
+    private fun setInvalidTokenErrorResponse(response: HttpServletResponse) {
         response.status = HttpServletResponse.SC_UNAUTHORIZED
         response.contentType = ContentType.APPLICATION_JSON.toString()
         response.writer.write(
