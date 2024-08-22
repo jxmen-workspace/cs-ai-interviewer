@@ -1,8 +1,6 @@
-package dev.jxmen.cs.ai.interviewer.adapter.output
+package dev.jxmen.cs.ai.interviewer.persistence
 
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
-import dev.jxmen.cs.ai.interviewer.adapter.output.persistence.JdslSubjectQueryRepository
-import dev.jxmen.cs.ai.interviewer.adapter.output.persistence.JpaChatCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.member.MemberCommandRepository
