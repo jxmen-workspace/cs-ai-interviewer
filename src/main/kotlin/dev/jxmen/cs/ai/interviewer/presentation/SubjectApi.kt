@@ -9,10 +9,10 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
+import dev.jxmen.cs.ai.interviewer.common.RequireLoginApi
+import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
+import dev.jxmen.cs.ai.interviewer.common.dto.ListDataResponse
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.global.RequireLoginApi
-import dev.jxmen.cs.ai.interviewer.global.dto.ApiResponse
-import dev.jxmen.cs.ai.interviewer.global.dto.ListDataResponse
 import jakarta.validation.Valid
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.data.repository.query.Param

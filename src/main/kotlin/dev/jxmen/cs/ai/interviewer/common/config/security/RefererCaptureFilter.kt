@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.global.config.security
+package dev.jxmen.cs.ai.interviewer.common.config.security
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest

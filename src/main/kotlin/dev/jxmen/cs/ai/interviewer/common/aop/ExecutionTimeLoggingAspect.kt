@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.global.aop
+package dev.jxmen.cs.ai.interviewer.common.aop
 
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around

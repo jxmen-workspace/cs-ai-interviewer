@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.global.config
+package dev.jxmen.cs.ai.interviewer.common.config
 
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
 import org.springframework.context.annotation.Bean

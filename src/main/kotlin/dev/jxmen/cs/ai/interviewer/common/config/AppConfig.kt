@@ -1,6 +1,6 @@
-package dev.jxmen.cs.ai.interviewer.global.config
+package dev.jxmen.cs.ai.interviewer.common.config
 
-import dev.jxmen.cs.ai.interviewer.global.DatabaseInitializer
+import dev.jxmen.cs.ai.interviewer.common.DatabaseInitializer
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

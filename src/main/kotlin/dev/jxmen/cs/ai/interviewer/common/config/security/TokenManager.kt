@@ -1,7 +1,7 @@
-package dev.jxmen.cs.ai.interviewer.global.config.security
+package dev.jxmen.cs.ai.interviewer.common.config.security
 
-import dev.jxmen.cs.ai.interviewer.global.enum.ErrorType
-import dev.jxmen.cs.ai.interviewer.global.exceptions.UnAuthorizedException
+import dev.jxmen.cs.ai.interviewer.common.enum.ErrorType
+import dev.jxmen.cs.ai.interviewer.common.exceptions.UnAuthorizedException
 import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
