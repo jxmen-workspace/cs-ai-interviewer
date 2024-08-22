@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.adapter.output.external
+package dev.jxmen.cs.ai.interviewer.infrastructure
 
 /**
  * https://docs.anthropic.com/en/docs/about-claude/models

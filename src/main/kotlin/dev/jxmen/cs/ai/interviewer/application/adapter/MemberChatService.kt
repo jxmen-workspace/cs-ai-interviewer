@@ -1,8 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
 import dev.jxmen.cs.ai.interviewer.adapter.input.dto.response.SubjectAnswerResponse
-import dev.jxmen.cs.ai.interviewer.adapter.output.external.ClaudeAIApiClient
-import dev.jxmen.cs.ai.interviewer.adapter.output.external.GrantRoleMessageFactory
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
@@ -13,6 +11,8 @@ import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.AllAnswersUsedExceptio
 import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.NoAnswerException
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
+import dev.jxmen.cs.ai.interviewer.infrastructure.ClaudeAIApiClient
+import dev.jxmen.cs.ai.interviewer.infrastructure.GrantRoleMessageFactory
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage

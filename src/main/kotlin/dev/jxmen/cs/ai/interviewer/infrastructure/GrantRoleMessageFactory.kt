@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.adapter.output.external
+package dev.jxmen.cs.ai.interviewer.infrastructure
 
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
