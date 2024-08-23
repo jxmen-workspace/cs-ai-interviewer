@@ -35,7 +35,6 @@ dependencies {
     // spring boot
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-aop")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     // spring ai
     implementation("org.springframework.ai:spring-ai-anthropic-spring-boot-starter:1.0.0-M1")
