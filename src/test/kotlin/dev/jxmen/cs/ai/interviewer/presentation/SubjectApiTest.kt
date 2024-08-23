@@ -5,6 +5,7 @@ import com.epages.restdocs.apispec.WebTestClientRestDocumentationWrapper
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.common.GlobalControllerAdvice
@@ -70,14 +71,14 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase()))
+                    .standaloneSetup(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase(), StubReactiveMemberChatUseCase()))
                     .setControllerAdvice(controllerAdvice)
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
                     .build()
             webTestClient =
                 MockMvcWebTestClient
-                    .bindToController(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase()))
+                    .bindToController(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase(), StubReactiveMemberChatUseCase()))
                     .controllerAdvice(controllerAdvice)
                     .customArgumentResolvers(MockMemberArgumentResolver())
                     .configureClient()
@@ -643,7 +644,9 @@ class SubjectApiTest :
                 else -> 1
             }
         }
+    }
 
+    class StubReactiveMemberChatUseCase : ReactiveMemberChatUseCase {
         override fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
             Chats(command.chats).validateNotUseAllAnswers()
             Chats(command.chats).validateMatchMember(command.member)

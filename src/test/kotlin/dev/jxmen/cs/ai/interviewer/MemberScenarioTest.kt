@@ -1,14 +1,12 @@
 package dev.jxmen.cs.ai.interviewer
 
 import dev.jxmen.cs.ai.interviewer.application.adapter.ChatAppender
-import dev.jxmen.cs.ai.interviewer.application.adapter.ChatArchiveAppender
-import dev.jxmen.cs.ai.interviewer.application.adapter.ChatRemover
-import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
+import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveContentQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.member.MemberCommandRepository
+import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
@@ -55,11 +53,9 @@ class MemberScenarioTest(
     private val chatArchiveQueryRepository: ChatArchiveQueryRepository,
     private val chatArchiveContentQueryRepository: ChatArchiveContentQueryRepository,
     private val chatAppender: ChatAppender,
-    private val chatArchiveAppender: ChatArchiveAppender,
-    private val chatRemover: ChatRemover,
 ) {
-    @MockBean // 모킹해서 사용한다.
-    lateinit var memberChatUseCase: MemberChatUseCase
+    @MockBean
+    lateinit var reactiveMemberChatService: ReactiveMemberChatUseCase
 
     lateinit var mockMvc: MockMvc
     lateinit var webTestClient: WebTestClient
@@ -95,17 +91,23 @@ class MemberScenarioTest(
     @Test
     fun `멤버 답변 및 채팅 내역 시나리오 테스트`() {
         // 멤버 생성
-        val testMember = Member.createGoogleMember(name = "박주영", email = "me@jxmen.dev")
-        val createdMember = memberCommandRepository.save(testMember)
+        val member = MockMemberArgumentResolver.member
+        memberCommandRepository.save(member)
 
         // 멤버 인증 정보 저장
-        val oauth2User = createOAuth2User(createdMember)
+        val oauth2User = createOAuth2User(member)
         val authentication = createOAuth2AuthenticationToken(oauth2User)
         SecurityContextHolder.getContext().authentication = authentication
 
         // 주제 생성
-        val testSubject = Subject(title = "test subject", question = "test question", category = SubjectCategory.OS)
-        val createdSubject = subjectCommandRepository.save(testSubject)
+        val subject =
+            subjectCommandRepository.save(
+                Subject(
+                    title = "test subject",
+                    question = "test question",
+                    category = SubjectCategory.OS,
+                ),
+            )
 
         // 주제 목록 조회
         mockMvc
@@ -115,7 +117,7 @@ class MemberScenarioTest(
                 jsonPath("$.success") { value(true) }
                 jsonPath("$.data") { isArray() }
                 jsonPath("$.data.length()") { value(1) }
-                jsonPath("$.data[0].id") { value(createdSubject.id) }
+                jsonPath("$.data[0].id") { value(subject.id) }
                 jsonPath("$.data[0].title") { value("test subject") }
                 jsonPath("$.data[0].category") { value("OS") }
                 jsonPath("$.error") { value(null) }
@@ -123,11 +125,11 @@ class MemberScenarioTest(
 
         // 주제 상세 조회
         mockMvc
-            .get("/api/v1/subjects/${createdSubject.id}")
+            .get("/api/v1/subjects/${subject.id}")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.success") { value(true) }
-                jsonPath("$.data.id") { value(createdSubject.id) }
+                jsonPath("$.data.id") { value(subject.id) }
                 jsonPath("$.data.title") { value("test subject") }
                 jsonPath("$.data.question") { value("test question") }
                 jsonPath("$.data.category") { value("OS") }
@@ -143,7 +145,7 @@ class MemberScenarioTest(
                 status { isOk() }
                 jsonPath("$.success") { value(true) }
                 jsonPath("$.data") { haveLength(1) }
-                jsonPath("$.data[0].id") { value(createdSubject.id) }
+                jsonPath("$.data[0].id") { value(subject.id) }
                 jsonPath("$.data[0].title") { value("test subject") }
                 jsonPath("$.data[0].category") { value("OS") }
                 jsonPath("$.data[0].maxScore") { value(null) }
@@ -152,7 +154,7 @@ class MemberScenarioTest(
 
         // 채팅 API 조회 시 빈 값 응답 검증
         mockMvc
-            .get("/api/v1/subjects/${createdSubject.id}/chats")
+            .get("/api/v1/subjects/${subject.id}/chats")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.success") { value(true) }
@@ -162,7 +164,7 @@ class MemberScenarioTest(
 
         val answer = "test answer"
         val nextQuestion = "test next question"
-        given { memberChatUseCase.answerAsync(any()) }.willReturn {
+        given { reactiveMemberChatService.answerAsync(any()) }.willReturn {
             Flux
                 .create<ChatResponse?> {
                     it.next(
@@ -175,8 +177,8 @@ class MemberScenarioTest(
                 .doOnComplete {
                     // NOTE: chatAppender.addAnswerAndNextQuestion() 호출
                     chatAppender.addAnswerAndNextQuestion(
-                        subject = createdSubject,
-                        member = createdMember,
+                        subject = subject,
+                        member = member,
                         answer = answer,
                         chats = emptyList(),
                         nextQuestion = nextQuestion,
@@ -188,23 +190,29 @@ class MemberScenarioTest(
         // 특정 주제에 대해 답변
         webTestClient
             .get()
-            .uri("/api/v5/subjects/{subjectId}/answer?message={message}", createdSubject.id, answer)
+            .uri("/api/v5/subjects/{subjectId}/answer?message={message}", subject.id, answer)
             .header("Authorization", "Bearer test-token")
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody()
-            .returnResult()
 
         // 채팅 API 조회 - 답변과 다음 질문이 생성되었는지 검증
         val now = LocalDateTime.now()
         mockMvc
-            .get("/api/v1/subjects/${createdSubject.id}/chats")
+            .get("/api/v1/subjects/${subject.id}/chats")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.data") { haveLength(3) }
                 jsonPath("$.data[0].type") { value("question") }
-                jsonPath("$.data[0].message") { value(testSubject.question) }
+                jsonPath("$.data[0].message") {
+                    value(
+                        Subject(
+                            title = "test subject",
+                            question = "test question",
+                            category = SubjectCategory.OS,
+                        ).question,
+                    )
+                }
                 jsonPath("$.data[0].score") { value(null) }
                 jsonPath("$.data[0].createdAt") { value(null) }
                 jsonPath("$.data[1].type") { value("answer") }
@@ -224,25 +232,9 @@ class MemberScenarioTest(
                 jsonPath("$.data[0].maxScore") { value(10) }
             }
 
-        // 흠... answerAsync 때문에 이 부분도 모킹해야 한다.
-        given {
-            memberChatUseCase.archive(any(), any(), any())
-        }.willAnswer {
-            val chats = it.arguments.get(0) as List<Chat>
-            val member = it.arguments.get(1) as Member
-            val subject = it.arguments.get(2) as Subject
-
-            chatRemover.removeAll(chats)
-
-            val archive = chatArchiveAppender.addArchive(subject, member)
-            chatArchiveAppender.addContents(archive, chats.map { it.content })
-
-            archive.id
-        }
-
         // 채팅 아카이브
         mockMvc
-            .post("/api/v2/subjects/${createdSubject.id}/chats/archive")
+            .post("/api/v2/subjects/${subject.id}/chats/archive")
             .andExpect {
                 status { isCreated() }
 
@@ -254,7 +246,7 @@ class MemberScenarioTest(
 
         // 채팅 내역 재조회 - 아카이브 후 빈 값 응답 검증
         mockMvc
-            .get("/api/v1/subjects/${createdSubject.id}/chats")
+            .get("/api/v1/subjects/${subject.id}/chats")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.data") { isEmpty() }
@@ -268,7 +260,7 @@ class MemberScenarioTest(
             }
 
         // NOTE: 추후 API 개발 완료 시 API 호출로 변경
-        val archives = chatArchiveQueryRepository.findBySubjectAndMember(createdSubject, createdMember)
+        val archives = chatArchiveQueryRepository.findBySubjectAndMember(subject, member)
         archives.size shouldBe 1
 
         val archiveContents = chatArchiveContentQueryRepository.findByArchive(archives[0])
