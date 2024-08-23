@@ -4,7 +4,6 @@ import dev.jxmen.cs.ai.interviewer.application.adapter.ChatAppender
 import dev.jxmen.cs.ai.interviewer.application.adapter.ChatArchiveAppender
 import dev.jxmen.cs.ai.interviewer.application.adapter.ChatRemover
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
-import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveContentQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveQueryRepository
@@ -60,9 +59,6 @@ class MemberScenarioTest(
     private val chatRemover: ChatRemover,
 ) {
     @MockBean // 모킹해서 사용한다.
-    lateinit var aiApiClient: AIApiClient
-
-    @MockBean // 모킹해서 사용한다.
     lateinit var memberChatUseCase: MemberChatUseCase
 
     lateinit var mockMvc: MockMvc
@@ -85,7 +81,6 @@ class MemberScenarioTest(
         listOf(
             Pair(HttpMethod.GET, "/api/v1/subjects/1/chats"),
             Pair(HttpMethod.GET, "/api/v1/subjects/my"),
-            Pair(HttpMethod.POST, "/api/v4/subjects/1/answer"),
             Pair(HttpMethod.POST, "/api/v2/subjects/1/chats/archive"),
         ).forEach {
             when (it.first) {

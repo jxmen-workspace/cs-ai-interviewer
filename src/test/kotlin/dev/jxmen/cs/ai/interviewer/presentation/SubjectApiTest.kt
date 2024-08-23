@@ -21,14 +21,11 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
-import dev.jxmen.cs.ai.interviewer.presentation.dto.request.SubjectAnswerRequest
-import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectAnswerResponse
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectResponse
 import io.kotest.core.spec.style.DescribeSpec
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.model.Generation
-import org.springframework.http.MediaType
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
 import org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders
@@ -227,150 +224,6 @@ class SubjectApiTest :
                             document(
                                 identifier = "get-subject-not-found",
                                 description = "주제 상세 조회 실패",
-                            ),
-                        )
-                }
-            }
-        }
-
-        describe("POST /api/v4/subjects/{id}/answer 요청은") {
-
-            context("존재하는 주제에 대한 답변 요청 시") {
-                val id = 1
-                subjectQuery = ExistIdSubjectQuery()
-                chatQuery = ExistSubjectIdChatQuery()
-
-                it("201 상태코드와 재질문이 포함된 응답을 반환한다.") {
-                    val req = SubjectAnswerRequest(answer = "answer")
-                    val expectResponse =
-                        ApiResponse.success(
-                            SubjectAnswerResponse(nextQuestion = "What is OS? (answer: answer)", score = 50),
-                        )
-
-                    mockMvc
-                        .perform(
-                            post("/api/v4/subjects/$id/answer")
-                                .header("Authorization", "Bearer token")
-                                .content(toJson(req))
-                                .contentType(MediaType.APPLICATION_JSON),
-                        ).andExpect(status().isCreated)
-                        .andExpect(content().json(toJson(expectResponse)))
-                        .andDo(
-                            document(
-                                identifier = "post-subject-answer",
-                                description = "주제 답변 요청",
-                                snippets =
-                                    arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer 토큰"),
-                                        ),
-                                        responseFields(
-                                            fieldWithPath("success").description("성공 여부").type(JsonFieldType.BOOLEAN),
-                                            fieldWithPath("data.nextQuestion")
-                                                .description("다음 질문")
-                                                .type(JsonFieldType.STRING),
-                                            fieldWithPath("data.score").description("답변에 대한 점수").type(JsonFieldType.NUMBER),
-                                            fieldWithPath("error")
-                                                .description("에러 정보")
-                                                .type(JsonFieldType.OBJECT)
-                                                .optional(),
-                                        ),
-                                    ),
-                            ),
-                        )
-                }
-            }
-
-            context("답변을 모두 사용했을 경우") {
-                val id = 2
-                subjectQuery = ExistIdSubjectQuery()
-                chatQuery = UseAllAnswersChatQuery()
-
-                it("400을 응답한다.") {
-                    val req = SubjectAnswerRequest(answer = "answer")
-
-                    mockMvc
-                        .perform(
-                            post("/api/v4/subjects/$id/answer")
-                                .header("Authorization", "Bearer token")
-                                .content(toJson(req))
-                                .contentType(MediaType.APPLICATION_JSON),
-                        ).andExpect(status().isBadRequest)
-                        .andDo(
-                            document(
-                                identifier = "post-subject-answer-bad-request",
-                                description = "답변을 모두 사용했을 경우",
-                                snippets =
-                                    arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer 토큰"),
-                                        ),
-                                    ),
-                            ),
-                        )
-                }
-            }
-
-            context("존재하지 않는 주제에 대한 답변 요청 시") {
-                val id = 99999
-                subjectQuery = NotExistIdSubjectQuery()
-
-                it("404를 응답한다.") {
-                    val req = SubjectAnswerRequest(answer = "answer")
-
-                    val perform =
-                        mockMvc
-                            .perform(
-                                post("/api/v4/subjects/$id/answer")
-                                    .header("Authorization", "Bearer token")
-                                    .content(toJson(req))
-                                    .contentType(MediaType.APPLICATION_JSON),
-                            )
-
-                    perform
-                        .andExpect(status().isNotFound)
-                        .andDo(
-                            document(
-                                identifier = "post-subject-answer-not-found",
-                                description = "존재하지 않는 답변 요청",
-                                snippets =
-                                    arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer 토큰"),
-                                        ),
-                                    ),
-                            ),
-                        )
-                }
-            }
-
-            context("답변이 없는 요청 시") {
-                val id = 3
-
-                it("400를 응답한다.") {
-                    val req = SubjectAnswerRequest(answer = "")
-
-                    val perform =
-                        mockMvc
-                            .perform(
-                                post("/api/v4/subjects/$id/answer")
-                                    .header("Authorization", "Bearer token")
-                                    .content(toJson(req))
-                                    .contentType(MediaType.APPLICATION_JSON),
-                            )
-
-                    perform
-                        .andExpect(status().isBadRequest)
-                        .andDo(
-                            document(
-                                identifier = "post-subject-answer-bad-request",
-                                description = "답변이 없는 요청",
-                                snippets =
-                                    arrayOf(
-                                        requestHeaders(
-                                            headerWithName("Authorization").description("Bearer 토큰"),
-                                        ),
-                                    ),
                             ),
                         )
                 }
@@ -780,13 +633,6 @@ class SubjectApiTest :
     }
 
     class StubMemberChatUseCase : MemberChatUseCase {
-        override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse {
-            val chats = Chats(command.chats)
-            require(!chats.useAllAnswers()) { throw AllAnswersUsedException("답변을 모두 사용했습니다.") }
-
-            return SubjectAnswerResponse(nextQuestion = "What is OS? (answer: ${command.answer})", score = 50)
-        }
-
         override fun archive(
             chats: List<Chat>,
             member: Member,
