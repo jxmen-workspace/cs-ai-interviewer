@@ -1,7 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.common
 
 import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
-import dev.jxmen.cs.ai.interviewer.common.dto.ErrorResponse
 import dev.jxmen.cs.ai.interviewer.common.exceptions.ServerError
 import dev.jxmen.cs.ai.interviewer.common.exceptions.UnAuthorizedException
 import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.AllAnswersUsedException
@@ -14,9 +13,23 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 @ControllerAdvice
 class GlobalControllerAdvice {
     @ExceptionHandler(IllegalArgumentException::class)
-    fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ErrorResponse> =
+    fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ApiResponse<Nothing>> =
         ResponseEntity.badRequest().body(
-            ErrorResponse(400, e.message ?: "Bad Request"),
+            ApiResponse.failure(
+                code = "BAD_REQUEST",
+                status = 400,
+                message = e.message ?: "Bad request",
+            ),
+        )
+
+    @ExceptionHandler(NoAnswerException::class)
+    fun handleNoAnswerException(e: NoAnswerException): ResponseEntity<ApiResponse<Nothing>> =
+        ResponseEntity.badRequest().body(
+            ApiResponse.failure(
+                code = "NO_ANSWER",
+                status = 400,
+                message = e.message ?: "No answer",
+            ),
         )
 
     @ExceptionHandler(AllAnswersUsedException::class)
@@ -36,16 +49,6 @@ class GlobalControllerAdvice {
                 code = "SUBJECT_NOT_FOUND",
                 status = 404,
                 message = e.message ?: "Subject not found",
-            ),
-        )
-
-    @ExceptionHandler(NoAnswerException::class)
-    fun handleNoAnswerException(e: NoAnswerException): ResponseEntity<ApiResponse<Nothing>> =
-        ResponseEntity.badRequest().body(
-            ApiResponse.failure(
-                code = "NO_ANSWER",
-                status = 400,
-                message = e.message ?: "No answer",
             ),
         )
 

@@ -6,8 +6,6 @@ import dev.jxmen.cs.ai.interviewer.common.utils.GrantRoleMessageFactory
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
-import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.AllAnswersUsedException
-import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.NoAnswerException
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import org.springframework.ai.chat.messages.AssistantMessage
@@ -35,7 +33,9 @@ class MemberChatService(
 
     override fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
         // 1. 답변을 모두 사용하지 않았는지 확인
-        validateNotUseAllAnswers(command.chats)
+        val chats = Chats(command.chats)
+        chats.validateNotUseAllAnswers()
+        chats.validateMatchMember(command.member)
 
         // 2. 기존 채팅 목록으로 Message 리스트 만들기
         val messages = createMessages(command)
@@ -72,7 +72,8 @@ class MemberChatService(
     ): Long {
         // validate chats and member
         val chatsWrapper = Chats(chats)
-        require(chatsWrapper.hasAnswer()) { throw NoAnswerException() }
+        chatsWrapper.validateHasAnswer()
+        chatsWrapper.validateMatchMember(member)
 
         // remove all chats
         chatRemover.removeAll(chats)
@@ -108,9 +109,4 @@ class MemberChatService(
             ?.groupValues
             ?.get(1)
             ?.toInt() ?: 0
-
-    private fun validateNotUseAllAnswers(chats: List<Chat>) {
-        val chatsWrapper = Chats(chats)
-        require(!chatsWrapper.useAllAnswers()) { throw AllAnswersUsedException() }
-    }
 }
