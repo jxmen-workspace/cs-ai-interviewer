@@ -70,7 +70,9 @@ dependencies {
      */
     implementation("com.epages:restdocs-api-spec:$epagesVersion")
     implementation("com.epages:restdocs-api-spec-mockmvc:$epagesVersion")
+    implementation("com.epages:restdocs-api-spec-webtestclient:$epagesVersion")
     implementation("com.epages:restdocs-api-spec-openapi3-generator:$epagesVersion")
+    implementation("org.springframework.restdocs:spring-restdocs-webtestclient")
 
     // jwt
     implementation("io.jsonwebtoken:jjwt-api:0.12.6") // 인터페이스
