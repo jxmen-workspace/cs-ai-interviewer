@@ -1,15 +1,16 @@
 package dev.jxmen.cs.ai.interviewer.common.utils
 
+import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage
 
-class GrantRoleMessageFactory {
+class PromptMessageFactory {
     companion object {
         /**
-         * 인터뷰어 역할 부여 메시지
+         * @see MessageParser 점수 파싱 담당
          */
-        val grantInterviewerRoleMessage =
+        private val grantInterviewerRoleMessage =
             """
                 당신은 이제부터 Computer Science에 대해 질문하는 면접관이다. 
                 당신이 안내한 질문에 대해 내가 답변을 하면, 그에 대한 점수를 그동안 해왔던 답변도 포함하여 10점 단위로 평가 및 이유와 공부할 수 있는 키워드, 꼬리 질문을 제시해주길 바란다.
@@ -25,17 +26,41 @@ class GrantRoleMessageFactory {
                 꼬리 질문: ~~에 대해 더 깊게 설명해보세요.
             """.trimMargin().trim()
 
-        fun create(
-            question: String,
-            answer: String,
-        ): List<Message> =
-            listOf(
-                UserMessage(grantInterviewerRoleMessage),
-                AssistantMessage(getAiAnswerContentFromQuestion(question)),
-                UserMessage(answer),
-            )
+        /**
+         * @param command CreateSubjectAnswerCommand 멤버가 제공한 답변을 기반으로 채팅 목록을 만들어 반환
+         */
+        fun create(command: CreateSubjectAnswerCommand): List<Message> =
+            when (command.chats.isEmpty()) {
+                /**
+                 * 저장된 채팅이 없다면 면접관 부여 메시지와 답변을 반환
+                 */
+                true -> {
+                    listOf(
+                        UserMessage(grantInterviewerRoleMessage),
+                        AssistantMessage(getAiAnswerContentFromQuestion(command.subject.question)),
+                        UserMessage(command.answer),
+                    )
+                }
 
-        fun getAiAnswerContentFromQuestion(question: String) =
+                false -> {
+                    listOf(
+                        UserMessage(grantInterviewerRoleMessage),
+                        AssistantMessage(getAiAnswerContentFromQuestion(command.subject.question)),
+                    ) +
+
+                        /**
+                         * 처음 채팅은 주제에 대한 question이 저장되므로, propmt에서는 제외시킨다.
+                         */
+                        command.chats.drop(1).map {
+                            when (it.isAnswer()) {
+                                true -> UserMessage(it.content.message)
+                                false -> AssistantMessage(it.content.message)
+                            }
+                        } + UserMessage(command.answer)
+                }
+            }
+
+        private fun getAiAnswerContentFromQuestion(question: String) =
             """
             네, 알겠습니다. 제공해주신 형식에 맞추어 답변하는 면접관 역할을 수행하고, 질문에 대한 답은 제공하지 않겠습니다. 
             제가 면접관으로 질문드릴 내용은 다음과 같습니다.
