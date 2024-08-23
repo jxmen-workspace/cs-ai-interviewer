@@ -2,6 +2,7 @@ package dev.jxmen.cs.ai.interviewer.presentation
 
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.common.RequireLoginApi
@@ -28,6 +29,7 @@ class SubjectApi(
     private val subjectQuery: SubjectQuery,
     private val chatQuery: ChatQuery,
     private val memberChatUseCase: MemberChatUseCase,
+    private val reactiveMemberChatUseCase: ReactiveMemberChatUseCase,
 ) {
     /**
      * 주제 목록 조회
@@ -119,7 +121,7 @@ class SubjectApi(
                 chats = chats,
             )
 
-        return memberChatUseCase.answerAsync(command)
+        return reactiveMemberChatUseCase.answerAsync(command)
     }
 
     /**

@@ -7,6 +7,16 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 
 class MockMemberArgumentResolver : HandlerMethodArgumentResolver {
+    companion object {
+        val member =
+            Member.createWithId(
+                id = 1L,
+                name = "박주영",
+                email = "me@jxmen.dev",
+                loginType = MemberLoginType.GOOGLE,
+            )
+    }
+
     override fun supportsParameter(parameter: MethodParameter): Boolean = parameter.parameterType == Member::class.java
 
     override fun resolveArgument(
@@ -14,11 +24,5 @@ class MockMemberArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?,
-    ): Member =
-        Member.createWithId(
-            id = 1L,
-            name = "박주영",
-            email = "me@jxmen.dev",
-            loginType = MemberLoginType.GOOGLE,
-        )
+    ): Member = member
 }
