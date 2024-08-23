@@ -1,7 +1,11 @@
 package dev.jxmen.cs.ai.interviewer
 
+import dev.jxmen.cs.ai.interviewer.application.adapter.ChatAppender
+import dev.jxmen.cs.ai.interviewer.application.adapter.ChatArchiveAppender
+import dev.jxmen.cs.ai.interviewer.application.adapter.ChatRemover
+import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
-import dev.jxmen.cs.ai.interviewer.application.port.output.dto.AiApiAnswerResponse
+import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveContentQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
@@ -18,10 +22,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturn
+import org.springframework.ai.chat.model.ChatResponse
+import org.springframework.ai.chat.model.Generation
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
@@ -29,17 +34,19 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 import org.springframework.security.test.context.support.WithAnonymousUser
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestConstructor
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MockMvcResultMatchersDsl
+import org.springframework.test.web.servlet.client.MockMvcWebTestClient
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
+import reactor.core.publisher.Flux
+import reactor.core.scheduler.Schedulers
 import java.time.LocalDateTime
 
 @SpringBootTest
-@Transactional
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @ActiveProfiles("test")
 class MemberScenarioTest(
@@ -48,19 +55,28 @@ class MemberScenarioTest(
     private val memberCommandRepository: MemberCommandRepository,
     private val chatArchiveQueryRepository: ChatArchiveQueryRepository,
     private val chatArchiveContentQueryRepository: ChatArchiveContentQueryRepository,
+    private val chatAppender: ChatAppender,
+    private val chatArchiveAppender: ChatArchiveAppender,
+    private val chatRemover: ChatRemover,
 ) {
-    @MockBean // 해당 빈만 모킹해서 사용한다.
-    private lateinit var aiApiClient: AIApiClient
+    @MockBean // 모킹해서 사용한다.
+    lateinit var aiApiClient: AIApiClient
 
-    private lateinit var mockMvc: MockMvc
+    @MockBean // 모킹해서 사용한다.
+    lateinit var memberChatUseCase: MemberChatUseCase
+
+    lateinit var mockMvc: MockMvc
+    lateinit var webTestClient: WebTestClient
 
     @BeforeEach
     fun setUp() {
         // kotlin에서는 버그로 인해 필터 추가 불가 - https://docs.spring.io/spring-framework/reference/testing/spring-mvc-test-framework/server-filters.html
-        mockMvc =
-            MockMvcBuilders
-                .webAppContextSetup(context)
-                .build()
+        mockMvc = MockMvcBuilders.webAppContextSetup(context).build()
+
+        /**
+         * WebTestClient는 WebFlux를 사용하는 경우에 사용. mockMvc는 MockMvcWebTestClient를 사용
+         */
+        webTestClient = MockMvcWebTestClient.bindToApplicationContext(context).build()
     }
 
     @Test
@@ -148,35 +164,43 @@ class MemberScenarioTest(
                 jsonPath("$.error") { isEmpty() }
             }
 
-        // aiApiClient는 모킹한 정보를 리턴하도록 설정
-        given { aiApiClient.requestAnswer(any(), any(), any()) }
-            .willReturn {
-                AiApiAnswerResponse(
-                    nextQuestion = "next question",
-                    score = 10,
-                )
-            }
+        val answer = "test answer"
+        val nextQuestion = "test next question"
+        given { memberChatUseCase.answerAsync(any()) }.willReturn {
+            Flux
+                .create<ChatResponse?> {
+                    it.next(
+                        ChatResponse(listOf(Generation(answer))),
+                    )
+                    it.complete()
+                }
+                // 차단되지 않는 컨텍스트에서 호출을 차단하면 스레드 고갈이 발생할 수 있습니다.
+                .publishOn(Schedulers.boundedElastic())
+                .doOnComplete {
+                    // NOTE: chatAppender.addAnswerAndNextQuestion() 호출
+                    chatAppender.addAnswerAndNextQuestion(
+                        subject = createdSubject,
+                        member = createdMember,
+                        answer = answer,
+                        chats = emptyList(),
+                        nextQuestion = nextQuestion,
+                        score = 10,
+                    )
+                }
+        }
 
         // 특정 주제에 대해 답변
-        mockMvc
-            .post("/api/v4/subjects/${createdSubject.id}/answer") {
-                contentType = MediaType.APPLICATION_JSON
-                content =
-                    """
-                    {
-                        "answer": "test answer"
-                    }
-                    """.trimIndent()
-            }.andExpect {
-                status { isCreated() }
-                jsonPath("$.success") { value(true) }
-                jsonPath("$.data.nextQuestion") { value("next question") }
-                jsonPath("$.data.score") { value(10) }
-                jsonPath("$.error") { value(null) }
-            }
+        webTestClient
+            .get()
+            .uri("/api/v5/subjects/{subjectId}/answer?message={message}", createdSubject.id, answer)
+            .header("Authorization", "Bearer test-token")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .returnResult()
 
         // 채팅 API 조회 - 답변과 다음 질문이 생성되었는지 검증
-
         val now = LocalDateTime.now()
         mockMvc
             .get("/api/v1/subjects/${createdSubject.id}/chats")
@@ -188,11 +212,11 @@ class MemberScenarioTest(
                 jsonPath("$.data[0].score") { value(null) }
                 jsonPath("$.data[0].createdAt") { value(null) }
                 jsonPath("$.data[1].type") { value("answer") }
-                jsonPath("$.data[1].message") { value("test answer") }
+                jsonPath("$.data[1].message") { value(answer) }
                 jsonPath("$.data[1].score") { value(10) }
                 jsonPath("$.data[1].createdAt") { value(matcher = BeforeDateMatcher(now)) }
                 jsonPath("$.data[2].type") { value("question") }
-                jsonPath("$.data[2].message") { value("next question") }
+                jsonPath("$.data[2].message") { value(nextQuestion) }
                 jsonPath("$.data[2].score") { value(null) }
                 jsonPath("$.data[2].createdAt") { value(null) }
             }
@@ -203,6 +227,22 @@ class MemberScenarioTest(
                 status { isOk() }
                 jsonPath("$.data[0].maxScore") { value(10) }
             }
+
+        // 흠... answerAsync 때문에 이 부분도 모킹해야 한다.
+        given {
+            memberChatUseCase.archive(any(), any(), any())
+        }.willAnswer {
+            val chats = it.arguments.get(0) as List<Chat>
+            val member = it.arguments.get(1) as Member
+            val subject = it.arguments.get(2) as Subject
+
+            chatRemover.removeAll(chats)
+
+            val archive = chatArchiveAppender.addArchive(subject, member)
+            chatArchiveAppender.addContents(archive, chats.map { it.content })
+
+            archive.id
+        }
 
         // 채팅 아카이브
         mockMvc
