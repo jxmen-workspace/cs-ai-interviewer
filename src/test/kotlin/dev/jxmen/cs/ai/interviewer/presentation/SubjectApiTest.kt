@@ -12,7 +12,6 @@ import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.common.dto.ListDataResponse
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
-import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.AllAnswersUsedException
 import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.NoAnswerException
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
@@ -646,8 +645,8 @@ class SubjectApiTest :
         }
 
         override fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
-            val chats = Chats(command.chats)
-            require(!chats.useAllAnswers()) { throw AllAnswersUsedException("답변을 모두 사용했습니다.") }
+            Chats(command.chats).validateNotUseAllAnswers()
+            Chats(command.chats).validateMatchMember(command.member)
 
             return Flux.just(
                 ChatResponse(
