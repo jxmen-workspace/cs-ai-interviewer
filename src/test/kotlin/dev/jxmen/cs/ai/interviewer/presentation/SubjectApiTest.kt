@@ -1,6 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.presentation
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
+import com.epages.restdocs.apispec.WebTestClientRestDocumentationWrapper
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
@@ -26,6 +27,7 @@ import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectDetailRespon
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectResponse
 import io.kotest.core.spec.style.DescribeSpec
 import org.springframework.ai.chat.model.ChatResponse
+import org.springframework.ai.chat.model.Generation
 import org.springframework.http.MediaType
 import org.springframework.restdocs.ManualRestDocumentation
 import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
@@ -37,7 +39,10 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.pos
 import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
+import org.springframework.restdocs.webtestclient.WebTestClientRestDocumentation
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.client.MockMvcWebTestClient
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -52,9 +57,6 @@ import java.time.LocalDateTime
 class SubjectApiTest :
     DescribeSpec({
 
-        lateinit var subjectQuery: SubjectQuery
-        lateinit var chatQuery: ChatQuery
-
         /**
          * without junit5 on spring rest docs, `ManualRestDocs` to generate api spec
          *
@@ -63,7 +65,11 @@ class SubjectApiTest :
         val manualRestDocumentation = ManualRestDocumentation()
         val controllerAdvice = GlobalControllerAdvice()
 
+        var subjectQuery: SubjectQuery = DummySubjectQuery()
+        var chatQuery: ChatQuery = DummyChatQuery()
+
         lateinit var mockMvc: MockMvc
+        lateinit var webTestClient: WebTestClient
 
         beforeEach {
             mockMvc =
@@ -73,6 +79,15 @@ class SubjectApiTest :
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
                     .build()
+            webTestClient =
+                MockMvcWebTestClient
+                    .bindToController(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase()))
+                    .controllerAdvice(controllerAdvice)
+                    .customArgumentResolvers(MockMemberArgumentResolver())
+                    .configureClient()
+                    .filter(
+                        WebTestClientRestDocumentation.documentationConfiguration(manualRestDocumentation),
+                    ).build()
 
             manualRestDocumentation.beforeTest(javaClass, javaClass.simpleName) // manual rest docs 사용시 필요
         }
@@ -82,8 +97,6 @@ class SubjectApiTest :
         }
 
         describe("GET /api/v1/subjects") {
-            chatQuery = DummyChatQuery()
-
             context("존재하는 카테고리 주제 목록 조회 요청 시") {
                 subjectQuery = ExistCategorySubjectQueryStub()
                 val category = "os"
@@ -146,8 +159,6 @@ class SubjectApiTest :
             }
 
             context("카테고리 파라미터가 없는 요청일 경우") {
-                subjectQuery = DummySubjectQuery()
-
                 it("400을 응답한다.") {
                     mockMvc
                         .perform(get("/api/v1/subjects"))
@@ -163,8 +174,6 @@ class SubjectApiTest :
         }
 
         describe("GET /api/v1/subjects/{id}") {
-            chatQuery = DummyChatQuery()
-
             context("존재하는 주제 조회 시") {
                 val id = 1
                 subjectQuery = ExistIdSubjectQuery()
@@ -305,7 +314,6 @@ class SubjectApiTest :
             context("존재하지 않는 주제에 대한 답변 요청 시") {
                 val id = 99999
                 subjectQuery = NotExistIdSubjectQuery()
-                chatQuery = DummyChatQuery()
 
                 it("404를 응답한다.") {
                     val req = SubjectAnswerRequest(answer = "answer")
@@ -338,8 +346,6 @@ class SubjectApiTest :
 
             context("답변이 없는 요청 시") {
                 val id = 3
-                subjectQuery = DummySubjectQuery()
-                chatQuery = DummyChatQuery()
 
                 it("400를 응답한다.") {
                     val req = SubjectAnswerRequest(answer = "")
@@ -371,8 +377,132 @@ class SubjectApiTest :
             }
         }
 
+        describe("GET /api/v5/subjects/{id}/answer 요청은") {
+
+            context("존재하는 주제에 대한 답변 요청 시") {
+                val id = 1
+                subjectQuery = ExistIdSubjectQuery()
+                chatQuery = ExistSubjectIdChatQuery()
+
+                it("200을 응답한다") {
+                    webTestClient
+                        .get()
+                        .uri("/api/v5/subjects/$id/answer?message={message}", "answer")
+                        .header("Authorization", "Bearer token")
+                        .exchange()
+                        .expectStatus()
+                        .isOk
+                        .expectBody()
+                        .consumeWith(
+                            WebTestClientRestDocumentationWrapper
+                                .document(
+                                    identifier = "get-subject-answer",
+                                    description = "주제 답변 요청",
+                                    snippets =
+                                        arrayOf(
+                                            requestHeaders(
+                                                headerWithName("Authorization").description("Bearer 토큰"),
+                                            ),
+                                            responseFields(
+                                                fieldWithPath(
+                                                    "[].result.metadata.contentFilterMetadata",
+                                                ).type(JsonFieldType.NULL).description("Content filter metadata"),
+                                                fieldWithPath(
+                                                    "[].result.metadata.finishReason",
+                                                ).type(JsonFieldType.NULL).description("Finish reason"),
+                                                fieldWithPath(
+                                                    "[].result.output.messageType",
+                                                ).type(JsonFieldType.STRING).description("Message type"),
+                                                fieldWithPath("[].result.output.media").type(JsonFieldType.ARRAY).description("Media"),
+                                                fieldWithPath(
+                                                    "[].result.output.metadata.messageType",
+                                                ).type(JsonFieldType.STRING).description("Message type in metadata"),
+                                                fieldWithPath("[].result.output.content").type(JsonFieldType.STRING).description("답변 내용"),
+                                                fieldWithPath("[].metadata").type(JsonFieldType.OBJECT).description("Metadata"),
+                                                fieldWithPath(
+                                                    "[].results[].metadata.contentFilterMetadata",
+                                                ).type(JsonFieldType.NULL).description("Content filter metadata"),
+                                                fieldWithPath(
+                                                    "[].results[].metadata.finishReason",
+                                                ).type(JsonFieldType.NULL).description("Finish reason"),
+                                                fieldWithPath(
+                                                    "[].results[].output.messageType",
+                                                ).type(JsonFieldType.STRING).description("Message type"),
+                                                fieldWithPath("[].results[].output.media").type(JsonFieldType.ARRAY).description("Media"),
+                                                fieldWithPath(
+                                                    "[].results[].output.metadata.messageType",
+                                                ).type(JsonFieldType.STRING).description("Message type in metadata"),
+                                                fieldWithPath(
+                                                    "[].results[].output.content",
+                                                ).type(JsonFieldType.STRING).description("답변 내용"),
+                                            ),
+                                        ),
+                                ),
+                        )
+                }
+            }
+
+            context("답변을 모두 사용했을 경우") {
+                val id = 2
+                subjectQuery = ExistIdSubjectQuery()
+                chatQuery = UseAllAnswersChatQuery()
+
+                it("400을 응답한다") {
+                    webTestClient
+                        .get()
+                        .uri("/api/v5/subjects/$id/answer?message={message}", "answer")
+                        .header("Authorization", "Bearer token")
+                        .exchange()
+                        .expectStatus()
+                        .isBadRequest
+                        .expectBody()
+                        .consumeWith(
+                            WebTestClientRestDocumentationWrapper
+                                .document(
+                                    identifier = "get-subject-answer-bad-request",
+                                    description = "답변을 모두 사용했을 경우",
+                                    snippets =
+                                        arrayOf(
+                                            requestHeaders(
+                                                headerWithName("Authorization").description("Bearer 토큰"),
+                                            ),
+                                        ),
+                                ),
+                        )
+                }
+            }
+
+            context("존재하지 않는 주제에 대한 답변 요청 시") {
+                val id = 99999
+                subjectQuery = NotExistingIdSubjectQuery()
+
+                it("404를 응답한다") {
+                    webTestClient
+                        .get()
+                        .uri("/api/v5/subjects/$id/answer?message={message}", "answer")
+                        .header("Authorization", "Bearer token")
+                        .exchange()
+                        .expectStatus()
+                        .isNotFound
+                        .expectBody()
+                        .consumeWith(
+                            WebTestClientRestDocumentationWrapper
+                                .document(
+                                    identifier = "get-subject-answer-not-found",
+                                    description = "존재하지 않는 답변 요청",
+                                    snippets =
+                                        arrayOf(
+                                            requestHeaders(
+                                                headerWithName("Authorization").description("Bearer 토큰"),
+                                            ),
+                                        ),
+                                ),
+                        )
+                }
+            }
+        }
+
         describe("GET /api/v1/subjects/my 요청은") {
-            chatQuery = DummyChatQuery()
 
             context("로그인한 사용자가 카테고리 없이 요청 시") {
                 subjectQuery = NoCategoryMemberSubjectQuery()
@@ -445,7 +575,7 @@ class SubjectApiTest :
             context("subjectId가 존재할경우") {
                 val id = 1
                 val date = LocalDateTime.of(2024, 8, 15, 21, 0, 0)
-                subjectQuery = ExistingIdSubjectQuery()
+                subjectQuery = ExistIdSubjectQuery()
                 chatQuery = ExistingSubjectIdChatQuery(date)
 
                 it("200 OK와 Chat 객체를 반환한다") {
@@ -500,7 +630,6 @@ class SubjectApiTest :
             context("subjectId가 존재하지 않을 경우") {
                 val id = 99999
                 subjectQuery = NotExistingIdSubjectQuery()
-                chatQuery = DummyChatQuery()
 
                 it("404 NOT_FOUND를 반환한다") {
                     mockMvc
@@ -528,7 +657,7 @@ class SubjectApiTest :
 
             context("subjectId와 답변 채팅이 존재할 경우") {
                 val id = 1
-                subjectQuery = ExistingIdSubjectQuery()
+                subjectQuery = ExistIdSubjectQuery()
                 chatQuery = ExistingAnswerChatQuery()
 
                 it("201과 생성한 ID를 반환한다") {
@@ -605,7 +734,7 @@ class SubjectApiTest :
 
             context("답변이 0일 경우") {
                 val id = 2
-                subjectQuery = ExistingIdSubjectQuery()
+                subjectQuery = ExistIdSubjectQuery()
                 chatQuery = NoAnswerChatQuery()
 
                 it("400 BAD_REQUEST를 반환한다") {
@@ -671,7 +800,14 @@ class SubjectApiTest :
         }
 
         override fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
-            TODO("Not yet implemented")
+            val chats = Chats(command.chats)
+            require(!chats.useAllAnswers()) { throw AllAnswersUsedException("답변을 모두 사용했습니다.") }
+
+            return Flux.just(
+                ChatResponse(
+                    listOf(Generation("What is OS? (answer: ${command.answer})")),
+                ),
+            )
         }
     }
 
@@ -789,16 +925,6 @@ class SubjectApiTest :
                     category = SubjectCategory.OS,
                     maxScore = 100,
                 ),
-            )
-    }
-
-    class ExistingIdSubjectQuery : StubSubjectQuery() {
-        override fun findByIdOrThrow(id: Long): Subject =
-            Subject(
-                id = id,
-                title = "스레드와 프로세스의 차이",
-                question = "스레드와 프로세스의 차이점은 무엇인가요?",
-                category = SubjectCategory.OS,
             )
     }
 
