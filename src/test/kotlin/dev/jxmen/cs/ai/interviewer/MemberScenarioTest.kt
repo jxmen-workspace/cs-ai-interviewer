@@ -81,6 +81,7 @@ class MemberScenarioTest(
         listOf(
             Pair(HttpMethod.GET, "/api/v1/subjects/1/chats"),
             Pair(HttpMethod.GET, "/api/v1/subjects/my"),
+            Pair(HttpMethod.GET, "/api/v5/subjects/1/answer"),
             Pair(HttpMethod.POST, "/api/v2/subjects/1/chats/archive"),
         ).forEach {
             when (it.first) {
