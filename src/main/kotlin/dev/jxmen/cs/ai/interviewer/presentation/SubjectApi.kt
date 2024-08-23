@@ -9,18 +9,15 @@ import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.common.dto.ListDataResponse
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
-import dev.jxmen.cs.ai.interviewer.presentation.dto.request.SubjectAnswerRequest
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.ChatMessageResponse
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectResponse
-import jakarta.validation.Valid
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.data.repository.query.Param
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
@@ -98,34 +95,6 @@ class SubjectApi(
             ApiResponse.success(
                 ListDataResponse(list),
             ),
-        )
-    }
-
-    /**
-     * 답변 등록
-     */
-    @PostMapping("/api/v4/subjects/{subjectId}/answer")
-    @RequireLoginApi
-    @Deprecated("Use v5 async api")
-    fun answerSubjectV4(
-        member: Member,
-        @PathVariable("subjectId") subjectId: String,
-        @RequestBody @Valid req: SubjectAnswerRequest,
-    ): ResponseEntity<ApiResponse<Any>> {
-        val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
-        val chats = chatQuery.findBySubjectAndMember(subject, member)
-
-        val command =
-            CreateSubjectAnswerCommand(
-                subject = subject,
-                answer = req.answer,
-                member = member,
-                chats = chats,
-            )
-        val answerResponse = memberChatUseCase.answer(command)
-
-        return ResponseEntity.status(201).body(
-            ApiResponse.success(answerResponse),
         )
     }
 

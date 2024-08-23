@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.infrastructure
+package dev.jxmen.cs.ai.interviewer.common.utils
 
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message

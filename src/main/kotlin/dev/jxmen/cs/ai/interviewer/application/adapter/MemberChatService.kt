@@ -2,7 +2,7 @@ package dev.jxmen.cs.ai.interviewer.application.adapter
 
 import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.application.port.output.AIApiClient
+import dev.jxmen.cs.ai.interviewer.common.utils.GrantRoleMessageFactory
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
@@ -10,9 +10,6 @@ import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.AllAnswersUsedExceptio
 import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.NoAnswerException
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
-import dev.jxmen.cs.ai.interviewer.infrastructure.ClaudeAIApiClient
-import dev.jxmen.cs.ai.interviewer.infrastructure.GrantRoleMessageFactory
-import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectAnswerResponse
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage
@@ -27,33 +24,13 @@ import reactor.core.scheduler.Schedulers
 @Service
 class MemberChatService(
     // NOTE: 채팅 제거, 채팅 아카아브 생성을 port로 만들면 너무 이른 추상화라 판단되어 구현체 클래스를 직업 의존하도록 하였다.
-    private val aiApiClient: AIApiClient,
     private val chatModel: ChatModel,
     private val chatAppender: ChatAppender,
     private val chatRemover: ChatRemover,
     private val chatArchiveAppender: ChatArchiveAppender,
 ) : MemberChatUseCase {
-    override fun answer(command: CreateSubjectAnswerCommand): SubjectAnswerResponse? {
-        // 1. 답변을 모두 사용하지 않았는지 확인
-        validateNotUseAllAnswers(command.chats)
-
-        // 2. API 호출해서 다음 질문과 점수 받아오기 (처음 질문은 제외)
-        val apiResponse = aiApiClient.requestAnswer(command.subject, command.answer, command.chats)
-
-        // 3. 기존 답변과 다음 질문 저장
-        chatAppender.addAnswerAndNextQuestion(
-            subject = command.subject,
-            member = command.member,
-            answer = command.answer,
-            chats = command.chats,
-            nextQuestion = apiResponse.nextQuestion,
-            score = apiResponse.score,
-        )
-
-        return SubjectAnswerResponse(
-            nextQuestion = apiResponse.nextQuestion,
-            score = apiResponse.score,
-        )
+    companion object {
+        private val scoreRegex = "답변에 대한 점수: (\\d+)점".toRegex()
     }
 
     override fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
@@ -126,7 +103,7 @@ class MemberChatService(
         }
 
     private fun extractScore(nextQuestion: String): Int =
-        ClaudeAIApiClient.SCORE_REGEX
+        scoreRegex
             .find(nextQuestion)
             ?.groupValues
             ?.get(1)
