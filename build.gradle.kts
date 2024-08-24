@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "dev.jxmen"
-version = "1.3.1"
+version = "1.3.2"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -68,19 +68,19 @@ dependencies {
     implementation("org.springframework.session:spring-session-jdbc") // redis로 변경은 추후 검토
 
     // kotlin jdsl dependencies
-    implementation("com.linecorp.kotlin-jdsl:jpql-dsl:$${Versions.KOTLIN_JDSL}") // JPQL을 만들어 주도록 도와주는 라이브러리
-    implementation("com.linecorp.kotlin-jdsl:jpql-render:$${Versions.KOTLIN_JDSL}") // DSL로 만든 쿼리를 String으로 변환해주는 라이브러리
-    implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:$${Versions.KOTLIN_JDSL}") // Spring Data JPA를 지원하는 Kotlin JDSL 라이브러리
+    implementation("com.linecorp.kotlin-jdsl:jpql-dsl:${Versions.KOTLIN_JDSL}") // JPQL을 만들어 주도록 도와주는 라이브러리
+    implementation("com.linecorp.kotlin-jdsl:jpql-render:${Versions.KOTLIN_JDSL}") // DSL로 만든 쿼리를 String으로 변환해주는 라이브러리
+    implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:${Versions.KOTLIN_JDSL}") // Spring Data JPA를 지원하는 Kotlin JDSL 라이브러리
 
     /**
      * for generating OpenAPI 3.0 spec
      *
      * https://mvnrepository.com/artifact/com.epages/restdocs-api-spec-mockmvc
      */
-    implementation("com.epages:restdocs-api-spec:$${Versions.EPAGES}")
-    implementation("com.epages:restdocs-api-spec-mockmvc:$${Versions.EPAGES}")
-    implementation("com.epages:restdocs-api-spec-webtestclient:$${Versions.EPAGES}")
-    implementation("com.epages:restdocs-api-spec-openapi3-generator:$${Versions.EPAGES}")
+    implementation("com.epages:restdocs-api-spec:${Versions.EPAGES}")
+    implementation("com.epages:restdocs-api-spec-mockmvc:${Versions.EPAGES}")
+    implementation("com.epages:restdocs-api-spec-webtestclient:${Versions.EPAGES}")
+    implementation("com.epages:restdocs-api-spec-openapi3-generator:${Versions.EPAGES}")
     implementation("org.springframework.restdocs:spring-restdocs-webtestclient")
 
     // kotest spring extension
@@ -96,10 +96,10 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
-    testImplementation("io.mockk:mockk:$${Versions.MOCKK}")
-    testImplementation("io.kotest:kotest-runner-junit5:$${Versions.KOTEST}")
-    testImplementation("io.kotest:kotest-assertions-core:$${Versions.KOTEST}")
-    testImplementation("io.kotest:kotest-framework-datatest:$${Versions.KOTEST}")
+    testImplementation("io.mockk:mockk:${Versions.MOCKK}")
+    testImplementation("io.kotest:kotest-runner-junit5:${Versions.KOTEST}")
+    testImplementation("io.kotest:kotest-assertions-core:${Versions.KOTEST}")
+    testImplementation("io.kotest:kotest-framework-datatest:${Versions.KOTEST}")
     testImplementation("org.mockito.kotlin:mockito-kotlin:${Versions.MOCKITO_KOTLIN}")
 
     // fixture-monkey
