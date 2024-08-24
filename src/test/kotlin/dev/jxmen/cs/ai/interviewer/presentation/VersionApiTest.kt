@@ -11,7 +11,6 @@ import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
 import org.springframework.test.context.TestConstructor
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
@@ -19,7 +18,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
 @SpringBootTest
-@TestPropertySource(properties = ["CLAUDE_API_KEY=test"])
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class VersionApiTest(
     private val context: WebApplicationContext,

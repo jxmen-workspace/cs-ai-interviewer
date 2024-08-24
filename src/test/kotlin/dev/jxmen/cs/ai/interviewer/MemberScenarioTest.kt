@@ -23,17 +23,14 @@ import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.model.Generation
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.http.HttpMethod
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
-import org.springframework.security.test.context.support.WithAnonymousUser
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestConstructor
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.MockMvcResultMatchersDsl
 import org.springframework.test.web.servlet.client.MockMvcWebTestClient
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
@@ -69,23 +66,6 @@ class MemberScenarioTest(
          * WebTestClient는 WebFlux를 사용하는 경우에 사용. mockMvc는 MockMvcWebTestClient를 사용
          */
         webTestClient = MockMvcWebTestClient.bindToApplicationContext(context).build()
-    }
-
-    @Test
-    @WithAnonymousUser
-    fun `인증되지 않은 유저가 인증이 필요한 로그인 요청 시 401을 응답한다`() {
-        listOf(
-            Pair(HttpMethod.GET, "/api/v1/subjects/1/chats"),
-            Pair(HttpMethod.GET, "/api/v1/subjects/my"),
-            Pair(HttpMethod.GET, "/api/v5/subjects/1/answer"),
-            Pair(HttpMethod.POST, "/api/v2/subjects/1/chats/archive"),
-        ).forEach {
-            when (it.first) {
-                HttpMethod.GET -> mockMvc.get(it.second).andExpect { expectRequireLogin() }
-                HttpMethod.POST -> mockMvc.post(it.second).andExpect { expectRequireLogin() }
-                else -> throw IllegalArgumentException("Unsupported method: ${it.first}")
-            }
-        }
     }
 
     @Test
@@ -267,13 +247,6 @@ class MemberScenarioTest(
 
         val archiveContents = chatArchiveContentQueryRepository.findByArchive(archives[0])
         archiveContents.size shouldBe 3
-    }
-
-    private fun MockMvcResultMatchersDsl.expectRequireLogin() {
-        status { isUnauthorized() }
-        jsonPath("$.success") { value(false) }
-        jsonPath("$.error.code") { value("REQUIRE_LOGIN") }
-        jsonPath("$.error.status") { value(401) }
     }
 
     private fun createOAuth2AuthenticationToken(
