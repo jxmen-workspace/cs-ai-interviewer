@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 import org.springframework.stereotype.Component
+import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.method.HandlerMethod
 import org.springframework.web.servlet.HandlerMapping
@@ -112,7 +113,13 @@ class JwtAuthenticationFilter(
 
     private fun requireLogin(request: HttpServletRequest): Boolean {
         for (handlerMapping in handlerMappings) {
-            val handler = handlerMapping.getHandler(request) ?: continue
+            val handler =
+                try {
+                    handlerMapping.getHandler(request) ?: continue
+                } catch (e: HttpRequestMethodNotSupportedException) {
+                    return false
+                }
+
             if (handler.handler is HandlerMethod) {
                 val handlerMethod = handler.handler as HandlerMethod
                 if (handlerMethod.getMethodAnnotation(RequireLoginApi::class.java) != null) {
