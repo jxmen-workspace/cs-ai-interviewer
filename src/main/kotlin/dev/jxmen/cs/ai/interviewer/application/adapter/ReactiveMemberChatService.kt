@@ -2,7 +2,6 @@ package dev.jxmen.cs.ai.interviewer.application.adapter
 
 import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.common.utils.MessageParser
 import dev.jxmen.cs.ai.interviewer.common.utils.PromptMessageFactory
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
 import org.springframework.ai.chat.model.ChatModel
@@ -16,7 +15,6 @@ import reactor.core.scheduler.Schedulers
 class ReactiveMemberChatService(
     private val chatModel: ChatModel,
     private val chatAppender: ChatAppender,
-    private val messageParser: MessageParser,
 ) : ReactiveMemberChatUseCase {
     override fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
         // 1. 답변을 모두 사용하지 않았는지 확인
@@ -39,14 +37,12 @@ class ReactiveMemberChatService(
             // 차단되지 않는 컨텍스트에서 호출을 차단하면 스레드 고갈이 발생할 수 있습니다.
             .publishOn(Schedulers.boundedElastic())
             .doOnComplete {
-                val score = messageParser.parseScore(answerMessageBuilder)
                 chatAppender.addAnswerAndNextQuestion(
                     subject = command.subject,
                     member = command.member,
                     answer = command.answer,
                     chats = command.chats,
                     nextQuestion = answerMessageBuilder.toString(),
-                    score = score,
                 )
             }
     }

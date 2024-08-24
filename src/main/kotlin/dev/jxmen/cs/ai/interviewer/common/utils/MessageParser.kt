@@ -11,9 +11,9 @@ class MessageParser {
         private val SCORE_REGEX = "답변에 대한 점수: (\\d+)점".toRegex()
     }
 
-    fun parseScore(sb: StringBuilder): Int =
+    fun parseScore(s: String): Int =
         SCORE_REGEX
-            .find(sb.toString())
+            .find(s)
             ?.groupValues
             ?.get(1)
             ?.toInt() ?: 0
