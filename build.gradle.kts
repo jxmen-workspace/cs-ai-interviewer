@@ -31,6 +31,10 @@ val mockkVersion = "1.13.11"
 val kotestVersion = "5.8.1"
 val kotlinJdslVersion = "3.5.1"
 
+object Versions {
+    const val FIXTURE_MONKEY_KOTLIN = "1.0.23"
+}
+
 dependencies {
     // spring boot
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -91,6 +95,9 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+
+    // fixture-monkey
+    testImplementation("com.navercorp.fixturemonkey:fixture-monkey-starter-kotlin:${Versions.FIXTURE_MONKEY_KOTLIN}")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
