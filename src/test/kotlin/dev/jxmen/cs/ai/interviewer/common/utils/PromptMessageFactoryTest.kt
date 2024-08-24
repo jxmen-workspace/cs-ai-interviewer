@@ -3,7 +3,8 @@ package dev.jxmen.cs.ai.interviewer.common.utils
 import com.navercorp.fixturemonkey.FixtureMonkey
 import com.navercorp.fixturemonkey.kotlin.KotlinPlugin
 import com.navercorp.fixturemonkey.kotlin.giveMeBuilder
-import com.navercorp.fixturemonkey.kotlin.set
+import com.navercorp.fixturemonkey.kotlin.into
+import com.navercorp.fixturemonkey.kotlin.setExp
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatContent
@@ -25,16 +26,17 @@ class PromptMessageFactoryTest :
 
             context("create") {
                 it("이전 채팅이 없을 때 권한 부여, 질문에 대한 답변, 사용자 답변 메시지 목록을 반환해야 합니다") {
+                    // given
                     val command =
                         fixtureMonkey
                             .giveMeBuilder<CreateSubjectAnswerCommand>()
-                            .set(CreateSubjectAnswerCommand::chats, emptyList<Chat>())
+                            .setExp(CreateSubjectAnswerCommand::chats, emptyList<Chat>())
                             .sample()
 
-                    // Arrange
+                    // when
                     val result = PromptMessageFactory.create(command)
 
-                    // Act
+                    // then
                     result shouldHaveSize 3
                     result[0] shouldBe UserMessage(PromptMessageFactory.grantInterviewerRoleMessage)
                     result[1] shouldBe AssistantMessage(PromptMessageFactory.getAiAnswerContentFromQuestion(command.subject.question))
@@ -42,38 +44,20 @@ class PromptMessageFactoryTest :
                 }
 
                 it("이전 채팅이 있을 때, 첫 채팅을 잘라낸 메시지 목록을 반환해야 합니다") {
-                    // Arrange
-                    val firstQuestionChatContent =
-                        fixtureMonkey
-                            .giveMeBuilder<ChatContent>()
-                            .set(ChatContent::chatType, ChatType.QUESTION)
-                            .set(ChatContent::score, null)
-                            .sample()
-                    val answerChatContent =
-                        fixtureMonkey
-                            .giveMeBuilder<ChatContent>()
-                            .set(ChatContent::chatType, ChatType.ANSWER)
-                            .sample()
-                    val questionChatContent =
-                        fixtureMonkey
-                            .giveMeBuilder<ChatContent>()
-                            .set(ChatContent::chatType, ChatType.QUESTION)
-                            .set(ChatContent::score, null)
-                            .sample()
-
-                    val firstQuestionChat = fixtureMonkey.giveMeBuilder<Chat>().set(Chat::content, firstQuestionChatContent).sample()
-                    val answerChat = fixtureMonkey.giveMeBuilder<Chat>().set(Chat::content, answerChatContent).sample()
-                    val questionChat = fixtureMonkey.giveMeBuilder<Chat>().set(Chat::content, questionChatContent).sample()
+                    // given
+                    val firstQuestionChat = createQuestionChat(fixtureMonkey)
+                    val answerChat = createAnswerChat(fixtureMonkey)
+                    val questionChat = createQuestionChat(fixtureMonkey)
                     val command =
                         fixtureMonkey
                             .giveMeBuilder<CreateSubjectAnswerCommand>()
-                            .set(CreateSubjectAnswerCommand::chats, listOf(firstQuestionChat, answerChat, questionChat))
+                            .setExp(CreateSubjectAnswerCommand::chats, listOf(firstQuestionChat, answerChat, questionChat))
                             .sample()
 
-                    // Act
+                    // when
                     val result = PromptMessageFactory.create(command)
 
-                    // Assert
+                    // then
                     result shouldHaveSize 5
                     result[0] shouldBe UserMessage(PromptMessageFactory.grantInterviewerRoleMessage)
                     result[1] shouldBe AssistantMessage(PromptMessageFactory.getAiAnswerContentFromQuestion(command.subject.question))
@@ -84,3 +68,17 @@ class PromptMessageFactoryTest :
             }
         }
     })
+
+private fun createAnswerChat(fixtureMonkey: FixtureMonkey): Chat =
+    fixtureMonkey
+        .giveMeBuilder<Chat>()
+        .setExp(Chat::content into ChatContent::chatType, ChatType.ANSWER)
+        .setPostCondition { it.content.score in 0..100 }
+        .sample()
+
+private fun createQuestionChat(fixtureMonkey: FixtureMonkey): Chat =
+    fixtureMonkey
+        .giveMeBuilder<Chat>()
+        .setExp(Chat::content into ChatContent::chatType, ChatType.QUESTION)
+        .setExp(Chat::content into ChatContent::score, null)
+        .sample()
