@@ -1,5 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
+import dev.jxmen.cs.ai.interviewer.common.utils.MessageParser
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ChatAppender(
     private val chatCommandRepository: ChatCommandRepository,
+    private val messageParser: MessageParser,
 ) {
     /**
      * 답변과 다음 질문을 추가한다. 이 작업은 원자성을 지켜야 한다.
@@ -21,11 +23,12 @@ class ChatAppender(
         answer: String,
         chats: List<Chat>,
         nextQuestion: String,
-        score: Int,
     ) {
         if (chats.isEmpty()) {
             addFirstQuestion(subject, member)
         }
+
+        val score = messageParser.parseScore(nextQuestion)
         addAnswer(subject, member, answer, score)
         addNextQuestion(subject, member, nextQuestion)
     }

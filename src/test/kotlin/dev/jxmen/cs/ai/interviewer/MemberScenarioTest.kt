@@ -163,7 +163,10 @@ class MemberScenarioTest(
             }
 
         val answer = "test answer"
-        val nextQuestion = "test next question"
+        val nextQuestion =
+            """
+            답변에 대한 점수: 10점
+            """.trimIndent().trimMargin()
         given { reactiveMemberChatService.answerAsync(any()) }.willReturn {
             Flux
                 .create<ChatResponse?> {
@@ -182,7 +185,6 @@ class MemberScenarioTest(
                         answer = answer,
                         chats = emptyList(),
                         nextQuestion = nextQuestion,
-                        score = 10,
                     )
                 }
         }

@@ -25,8 +25,7 @@ class MessageParserTest :
                         )
 
                     forAll(testCases) { input, expectedScore ->
-                        val sb = StringBuilder(input)
-                        val score = messageParser.parseScore(sb)
+                        val score = messageParser.parseScore(input)
                         score shouldBe expectedScore
                     }
                 }
@@ -46,8 +45,7 @@ class MessageParserTest :
                         )
 
                     forAll(testCases) { input, expectedScore ->
-                        val sb = StringBuilder(input)
-                        val score = messageParser.parseScore(sb)
+                        val score = messageParser.parseScore(input)
                         score shouldBe expectedScore
                     }
                 }
