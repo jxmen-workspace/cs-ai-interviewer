@@ -1,6 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.common.utils
 
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
+import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage
@@ -8,6 +9,8 @@ import org.springframework.ai.chat.messages.UserMessage
 class PromptMessageFactory {
     companion object {
         /**
+         * AI에게 면졉관 역할을 부여하는 메시지
+         *
          * @see MessageParser 점수 파싱 담당
          */
         private val grantInterviewerRoleMessage =
@@ -29,37 +32,50 @@ class PromptMessageFactory {
         /**
          * @param command CreateSubjectAnswerCommand 멤버가 제공한 답변을 기반으로 채팅 목록을 만들어 반환
          */
-        fun create(command: CreateSubjectAnswerCommand): List<Message> =
-            when (command.chats.isEmpty()) {
+        fun create(command: CreateSubjectAnswerCommand): List<Message> {
+            val userAnswerMessage = UserMessage(command.answer) // 멤버가 제공한 답변
+
+            return when (command.chats.isEmpty()) {
                 /**
                  * 저장된 채팅이 없다면 면접관 부여 메시지와 답변을 반환
                  */
                 true -> {
-                    listOf(
-                        UserMessage(grantInterviewerRoleMessage),
-                        AssistantMessage(getAiAnswerContentFromQuestion(command.subject.question)),
-                        UserMessage(command.answer),
-                    )
+                    createInitialMessages(command) + userAnswerMessage
                 }
 
                 false -> {
-                    listOf(
-                        UserMessage(grantInterviewerRoleMessage),
-                        AssistantMessage(getAiAnswerContentFromQuestion(command.subject.question)),
-                    ) +
+                    createInitialMessages(command) + createMessagesFromBeforeChats(command.chats) + userAnswerMessage
+                }
+            }
+        }
 
-                        /**
-                         * 처음 채팅은 주제에 대한 question이 저장되므로, propmt에서는 제외시킨다.
-                         */
-                        command.chats.drop(1).map {
-                            when (it.isAnswer()) {
-                                true -> UserMessage(it.content.message)
-                                false -> AssistantMessage(it.content.message)
-                            }
-                        } + UserMessage(command.answer)
+        /**
+         * 초기 메시지 생성
+         */
+        private fun createInitialMessages(command: CreateSubjectAnswerCommand): List<Message> =
+            listOf(
+                UserMessage(grantInterviewerRoleMessage), // 면접관 역할 부여
+                AssistantMessage(getAiAnswerContentFromQuestion(command.subject.question)), // 면접관 질문
+            )
+
+        /**
+         * 기존 채팅 기반으로 메시지 생성
+         */
+        private fun createMessagesFromBeforeChats(chats: List<Chat>): List<Message> =
+            /**
+             * 첫 번째 채팅은 질문을 그대로 저장하므로 제외
+             */
+            chats.drop(1).map {
+                when {
+                    it.isAnswer() -> UserMessage(it.content.message)
+                    it.isQuestion() -> AssistantMessage(it.content.message)
+                    else -> throw IllegalArgumentException("Unknown chat type")
                 }
             }
 
+        /**
+         * AI가 답변 및 질문하는 내용 반환
+         */
         private fun getAiAnswerContentFromQuestion(question: String) =
             """
             네, 알겠습니다. 제공해주신 형식에 맞추어 답변하는 면접관 역할을 수행하고, 질문에 대한 답은 제공하지 않겠습니다. 
