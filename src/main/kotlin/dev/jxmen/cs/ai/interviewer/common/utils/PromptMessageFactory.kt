@@ -35,18 +35,7 @@ class PromptMessageFactory {
         fun create(command: CreateSubjectAnswerCommand): List<Message> {
             val userAnswerMessage = UserMessage(command.answer) // 멤버가 제공한 답변
 
-            return when (command.chats.isEmpty()) {
-                /**
-                 * 저장된 채팅이 없다면 면접관 부여 메시지와 답변을 반환
-                 */
-                true -> {
-                    createInitialMessages(command) + userAnswerMessage
-                }
-
-                false -> {
-                    createInitialMessages(command) + createMessagesFromBeforeChats(command.chats) + userAnswerMessage
-                }
-            }
+            return createInitialMessages(command) + createMessagesFromBeforeChats(command.chats) + userAnswerMessage
         }
 
         /**
@@ -61,17 +50,18 @@ class PromptMessageFactory {
         /**
          * 기존 채팅 기반으로 메시지 생성
          */
-        private fun createMessagesFromBeforeChats(chats: List<Chat>): List<Message> =
+        private fun createMessagesFromBeforeChats(chats: List<Chat>): List<Message> {
             /**
              * 첫 번째 채팅은 질문을 그대로 저장하므로 제외
              */
-            chats.drop(1).map {
+            return chats.drop(1).map {
                 when {
                     it.isAnswer() -> UserMessage(it.content.message)
                     it.isQuestion() -> AssistantMessage(it.content.message)
                     else -> throw IllegalArgumentException("Unknown chat type")
                 }
             }
+        }
 
         /**
          * AI가 답변 및 질문하는 내용 반환
