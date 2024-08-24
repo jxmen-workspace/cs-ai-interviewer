@@ -60,6 +60,7 @@ class Member(
 
         other as Member
 
+        if (id != other.id) return false
         if (name != other.name) return false
         if (email != other.email) return false
         if (loginType != other.loginType) return false
