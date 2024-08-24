@@ -13,7 +13,7 @@ class PromptMessageFactory {
          *
          * @see MessageParser 점수 파싱 담당
          */
-        private val grantInterviewerRoleMessage =
+        val grantInterviewerRoleMessage =
             """
                 당신은 이제부터 Computer Science에 대해 질문하는 면접관이다. 
                 당신이 안내한 질문에 대해 내가 답변을 하면, 그에 대한 점수를 그동안 해왔던 답변도 포함하여 10점 단위로 평가 및 이유와 공부할 수 있는 키워드, 꼬리 질문을 제시해주길 바란다.
@@ -39,6 +39,17 @@ class PromptMessageFactory {
         }
 
         /**
+         * AI가 답변 및 질문하는 내용 반환
+         */
+        fun getAiAnswerContentFromQuestion(question: String) =
+            """
+            네, 알겠습니다. 제공해주신 형식에 맞추어 답변하는 면접관 역할을 수행하고, 질문에 대한 답은 제공하지 않겠습니다. 
+            제가 면접관으로 질문드릴 내용은 다음과 같습니다.
+            
+            질문: $question
+            """.trimIndent().trim()
+
+        /**
          * 초기 메시지 생성
          */
         private fun createInitialMessages(command: CreateSubjectAnswerCommand): List<Message> =
@@ -62,16 +73,5 @@ class PromptMessageFactory {
                 }
             }
         }
-
-        /**
-         * AI가 답변 및 질문하는 내용 반환
-         */
-        private fun getAiAnswerContentFromQuestion(question: String) =
-            """
-            네, 알겠습니다. 제공해주신 형식에 맞추어 답변하는 면접관 역할을 수행하고, 질문에 대한 답은 제공하지 않겠습니다. 
-            제가 면접관으로 질문드릴 내용은 다음과 같습니다.
-            
-            질문: $question
-            """.trimIndent().trim()
     }
 }
