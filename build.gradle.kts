@@ -26,13 +26,18 @@ repositories {
     maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
-val epagesVersion = "0.17.1"
-val mockkVersion = "1.13.11"
-val kotestVersion = "5.8.1"
-val kotlinJdslVersion = "3.5.1"
-
 object Versions {
+    const val EPAGES = "0.17.1"
+    const val MOCKK = "1.13.11"
+    const val MOCKITO_KOTLIN = "5.4.0"
+    const val KOTEST = "5.8.1"
+    const val KOTLIN_JDSL = "3.5.1"
     const val FIXTURE_MONKEY_KOTLIN = "1.0.23"
+    const val SPRING_AI = "1.0.0-M1"
+    const val JJWT = "0.12.6"
+    const val KOTEST_SPRING = "1.3.0"
+    const val MARIADB_JAVA_CLIENT = "3.1.0"
+    const val NETTY_RESOLVER_DNS_NATIVE_MACOS = "4.1.72.Final"
 }
 
 dependencies {
@@ -41,8 +46,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-aop")
 
     // spring ai
-    implementation("org.springframework.ai:spring-ai-anthropic-spring-boot-starter:1.0.0-M1")
-    implementation("org.springframework.ai:spring-ai-anthropic:1.0.0-M1")
+    implementation("org.springframework.ai:spring-ai-anthropic-spring-boot-starter:${Versions.SPRING_AI}")
+    implementation("org.springframework.ai:spring-ai-anthropic:${Versions.SPRING_AI}")
 
     // template engine
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -63,51 +68,56 @@ dependencies {
     implementation("org.springframework.session:spring-session-jdbc") // redis로 변경은 추후 검토
 
     // kotlin jdsl dependencies
-    implementation("com.linecorp.kotlin-jdsl:jpql-dsl:$kotlinJdslVersion") // JPQL을 만들어 주도록 도와주는 라이브러리
-    implementation("com.linecorp.kotlin-jdsl:jpql-render:$kotlinJdslVersion") // DSL로 만든 쿼리를 String으로 변환해주는 라이브러리
-    implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:$kotlinJdslVersion") // Spring Data JPA를 지원하는 Kotlin JDSL 라이브러리
+    implementation("com.linecorp.kotlin-jdsl:jpql-dsl:$${Versions.KOTLIN_JDSL}") // JPQL을 만들어 주도록 도와주는 라이브러리
+    implementation("com.linecorp.kotlin-jdsl:jpql-render:$${Versions.KOTLIN_JDSL}") // DSL로 만든 쿼리를 String으로 변환해주는 라이브러리
+    implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:$${Versions.KOTLIN_JDSL}") // Spring Data JPA를 지원하는 Kotlin JDSL 라이브러리
 
     /**
      * for generating OpenAPI 3.0 spec
      *
      * https://mvnrepository.com/artifact/com.epages/restdocs-api-spec-mockmvc
      */
-    implementation("com.epages:restdocs-api-spec:$epagesVersion")
-    implementation("com.epages:restdocs-api-spec-mockmvc:$epagesVersion")
-    implementation("com.epages:restdocs-api-spec-webtestclient:$epagesVersion")
-    implementation("com.epages:restdocs-api-spec-openapi3-generator:$epagesVersion")
+    implementation("com.epages:restdocs-api-spec:$${Versions.EPAGES}")
+    implementation("com.epages:restdocs-api-spec-mockmvc:$${Versions.EPAGES}")
+    implementation("com.epages:restdocs-api-spec-webtestclient:$${Versions.EPAGES}")
+    implementation("com.epages:restdocs-api-spec-openapi3-generator:$${Versions.EPAGES}")
     implementation("org.springframework.restdocs:spring-restdocs-webtestclient")
 
+    // kotest spring extension
+    implementation("io.kotest.extensions:kotest-extensions-spring:${Versions.KOTEST_SPRING}")
+
     // jwt
-    implementation("io.jsonwebtoken:jjwt-api:0.12.6") // 인터페이스
-    implementation("io.jsonwebtoken:jjwt-gson:0.12.6") // Gson을 사용하는 구현체
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6") // 실제 구현체
+    implementation("io.jsonwebtoken:jjwt-api:${Versions.JJWT}") // 인터페이스
+    implementation("io.jsonwebtoken:jjwt-gson:${Versions.JJWT}") // Gson을 사용하는 구현체
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     // for test
-    implementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
-    testImplementation("io.mockk:mockk:$mockkVersion")
-    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
-    testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    testImplementation("io.mockk:mockk:$${Versions.MOCKK}")
+    testImplementation("io.kotest:kotest-runner-junit5:$${Versions.KOTEST}")
+    testImplementation("io.kotest:kotest-assertions-core:$${Versions.KOTEST}")
+    testImplementation("io.kotest:kotest-framework-datatest:$${Versions.KOTEST}")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:${Versions.MOCKITO_KOTLIN}")
 
     // fixture-monkey
     testImplementation("com.navercorp.fixturemonkey:fixture-monkey-starter-kotlin:${Versions.FIXTURE_MONKEY_KOTLIN}")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.1.0") {
+    // jjwt 실제 구현체
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:${Versions.JJWT}") // 실제 구현체
+
+    // mariadb client
+    runtimeOnly("org.mariadb.jdbc:mariadb-java-client:${Versions.MARIADB_JAVA_CLIENT}") {
         exclude(group = "com.github.waffle", module = "waffle-jna")
     }
 
+    // MacOS에서 Netty 사용 시 Apple Silicon 지원을 위해 추가
     if (isAppleSilicon()) {
-        // MacOS에서 Netty 사용 시 Apple Silicon 지원을 위해 추가
-        runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.72.Final:osx-aarch_64")
+        runtimeOnly("io.netty:netty-resolver-dns-native-macos:${Versions.NETTY_RESOLVER_DNS_NATIVE_MACOS}:osx-aarch_64")
     }
 }
 
