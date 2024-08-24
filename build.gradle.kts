@@ -33,7 +33,7 @@ object Versions {
     const val KOTEST = "5.8.1"
     const val KOTLIN_JDSL = "3.5.1"
     const val FIXTURE_MONKEY_KOTLIN = "1.0.23"
-    const val SPRING_AI = "1.0.0-M1"
+    const val SPRING_AI_ANTHROPIC = "1.0.0-M1"
     const val JJWT = "0.12.6"
     const val KOTEST_SPRING = "1.3.0"
     const val MARIADB_JAVA_CLIENT = "3.1.0"
@@ -46,8 +46,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-aop")
 
     // spring ai
-    implementation("org.springframework.ai:spring-ai-anthropic-spring-boot-starter:${Versions.SPRING_AI}")
-    implementation("org.springframework.ai:spring-ai-anthropic:${Versions.SPRING_AI}")
+    implementation("org.springframework.ai:spring-ai-anthropic-spring-boot-starter:${Versions.SPRING_AI_ANTHROPIC}")
+    implementation("org.springframework.ai:spring-ai-anthropic:${Versions.SPRING_AI_ANTHROPIC}")
 
     // template engine
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
