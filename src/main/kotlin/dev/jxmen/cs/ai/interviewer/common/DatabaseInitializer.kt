@@ -2,7 +2,7 @@ package dev.jxmen.cs.ai.interviewer.common
 
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
-import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectCommandRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 

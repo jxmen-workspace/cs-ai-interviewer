@@ -1,15 +1,15 @@
 package dev.jxmen.cs.ai.interviewer
 
 import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveContentQueryRepository
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.member.MemberCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
-import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
 import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatAppender
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatArchiveContentQueryRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatArchiveQueryRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberCommandRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectCommandRepository
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.haveLength
 import org.hamcrest.BaseMatcher

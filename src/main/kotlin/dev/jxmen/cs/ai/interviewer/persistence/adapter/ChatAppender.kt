@@ -2,9 +2,9 @@ package dev.jxmen.cs.ai.interviewer.persistence.adapter
 
 import dev.jxmen.cs.ai.interviewer.common.utils.MessageParser
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatCommandRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

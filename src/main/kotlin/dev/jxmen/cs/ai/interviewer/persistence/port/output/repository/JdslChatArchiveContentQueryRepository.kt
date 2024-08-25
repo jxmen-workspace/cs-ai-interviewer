@@ -1,9 +1,11 @@
-package dev.jxmen.cs.ai.interviewer.persistence
+package dev.jxmen.cs.ai.interviewer.persistence.port.output.repository
 
 import com.linecorp.kotlinjdsl.dsl.jpql.jpql
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderer
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveContentQueryRepository
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChatArchive
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChatArchiveContent
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatArchiveContentQueryRepository
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Repository
 

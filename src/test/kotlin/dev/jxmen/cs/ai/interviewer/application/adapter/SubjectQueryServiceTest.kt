@@ -3,8 +3,9 @@ package dev.jxmen.cs.ai.interviewer.application.adapter
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
-import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
+import dev.jxmen.cs.ai.interviewer.persistence.adapter.SubjectQueryService
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectQueryRepository
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow

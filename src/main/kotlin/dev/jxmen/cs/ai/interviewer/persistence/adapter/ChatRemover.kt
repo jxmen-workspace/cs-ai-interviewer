@@ -1,7 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.persistence.adapter
 
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatCommandRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatCommandRepository
 import org.springframework.stereotype.Component
 
 @Component
