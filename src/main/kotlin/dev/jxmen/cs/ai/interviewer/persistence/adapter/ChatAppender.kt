@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.application.adapter
+package dev.jxmen.cs.ai.interviewer.persistence.adapter
 
 import dev.jxmen.cs.ai.interviewer.common.utils.MessageParser
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat

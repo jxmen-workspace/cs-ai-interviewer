@@ -1,6 +1,5 @@
 package dev.jxmen.cs.ai.interviewer
 
-import dev.jxmen.cs.ai.interviewer.application.adapter.ChatAppender
 import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveContentQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveQueryRepository
@@ -10,6 +9,7 @@ import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
+import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatAppender
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.haveLength
 import org.hamcrest.BaseMatcher
@@ -68,6 +68,7 @@ class MemberScenarioTest(
         webTestClient = MockMvcWebTestClient.bindToApplicationContext(context).build()
     }
 
+    // TODO: 시나리오 잘게 쪼개기
     @Test
     fun `멤버 답변 및 채팅 내역 시나리오 테스트`() {
         // 멤버 생성
