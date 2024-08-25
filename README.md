@@ -19,12 +19,11 @@ CS 면접을 준비하는 사람들을 위한 인터뷰 질문을 제공하는 �
 ├── README.md
 ├── src/main/kotlin/dev.jxmen.cs.ai.interviewer
 │   ├── application - Applicatoin 레이어. 유즈 케이스 등이 포함됩니다.
-│   │   ├── adpater - 구현체 클래스 (Appender, QueryService 등)
-│   │   ├── port - 인터페이스
+│   │   ├── adpater - 유즈케이스 인터페이스 구현체
+│   │   ├── port - 유즈케이스 인터페이스
 │   ├── common - 공통적으로 사용되는 코드가 포함됩니다. (예: Exception, Enum, Configuration 등)
 │   ├── domain - 핵심 도메인입니다. (단, 아직 일부 코드는 Jpa Entity를 그대로 사용하고 있습니다.)
-│   ├── infrastructure - 외부 API 구현체, DTO 등이 포함됩니다.
-│   ├── persistence - Repository 구현체, Jpa Entity등이 포함됩니다.
+│   ├── persistence - 영속성 어댑터, Jpa Repository, Datbase Entity 등이 포함됩니다.
 │   ├── presentation - RestController, Request, Response 등이 포함됩니다.
 │   CsAiInterviewerApplication.kt - Spring Boot Application
 ```
