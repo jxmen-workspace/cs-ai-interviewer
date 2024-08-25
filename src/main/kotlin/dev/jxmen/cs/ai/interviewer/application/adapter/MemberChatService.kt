@@ -5,6 +5,8 @@ import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
+import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatArchiveAppender
+import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatRemover
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

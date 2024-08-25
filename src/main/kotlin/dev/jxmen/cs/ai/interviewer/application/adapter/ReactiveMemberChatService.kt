@@ -4,6 +4,7 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseC
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.common.utils.PromptMessageFactory
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
+import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatAppender
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.prompt.Prompt
