@@ -68,8 +68,9 @@ class MemberScenarioTest(
         }
 
         describe("MemberScenarioTest") {
+            val subject = subjectCommandRepository.save(fixtureMonkey.giveMeOne<Subject>())
+
             context("인증되지 않은 사용자는") {
-                val subject = subjectCommandRepository.save(fixtureMonkey.giveMeOne<Subject>())
 
                 it("공개된 API 요청 시 200을 응답한다") {
                     mockMvc
@@ -117,34 +118,35 @@ class MemberScenarioTest(
             }
 
             context("인증된 사용자의 경우") {
-                val member: Member = fixtureMonkey.giveMeOne()
-                memberCommandRepository.save(member)
-
-                val oauth2User = createOAuth2User(member)
-                val authentication = createOAuth2AuthenticationToken(oauth2User)
-                SecurityContextHolder.getContext().authentication = authentication
-
-                val subject = subjectCommandRepository.save(fixtureMonkey.giveMeOne<Subject>())
-                val answer = "test answer"
+                val answer = "잘 모르겠습니다."
                 val nextQuestion = "답변에 대한 점수: 10점"
-                given { reactiveMemberChatService.answerAsync(any()) }.willReturn {
-                    Flux
-                        .create<ChatResponse?> {
-                            it.next(ChatResponse(listOf(Generation(answer))))
-                            it.complete()
-                        }.publishOn(Schedulers.boundedElastic())
-                        .doOnComplete {
-                            chatAppender.addAnswerAndNextQuestion(
-                                subject = subject,
-                                member = member,
-                                answer = answer,
-                                chats = emptyList(),
-                                nextQuestion = nextQuestion,
-                            )
-                        }
+
+                lateinit var member: Member
+
+                beforeEach {
+                    member = fixtureMonkey.giveMeOne()
+                    memberCommandRepository.save(member)
+                    setAuthentication(member)
+
+                    given { reactiveMemberChatService.answerAsync(any()) }.willReturn {
+                        Flux
+                            .create<ChatResponse?> {
+                                it.next(ChatResponse(listOf(Generation(answer))))
+                                it.complete()
+                            }.publishOn(Schedulers.boundedElastic())
+                            .doOnComplete {
+                                chatAppender.addAnswerAndNextQuestion(
+                                    subject = subject,
+                                    member = member,
+                                    answer = answer,
+                                    chats = emptyList(),
+                                    nextQuestion = nextQuestion,
+                                )
+                            }
+                    }
                 }
 
-                it("멤버 채팅 시나리오 테스트") {
+                it("멤버가 채팅을 하면 채팅이 저장된다") {
                     mockMvc
                         .get("/api/v1/subjects/my")
                         .andExpect {
@@ -200,6 +202,15 @@ class MemberScenarioTest(
                             status { isOk() }
                             jsonPath("$.data[0].maxScore") { value(10) }
                         }
+                }
+
+                it("멤버가 채팅을 초기화(아카이브)하면 채팅 내역이 지워지고, 아카이브에 저장된다") {
+                    webTestClient
+                        .get()
+                        .uri("/api/v5/subjects/{subjectId}/answer?message={message}", subject.id, "test answer")
+                        .exchange()
+                        .expectStatus()
+                        .isOk
 
                     mockMvc
                         .post("/api/v2/subjects/${subject.id}/chats/archive")
@@ -224,6 +235,7 @@ class MemberScenarioTest(
                             jsonPath("$.data[0].maxScore") { value(null) }
                         }
 
+                    // NOTE: 추후 API 개발 시 아카이브 내용을 확인하는 API를 추가해야 한다.
                     val archives = chatArchiveQueryRepository.findBySubjectAndMember(subject, member)
                     archives.size shouldBe 1
 
@@ -232,6 +244,12 @@ class MemberScenarioTest(
                 }
             }
         }
+    }
+
+    private fun setAuthentication(member: Member) {
+        val oauth2User = createOAuth2User(member)
+        val authentication = createOAuth2AuthenticationToken(oauth2User)
+        SecurityContextHolder.getContext().authentication = authentication
     }
 
     private fun createOAuth2AuthenticationToken(
