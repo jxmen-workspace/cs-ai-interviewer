@@ -2,8 +2,8 @@ package dev.jxmen.cs.ai.interviewer.common.config.security
 
 import dev.jxmen.cs.ai.interviewer.common.config.security.RefererCaptureFilter.Companion.PREV_PAGE_ATTRIBUTE
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.member.MemberCommandRepository
-import dev.jxmen.cs.ai.interviewer.domain.member.MemberQueryRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberCommandRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberQueryRepository
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory

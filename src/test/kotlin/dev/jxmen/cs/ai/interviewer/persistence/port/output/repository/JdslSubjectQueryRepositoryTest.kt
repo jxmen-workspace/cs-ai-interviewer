@@ -1,14 +1,14 @@
-package dev.jxmen.cs.ai.interviewer.persistence
+package dev.jxmen.cs.ai.interviewer.persistence.port.output.repository
 
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
 import dev.jxmen.cs.ai.interviewer.common.config.KotlinJdslConfig
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.member.MemberCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
-import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCommandRepository
-import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectQueryRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberCommandRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectCommandRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectQueryRepository
 import io.kotest.matchers.shouldBe
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach

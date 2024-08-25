@@ -1,9 +1,9 @@
-package dev.jxmen.cs.ai.interviewer.persistence
+package dev.jxmen.cs.ai.interviewer.persistence.port.output.repository
 
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatQueryRepository
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatQueryRepository
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 

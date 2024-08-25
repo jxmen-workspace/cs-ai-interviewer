@@ -1,7 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.common.config
 
 import dev.jxmen.cs.ai.interviewer.domain.member.MemberArgumentResolver
-import dev.jxmen.cs.ai.interviewer.domain.member.MemberQueryRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberQueryRepository
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.servlet.config.annotation.CorsRegistry

@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.persistence
+package dev.jxmen.cs.ai.interviewer.persistence.entity.chat
 
 import dev.jxmen.cs.ai.interviewer.domain.BaseEntity
 import dev.jxmen.cs.ai.interviewer.domain.member.Member

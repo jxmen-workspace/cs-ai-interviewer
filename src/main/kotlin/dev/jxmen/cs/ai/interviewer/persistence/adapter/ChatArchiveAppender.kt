@@ -1,12 +1,12 @@
 package dev.jxmen.cs.ai.interviewer.persistence.adapter
 
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveCommandRepository
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatArchiveContentCommandRepository
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatContent
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
-import dev.jxmen.cs.ai.interviewer.persistence.JpaChatArchive
-import dev.jxmen.cs.ai.interviewer.persistence.JpaChatArchiveContent
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChatArchive
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChatArchiveContent
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatArchiveCommandRepository
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatArchiveContentCommandRepository
 import org.springframework.stereotype.Component
 
 @Component
