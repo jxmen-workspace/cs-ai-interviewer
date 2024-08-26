@@ -5,8 +5,8 @@ import org.springframework.ai.chat.model.ChatResponse
 import reactor.core.publisher.Flux
 
 /**
- * 멤버 채팅 유스케이스 - Flux, Mono 등 비동기 처리일 때 이 인터페이스를 사용한다.
+ * 멤버 채팅 답변 처리를 위한 UseCase
  */
-interface ReactiveMemberChatUseCase {
-    fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse>
+interface ChatAnswerUseCase {
+    fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse>
 }

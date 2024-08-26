@@ -1,8 +1,8 @@
 package dev.jxmen.cs.ai.interviewer.presentation
 
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatAnswerUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatArchiveUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
-import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
-import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.common.RequireLoginApi
@@ -28,8 +28,8 @@ import java.net.URI
 class SubjectApi(
     private val subjectQuery: SubjectQuery,
     private val chatQuery: ChatQuery,
-    private val memberChatUseCase: MemberChatUseCase,
-    private val reactiveMemberChatUseCase: ReactiveMemberChatUseCase,
+    private val chatAnswerUseCase: ChatAnswerUseCase,
+    private val chatArchiveUseCase: ChatArchiveUseCase,
 ) {
     /**
      * 주제 목록 조회
@@ -121,7 +121,7 @@ class SubjectApi(
                 chats = chats,
             )
 
-        return reactiveMemberChatUseCase.answerAsync(command)
+        return chatAnswerUseCase.answer(command)
     }
 
     /**
@@ -150,7 +150,7 @@ class SubjectApi(
         val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
         val chats = chatQuery.findBySubjectAndMember(subject, member)
 
-        val id = memberChatUseCase.archive(chats, member, subject)
+        val id = chatArchiveUseCase.archive(chats, member, subject)
 
         return ResponseEntity
             .created(URI("/api/v1/chat/archives/$id"))
