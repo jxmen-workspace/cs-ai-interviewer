@@ -1,6 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
-import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatArchiveUseCase
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class MemberChatService(
+class ChatArchiveService(
     // NOTE: 인터페이스로 만들면 너무 이른 추상화라 판단되어 구현체 클래스를 직업 의존하도록 하였다.
     private val chatRemover: ChatRemover,
     private val chatArchiveAppender: ChatArchiveAppender,
-) : MemberChatUseCase {
+) : ChatArchiveUseCase {
     /**
      * 채팅을 아카이브하고 아카이브 ID를 반환한다.
      */

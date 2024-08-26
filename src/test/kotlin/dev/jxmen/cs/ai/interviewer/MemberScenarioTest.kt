@@ -3,7 +3,7 @@ package dev.jxmen.cs.ai.interviewer
 import com.navercorp.fixturemonkey.FixtureMonkey
 import com.navercorp.fixturemonkey.kotlin.KotlinPlugin
 import com.navercorp.fixturemonkey.kotlin.giveMeOne
-import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatAnswerUseCase
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatAppender
@@ -17,6 +17,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.haveLength
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
+import org.junit.jupiter.api.assertAll
 import org.mockito.kotlin.any
 import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturn
@@ -24,6 +25,7 @@ import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.model.Generation
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.http.HttpMethod
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
@@ -59,7 +61,7 @@ class MemberScenarioTest(
     private val fixtureMonkey = FixtureMonkey.builder().plugin(KotlinPlugin()).build()
 
     @MockBean
-    lateinit var reactiveMemberChatService: ReactiveMemberChatUseCase
+    lateinit var reactiveMemberChatService: ChatAnswerUseCase
 
     init {
         beforeEach {
@@ -73,53 +75,59 @@ class MemberScenarioTest(
             context("인증되지 않은 사용자는") {
 
                 it("공개된 API 요청 시 200을 응답한다") {
-                    mockMvc
-                        .get("/api/v1/subjects") { param("category", subject.category.name) }
-                        .andExpect {
-                            status { isOk() }
-                            jsonPath("$.success") { value(true) }
-                            jsonPath("$.data") { isArray() }
-                            jsonPath("$.data.length()") { value(1) }
-                            jsonPath("$.data[0].id") { value(subject.id) }
-                            jsonPath("$.data[0].title") { value(subject.title) }
-                            jsonPath("$.data[0].category") { value(subject.category.name) }
-                            jsonPath("$.error") { value(null) }
-                        }
-
-                    mockMvc
-                        .get("/api/v1/subjects/${subject.id}")
-                        .andExpect {
-                            status { isOk() }
-                            jsonPath("$.success") { value(true) }
-                            jsonPath("$.data.id") { value(subject.id) }
-                            jsonPath("$.data.title") { value(subject.title) }
-                            jsonPath("$.data.question") { value(subject.question) }
-                            jsonPath("$.data.category") { value(subject.category.name) }
-                            jsonPath("$.error") { value(null) }
-                        }
+                    assertAll(
+                        {
+                            mockMvc
+                                .get("/api/v1/subjects") { param("category", subject.category.name) }
+                                .andExpect {
+                                    status { isOk() }
+                                    jsonPath("$.success") { value(true) }
+                                    jsonPath("$.data") { isArray() }
+                                    jsonPath("$.data.length()") { value(1) }
+                                    jsonPath("$.data[0].id") { value(subject.id) }
+                                    jsonPath("$.data[0].title") { value(subject.title) }
+                                    jsonPath("$.data[0].category") { value(subject.category.name) }
+                                    jsonPath("$.error") { value(null) }
+                                }
+                        },
+                        {
+                            mockMvc
+                                .get("/api/v1/subjects/${subject.id}")
+                                .andExpect {
+                                    status { isOk() }
+                                    jsonPath("$.success") { value(true) }
+                                    jsonPath("$.data.id") { value(subject.id) }
+                                    jsonPath("$.data.title") { value(subject.title) }
+                                    jsonPath("$.data.question") { value(subject.question) }
+                                    jsonPath("$.data.category") { value(subject.category.name) }
+                                    jsonPath("$.error") { value(null) }
+                                }
+                        },
+                    )
                 }
 
                 it("인증이 필요한 API 요청시 401을 응답한다") {
                     val apis =
                         listOf(
-                            Pair("/api/v1/subjects/my", "GET"),
-                            Pair("/api/v1/subjects/${subject.id}/chats", "GET"),
-                            Pair("/api/v2/subjects/${subject.id}/chats/archive", "POST"),
-                            Pair("/api/v5/subjects/${subject.id}/answer", "GET"),
+                            Pair(HttpMethod.GET, "/api/v1/subjects/my"),
+                            Pair(HttpMethod.GET, "/api/v1/subjects/${subject.id}/chats"),
+                            Pair(HttpMethod.POST, "/api/v2/subjects/${subject.id}/chats/archive"),
+                            Pair(HttpMethod.GET, "/api/v5/subjects/${subject.id}/answer"),
                         )
 
-                    apis.forEach { (api, method) ->
+                    apis.forEach { (method, api) ->
                         when (method) {
-                            "GET" -> mockMvc.get(api).andExpect { status { isUnauthorized() } }
-                            "POST" -> mockMvc.post(api).andExpect { status { isUnauthorized() } }
+                            HttpMethod.GET -> mockMvc.get(api).andExpect { status { isUnauthorized() } }
+                            HttpMethod.POST -> mockMvc.post(api).andExpect { status { isUnauthorized() } }
                         }
                     }
                 }
             }
 
             context("인증된 사용자의 경우") {
+                val score = 10
                 val answer = "잘 모르겠습니다."
-                val nextQuestion = "답변에 대한 점수: 10점"
+                val nextQuestion = "답변에 대한 점수: ${score}점"
 
                 lateinit var member: Member
 
@@ -128,7 +136,7 @@ class MemberScenarioTest(
                     memberCommandRepository.save(member)
                     setAuthentication(member)
 
-                    given { reactiveMemberChatService.answerAsync(any()) }.willReturn {
+                    given { reactiveMemberChatService.answer(any()) }.willReturn {
                         Flux
                             .create<ChatResponse?> {
                                 it.next(ChatResponse(listOf(Generation(answer))))
@@ -152,7 +160,7 @@ class MemberScenarioTest(
 
                     answer(subject, answer)
 
-                    validateChatSaved(subject, answer, nextQuestion)
+                    validateChatSaved(subject, answer, nextQuestion, score)
                     validateMySubjectHasMaxScore(10)
                 }
 
@@ -179,6 +187,7 @@ class MemberScenarioTest(
         subject: Subject,
         answer: String,
         nextQuestion: String,
+        score: Int,
     ) {
         val now = LocalDateTime.now()
         mockMvc
@@ -192,7 +201,7 @@ class MemberScenarioTest(
                 jsonPath("$.data[0].createdAt") { value(null) }
                 jsonPath("$.data[1].type") { value("answer") }
                 jsonPath("$.data[1].message") { value(answer) }
-                jsonPath("$.data[1].score") { value(10) }
+                jsonPath("$.data[1].score") { value(score) }
                 jsonPath("$.data[1].createdAt") { value(matcher = BeforeDateMatcher(now)) }
                 jsonPath("$.data[2].type") { value("question") }
                 jsonPath("$.data[2].message") { value(nextQuestion) }

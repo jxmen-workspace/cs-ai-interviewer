@@ -1,6 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
-import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatAnswerUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.common.utils.PromptMessageFactory
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
@@ -13,11 +13,11 @@ import reactor.core.publisher.Flux
 import reactor.core.scheduler.Schedulers
 
 @Service
-class ReactiveMemberChatService(
+class ChatAnswerService(
     private val chatModel: ChatModel,
     private val chatAppender: ChatAppender,
-) : ReactiveMemberChatUseCase {
-    override fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
+) : ChatAnswerUseCase {
+    override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
         // 1. 답변을 모두 사용하지 않았는지 확인
         val chats = Chats(command.chats)
         chats.validateNotUseAllAnswers()

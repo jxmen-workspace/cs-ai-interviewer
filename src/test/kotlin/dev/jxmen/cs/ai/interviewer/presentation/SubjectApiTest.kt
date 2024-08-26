@@ -3,9 +3,9 @@ package dev.jxmen.cs.ai.interviewer.presentation
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.epages.restdocs.apispec.WebTestClientRestDocumentationWrapper
 import com.fasterxml.jackson.databind.ObjectMapper
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatAnswerUseCase
+import dev.jxmen.cs.ai.interviewer.application.port.input.ChatArchiveUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
-import dev.jxmen.cs.ai.interviewer.application.port.input.MemberChatUseCase
-import dev.jxmen.cs.ai.interviewer.application.port.input.ReactiveMemberChatUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
 import dev.jxmen.cs.ai.interviewer.common.GlobalControllerAdvice
@@ -71,14 +71,14 @@ class SubjectApiTest :
         beforeEach {
             mockMvc =
                 MockMvcBuilders
-                    .standaloneSetup(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase(), StubReactiveMemberChatUseCase()))
+                    .standaloneSetup(SubjectApi(subjectQuery, chatQuery, StubChatAnswerUseCase(), StubChatArchiveUseCase()))
                     .setControllerAdvice(controllerAdvice)
                     .setCustomArgumentResolvers(MockMemberArgumentResolver())
                     .apply<StandaloneMockMvcBuilder>(documentationConfiguration(manualRestDocumentation))
                     .build()
             webTestClient =
                 MockMvcWebTestClient
-                    .bindToController(SubjectApi(subjectQuery, chatQuery, StubMemberChatUseCase(), StubReactiveMemberChatUseCase()))
+                    .bindToController(SubjectApi(subjectQuery, chatQuery, StubChatAnswerUseCase(), StubChatArchiveUseCase()))
                     .controllerAdvice(controllerAdvice)
                     .customArgumentResolvers(MockMemberArgumentResolver())
                     .configureClient()
@@ -632,7 +632,7 @@ class SubjectApiTest :
         fun toJson(res: Any): String = objectMapper.writeValueAsString(res)
     }
 
-    class StubMemberChatUseCase : MemberChatUseCase {
+    class StubChatArchiveUseCase : ChatArchiveUseCase {
         override fun archive(
             chats: List<Chat>,
             member: Member,
@@ -646,8 +646,8 @@ class SubjectApiTest :
         }
     }
 
-    class StubReactiveMemberChatUseCase : ReactiveMemberChatUseCase {
-        override fun answerAsync(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
+    class StubChatAnswerUseCase : ChatAnswerUseCase {
+        override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
             Chats(command.chats).validateNotUseAllAnswers()
             Chats(command.chats).validateMatchMember(command.member)
 
