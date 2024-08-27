@@ -13,6 +13,42 @@ CS 면접을 준비하는 사람들을 위한 인터뷰 질문을 제공하는 �
 
 ![](.README_images/d026288c.png)
 
+### 사용한 기술
+
+Language
+- Kotlin
+
+Frameworks
+- Spring Boot
+- Spring Web MVC
+- Spring AI - [anthropic3](https://docs.spring.io/spring-ai/reference/api/chat/anthropic-chat.html)
+- Spring Data JPA
+- Spring Security OAuth2, JWT
+- Spring Rest Docs
+
+Testing
+- Junit5
+- Kotest
+- [Fixture Monkey](https://github.com/naver/fixture-monkey)
+  - 네이버에서 만든 테스트 픽스처 생성 라이브러리입니다.
+
+Database
+- MariaDB
+- [Flyway](https://flywaydb.org/)
+  - 데이터베이스 마이그레이션 툴입니다.
+- [Kotlin JDSL](https://github.com/line/kotlin-jdsl)
+  - 라인에서 만든 쿼리 빌더 라이브러리입니다. [QueryDSL](https://github.com/querydsl/querydsl)과 비슷한 기능을 제공합니다.
+
+CI/CD
+- GitHub Actions
+
+Infra
+- Nginx
+- AWS Elastic Beanstalk
+- AWS RDS
+- Docker, Docker Compose
+  - dev profile 구성을 위해 사용합니다.
+
 ### 패키지 구조
 
 ```
