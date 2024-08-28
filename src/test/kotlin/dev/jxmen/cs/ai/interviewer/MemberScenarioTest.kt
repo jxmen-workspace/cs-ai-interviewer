@@ -115,10 +115,11 @@ class MemberScenarioTest(
                             Pair(HttpMethod.GET, "/api/v5/subjects/${subject.id}/answer"),
                         )
 
-                    apis.forEach { (method, api) ->
+                    apis.forEach { (method, url) ->
                         when (method) {
-                            HttpMethod.GET -> mockMvc.get(api).andExpect { status { isUnauthorized() } }
-                            HttpMethod.POST -> mockMvc.post(api).andExpect { status { isUnauthorized() } }
+                            HttpMethod.GET -> mockMvc.get(url).andExpect { status { isUnauthorized() } }
+                            HttpMethod.POST -> mockMvc.post(url).andExpect { status { isUnauthorized() } }
+                            else -> throw IllegalArgumentException("Unsupported method: $method")
                         }
                     }
                 }
@@ -161,7 +162,7 @@ class MemberScenarioTest(
                     answer(subject, answer)
 
                     validateChatSaved(subject, answer, nextQuestion, score)
-                    validateMySubjectHasMaxScore(10)
+                    validateMySubjectHasMaxScore(score)
                 }
 
                 it("멤버가 채팅을 초기화(아카이브)하면 채팅 내역이 지워지고, 아카이브에 저장된다") {
