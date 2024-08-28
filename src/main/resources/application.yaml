@@ -75,13 +75,17 @@ spring.config.activate.on-profile: dev
 spring:
   datasource:
     name: cs-ai-interviewer
-    url: jdbc:mariadb://localhost:3313/cs-ai
-    username: root
-    password: password
-    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      username: root
+      password: password
+      # 출처: https://techblog.woowahan.com/2695/
+      # 출처: https://velog.io/@wisepine/JPA-%EC%82%AC%EC%9A%A9-%EC%8B%9C-19%EA%B0%80%EC%A7%80-Tip
+      jdbc-url: jdbc:mariadb://localhost:3313/cs-ai?rewriteBatchedStatements=true&profileSQL=true&logger=Slf4JLogger&maxQuerySizeToLog=999999
+      driver-class-name: org.mariadb.jdbc.Driver
+
   session:
     jdbc:
-      initialize-schema: never
+      initialize-schema: always
   flyway:
     enabled: true
   jpa:
