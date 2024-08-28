@@ -438,16 +438,19 @@ class SubjectApiTest :
                                 .header("Authorization", "Bearer token"),
                         ).andExpect(status().isOk)
                         .andExpect(jsonPath("$.success").value(true))
+                        .andExpect(jsonPath("$.data.length()").value(3))
                         .andExpect(jsonPath("$.data[0].message").value("스레드와 프로세스의 차이점은 무엇인가요?"))
                         .andExpect(jsonPath("$.data[0].score").doesNotExist())
                         .andExpect(jsonPath("$.data[0].type").value("question"))
                         .andExpect(jsonPath("$.data[0].createdAt").doesNotExist())
                         .andExpect(jsonPath("$.data[1].message").value("스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다."))
-                        .andExpect(jsonPath("$.data[1].score").value(100))
+                        .andExpect(jsonPath("$.data[1].score").value(20))
                         .andExpect(jsonPath("$.data[1].type").value("answer"))
                         .andExpect(jsonPath("$.data[1].createdAt").value("2024-08-15T21:00:00"))
-                        .andExpect(jsonPath("$.data[2]").doesNotExist())
-                        .andExpect(jsonPath("$.error").isEmpty())
+                        .andExpect(jsonPath("$.data[2].message").value("그렇다면 멀티스레드와 멀티프로세스의 차이점은 무엇인가요?"))
+                        .andExpect(jsonPath("$.data[2].score").doesNotExist())
+                        .andExpect(jsonPath("$.data[2].type").value("question"))
+                        .andExpect(jsonPath("$.data[2].createdAt").doesNotExist())
                         .andDo(
                             document(
                                 identifier = "get-chat-message",
@@ -831,8 +834,13 @@ class SubjectApiTest :
                     subject = subject,
                     member = member,
                     answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
-                    score = 100,
+                    score = 20,
                     createdAt = date,
+                ),
+                Chat.createQuestion(
+                    subject = subject,
+                    member = member,
+                    message = "그렇다면 멀티스레드와 멀티프로세스의 차이점은 무엇인가요?",
                 ),
             )
     }

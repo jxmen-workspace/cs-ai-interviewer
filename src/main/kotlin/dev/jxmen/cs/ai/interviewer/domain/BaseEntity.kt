@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.PrePersist
 import org.hibernate.annotations.Comment
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -25,4 +26,11 @@ abstract class BaseEntity {
     @LastModifiedDate
     @Comment("수정일")
     var updatedAt: LocalDateTime = LocalDateTime.now()
+
+    @PrePersist
+    fun initDates() {
+        val now = LocalDateTime.now()
+        createdAt = now
+        updatedAt = now
+    }
 }
