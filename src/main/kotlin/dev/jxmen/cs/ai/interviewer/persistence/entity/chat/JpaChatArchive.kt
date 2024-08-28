@@ -34,4 +34,12 @@ class JpaChatArchive(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     val member: Member,
-) : BaseEntity()
+) : BaseEntity() {
+    /**
+     * NOTE: Kotlin JDSL에서 사용하기 위해 추가한 생성자
+     */
+    @Suppress("unused")
+    private constructor(id: Long, subject: Subject, member: Member) : this(subject, member) {
+        this.id = id
+    }
+}
