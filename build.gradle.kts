@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "dev.jxmen"
-version = "1.3.3"
+version = "1.3.4"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -26,6 +26,9 @@ repositories {
     maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
+/**
+ * NOTE: 이 부분은 buildSrc로 분리하여 관리하는 것이 좋음
+ */
 object Versions {
     const val EPAGES = "0.17.1"
     const val MOCKK = "1.13.11"
