@@ -75,4 +75,7 @@ https://cs-ai-api.jxmen.dev/swagger-ui/index.html
 
 ### ERD
 
-To be updated
+Last Updated: 2024-08-29
+- [Link](https://www.erdcloud.com/d/g8yZFLouAq2cSMW9p)
+
+![erd.png](.README_images/erd.png)
