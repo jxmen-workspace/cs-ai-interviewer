@@ -3,7 +3,6 @@ package dev.jxmen.cs.ai.interviewer.domain.chat
 import dev.jxmen.cs.ai.interviewer.domain.BaseEntity
 import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
-import jakarta.persistence.Column
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -16,7 +15,11 @@ import java.time.LocalDateTime
 
 @Suppress("ktlint:standard:no-blank-line-in-list")
 @Entity
-@Table(indexes = [Index(name = "idx_subject_userSessionId", columnList = "subject_id,userSessionId")])
+@Table(
+    indexes = [
+        Index(name = "idx_chat_subject_id_member_id", columnList = "subject_id,member_id"),
+    ],
+)
 class Chat(
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -28,10 +31,6 @@ class Chat(
     @JoinColumn(name = "member_id")
     @Comment("멤버 아이디")
     val member: Member? = null,
-
-    @Column(nullable = true)
-    @Comment("유저 세션 아이디")
-    val userSessionId: String? = null, // NOTE: 유저 도메인이 추가되면 memberId로 변경 예정
 
     @get:Embedded
     val content: ChatContent,
