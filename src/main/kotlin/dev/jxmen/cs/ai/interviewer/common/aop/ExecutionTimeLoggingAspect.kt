@@ -13,7 +13,7 @@ class ExecutionTimeLoggingAspect {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     @Pointcut(
-        "within(dev.jxmen.cs.ai.interviewer.application.adapter..*)",
+        "within(dev.jxmen.cs.ai.interviewer.persistence.adapter..*)",
     )
     fun adapterMethods() {
         // Pointcut - do nothing here
