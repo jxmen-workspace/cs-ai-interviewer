@@ -5,7 +5,7 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
 
 interface SubjectQuery {
-    fun findByCategory(cateStr: String): List<Subject>
+    fun findByCategory(category: String): List<Subject>
 
     fun findWithMember(
         member: Member,

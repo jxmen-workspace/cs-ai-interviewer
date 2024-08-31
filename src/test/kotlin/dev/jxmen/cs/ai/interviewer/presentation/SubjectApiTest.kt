@@ -663,7 +663,7 @@ class SubjectApiTest :
     }
 
     abstract class StubSubjectQuery : SubjectQuery {
-        override fun findByCategory(cateStr: String): List<Subject> = throw NotImplementedError()
+        override fun findByCategory(category: String): List<Subject> = throw NotImplementedError()
 
         override fun findWithMember(
             member: Member,
@@ -678,10 +678,10 @@ class SubjectApiTest :
     }
 
     class ExistCategorySubjectQueryStub : StubSubjectQuery() {
-        override fun findByCategory(cateStr: String): List<Subject> =
-            when (cateStr) {
+        override fun findByCategory(category: String): List<Subject> =
+            when (category) {
                 "os" -> listOf(Subject.createOS(id = 1, title = "OS", question = "What is OS?"))
-                else -> throw SubjectCategoryNotFoundException("No such enum constant $cateStr")
+                else -> throw SubjectCategoryNotFoundException("No such enum constant $category")
             }
     }
 
@@ -693,7 +693,7 @@ class SubjectApiTest :
     }
 
     class NotExistCategorySubjectQuery : StubSubjectQuery() {
-        override fun findByCategory(cateStr: String) = throw SubjectCategoryNotFoundException(cateStr)
+        override fun findByCategory(category: String) = throw SubjectCategoryNotFoundException(category)
     }
 
     class NotExistIdSubjectQuery : StubSubjectQuery() {
@@ -733,7 +733,7 @@ class SubjectApiTest :
     }
 
     class DummySubjectQuery : SubjectQuery {
-        override fun findByCategory(cateStr: String): List<Subject> = throw NotImplementedError()
+        override fun findByCategory(category: String): List<Subject> = throw NotImplementedError()
 
         override fun findWithMember(
             member: Member,

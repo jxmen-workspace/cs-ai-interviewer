@@ -17,8 +17,8 @@ class SubjectQueryService(
 ) : SubjectQuery {
     // 그냥 조회 - 얘도 usecase?
     // class GetSubjectsByCategoryNameService(
-    override fun findByCategory(cateStr: String): List<Subject> {
-        val subjectCategory = SubjectCategory.valueOf(cateStr.uppercase())
+    override fun findByCategory(category: String): List<Subject> {
+        val subjectCategory = SubjectCategory.valueOf(category.uppercase())
 
         return this.subjectQueryRepository.findByCategory(subjectCategory)
     }

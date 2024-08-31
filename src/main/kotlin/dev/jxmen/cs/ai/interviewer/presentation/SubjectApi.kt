@@ -36,9 +36,9 @@ class SubjectApi(
      */
     @GetMapping("/api/v1/subjects")
     fun getSubjects(
-        @RequestParam("category") cateStr: String,
+        @RequestParam("category") category: String,
     ): ResponseEntity<ApiResponse<List<SubjectResponse>>> {
-        val subjects = subjectQuery.findByCategory(cateStr)
+        val subjects = subjectQuery.findByCategory(category)
 
         val response =
             ListDataResponse(
