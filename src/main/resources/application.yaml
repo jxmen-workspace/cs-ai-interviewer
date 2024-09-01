@@ -32,6 +32,7 @@ spring:
           model: claude-3-5-sonnet-20240620
           temperature: 0.7 # 분석/객관식에는 0.0에 가까운 온도를 사용하고, 창의적이고 생성적인 작업에는 1.0에 가까운 온도를 사용하세요.
 
+# TODO: Deprecated - remove after migration spring ai
 claude:
   api-key: ${CLAUDE_API_KEY}
 
@@ -108,6 +109,10 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      # minimum-idle은 별도로 설정하지 않으면 maximum-pool-size와 같은 값으로 설정됨(미변경 권장)
+      maximum-pool-size: 25
+
   session:
     jdbc:
       initialize-schema: never
