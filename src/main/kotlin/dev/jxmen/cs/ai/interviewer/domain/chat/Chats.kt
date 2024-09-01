@@ -12,7 +12,7 @@ data class Chats(
     }
 
     fun validateMatchMember(member: Member) {
-        require(chats.all { it.member == member }) { "멤버가 일치하지 않습니다." }
+        require(chats.all { it.member.equalsId(member) }) { "멤버가 일치하지 않습니다." }
     }
 
     fun validateNotUseAllAnswers() {
