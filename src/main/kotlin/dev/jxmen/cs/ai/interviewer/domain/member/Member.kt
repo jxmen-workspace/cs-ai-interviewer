@@ -12,6 +12,7 @@ import java.io.Serializable
 @Suppress("ktlint:standard:no-blank-line-in-list")
 @Entity
 @Table(
+    // TODO: 구글 외 다른 소셜 로그인을 지원한다면 email unique 제약조건을 제거할지 검토 필요
     uniqueConstraints = [UniqueConstraint(columnNames = ["email"])],
 )
 class Member(
@@ -20,6 +21,7 @@ class Member(
     @Comment("이름")
     val name: String,
 
+    // TODO: 구글 외 다른 소셜 로그인을 지원한다면 email unique 제약조건을 제거할지 검토 필요
     @Column(nullable = false, unique = true)
     @Comment("이메일")
     val email: String,
@@ -54,24 +56,5 @@ class Member(
         }
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Member
-
-        if (id != other.id) return false
-        if (name != other.name) return false
-        if (email != other.email) return false
-        if (loginType != other.loginType) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + email.hashCode()
-        result = 31 * result + loginType.hashCode()
-        return result
-    }
+    fun equalsId(other: Member): Boolean = id == other.id
 }

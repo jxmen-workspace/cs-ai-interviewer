@@ -61,7 +61,7 @@ class MemberScenarioTest(
     private val fixtureMonkey = FixtureMonkey.builder().plugin(KotlinPlugin()).build()
 
     @MockBean
-    lateinit var reactiveMemberChatService: ChatAnswerUseCase
+    lateinit var chatAnswerUseCase: ChatAnswerUseCase
 
     init {
         beforeEach {
@@ -137,7 +137,7 @@ class MemberScenarioTest(
                     memberCommandRepository.save(member)
                     setAuthentication(member)
 
-                    given { reactiveMemberChatService.answer(any()) }.willReturn {
+                    given { chatAnswerUseCase.answer(any()) }.willReturn {
                         Flux
                             .create<ChatResponse?> {
                                 it.next(ChatResponse(listOf(Generation(answer))))

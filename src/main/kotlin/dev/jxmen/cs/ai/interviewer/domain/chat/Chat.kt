@@ -27,10 +27,10 @@ class Chat(
     @Comment("주제")
     val subject: Subject,
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true) // NOTE: sessionId 컬럼 제거 시 nullable 제거
+    @ManyToOne(fetch = FetchType.LAZY) // NOTE: sessionId 컬럼 제거 시 nullable 제거
     @JoinColumn(name = "member_id")
     @Comment("멤버 아이디")
-    val member: Member? = null,
+    val member: Member,
 
     @get:Embedded
     val content: ChatContent,
