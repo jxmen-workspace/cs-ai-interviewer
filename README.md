@@ -11,7 +11,7 @@ CS 면접을 준비하는 사람들을 위한 인터뷰 질문을 제공하는 �
 
 ### 서버 구조
 
-![](.README_images/d026288c.png)
+![server-structure.png](.README_images/server-structure.png)
 
 ### 사용한 기술
 
