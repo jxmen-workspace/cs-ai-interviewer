@@ -99,6 +99,26 @@ logging:
       hibernate:
         SQL: DEBUG
 
+# Security Actuator 안전하게 사용하기 - https://techblog.woowahan.com/9232/
+management:
+  server:
+    port: ${MANAGEMENT_SERVER_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, info
+      base-path: ${MANAGEMENT_ENDPOINTS_WEB_BASE_PATH}
+    jmx:
+      exposure:
+        exclude: '*'
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
+    prometheus:
+      enabled: true
+
 ---
 spring.config.activate.on-profile: prod
 
@@ -121,3 +141,23 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
+
+# Security Actuator 안전하게 사용하기 - https://techblog.woowahan.com/9232/
+management:
+  server:
+    port: ${MANAGEMENT_SERVER_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, info
+      base-path: ${MANAGEMENT_ENDPOINTS_WEB_BASE_PATH}
+    jmx:
+      exposure:
+        exclude: '*'
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
+    prometheus:
+      enabled: true
