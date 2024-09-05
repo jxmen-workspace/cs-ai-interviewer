@@ -47,6 +47,7 @@ dependencies {
     // spring boot
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // spring ai
     implementation("org.springframework.ai:spring-ai-anthropic-spring-boot-starter:${Versions.SPRING_AI_ANTHROPIC}")
@@ -117,6 +118,9 @@ dependencies {
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client:${Versions.MARIADB_JAVA_CLIENT}") {
         exclude(group = "com.github.waffle", module = "waffle-jna")
     }
+
+    // prometheus
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     // MacOS에서 Netty 사용 시 Apple Silicon 지원을 위해 추가
     if (isAppleSilicon()) {
