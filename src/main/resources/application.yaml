@@ -106,7 +106,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus, health, info
+        include: prometheus, health, info, metrics
       base-path: ${MANAGEMENT_ENDPOINTS_WEB_BASE_PATH}
     jmx:
       exposure:
@@ -117,6 +117,8 @@ management:
     info:
       enabled: true
     prometheus:
+      enabled: true
+    metrics:
       enabled: true
 
 ---
@@ -149,7 +151,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus, health, info
+        include: prometheus, health, info, metrics
       base-path: ${MANAGEMENT_ENDPOINTS_WEB_BASE_PATH}
     jmx:
       exposure:
@@ -160,4 +162,6 @@ management:
     info:
       enabled: true
     prometheus:
+      enabled: true
+    metrics:
       enabled: true
