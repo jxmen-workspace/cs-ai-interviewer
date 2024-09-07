@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
@@ -32,6 +33,7 @@ class SecurityConfig(
 
         http
             .csrf { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             // NOTE: authorizeHttpRequests는 controller에서 설정
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .addFilterBefore(refererCaptureFilter(), OAuth2AuthorizationRequestRedirectFilter::class.java)
