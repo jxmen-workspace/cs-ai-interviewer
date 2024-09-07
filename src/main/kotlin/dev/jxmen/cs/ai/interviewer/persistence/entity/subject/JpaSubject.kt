@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.Comment
+import java.time.LocalDateTime
 
 /**
  * 주제
@@ -17,6 +18,7 @@ import org.hibernate.annotations.Comment
 @Suppress("ktlint:standard:no-blank-line-in-list")
 @Entity
 @Table(
+    name = "subject",
     uniqueConstraints = [
         UniqueConstraint(columnNames = ["title", "question"]),
     ],
@@ -37,12 +39,32 @@ class JpaSubject(
     @Comment("카테고리")
     val category: SubjectCategory,
 ) : BaseEntity() {
+    /**
+     * NOTE: Kotlin JDSL에서 해당 생성자 사용
+     */
     constructor(id: Long, title: String, question: String, category: SubjectCategory) : this(
+        title,
+        question,
+        category,
+    ) {
+        super.id = id
+    }
+
+    constructor(
+        id: Long,
+        title: String,
+        question: String,
+        category: SubjectCategory,
+        createdAt: LocalDateTime? = null,
+        updatedAt: LocalDateTime? = null,
+    ) : this(
         title = title,
         question = question,
         category = category,
     ) {
         super.id = id
+        createdAt?.let { super.createdAt = it }
+        updatedAt?.let { super.updatedAt = it }
     }
 
     companion object {

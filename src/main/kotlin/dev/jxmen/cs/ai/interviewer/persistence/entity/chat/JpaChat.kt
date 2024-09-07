@@ -16,6 +16,7 @@ import java.time.LocalDateTime
 @Suppress("ktlint:standard:no-blank-line-in-list")
 @Entity
 @Table(
+    name = "chat",
     indexes = [
         Index(name = "idx_chat_subject_id_member_id", columnList = "subject_id,member_id"),
     ],

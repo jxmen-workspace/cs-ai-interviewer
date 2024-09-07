@@ -9,10 +9,12 @@ import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.Comment
 import java.io.Serializable
+import java.time.LocalDateTime
 
 @Suppress("ktlint:standard:no-blank-line-in-list")
 @Entity
 @Table(
+    name = "member",
     // TODO: 구글 외 다른 소셜 로그인을 지원한다면 email unique 제약조건을 제거할지 검토 필요
     uniqueConstraints = [UniqueConstraint(columnNames = ["email"])],
 )
@@ -55,6 +57,32 @@ class JpaMember(
             jpaMember.id = id
             return jpaMember
         }
+    }
+
+    constructor(id: Long, name: String, email: String, loginType: MemberLoginType) : this(
+        name = name,
+        email = email,
+        loginType = loginType,
+    ) {
+        super.id = id
+    }
+
+    constructor(
+        id: Long,
+        name: String,
+        email: String,
+        loginType: MemberLoginType,
+        createdAt: LocalDateTime,
+        updatedAt: LocalDateTime,
+    ) : this(
+        name = name,
+        email = email,
+        loginType = loginType,
+
+    ) {
+        super.id = id
+        super.createdAt = createdAt
+        super.updatedAt = updatedAt
     }
 
     fun equalsId(other: JpaMember): Boolean = id == other.id
