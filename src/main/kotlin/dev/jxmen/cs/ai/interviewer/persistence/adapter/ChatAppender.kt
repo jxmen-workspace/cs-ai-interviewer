@@ -1,9 +1,9 @@
 package dev.jxmen.cs.ai.interviewer.persistence.adapter
 
 import dev.jxmen.cs.ai.interviewer.common.utils.MessageParser
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatCommandRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,45 +18,45 @@ class ChatAppender(
      */
     @Transactional
     fun addAnswerAndNextQuestion(
-        subject: Subject,
-        member: Member,
+        jpaSubject: JpaSubject,
+        jpaMember: JpaMember,
         answer: String,
-        chats: List<Chat>,
+        jpaChats: List<JpaChat>,
         nextQuestion: String,
     ) {
-        if (chats.isEmpty()) {
-            addFirstQuestion(subject, member)
+        if (jpaChats.isEmpty()) {
+            addFirstQuestion(jpaSubject, jpaMember)
         }
 
         val score = messageParser.parseScore(nextQuestion)
-        addAnswer(subject, member, answer, score)
-        addNextQuestion(subject, member, nextQuestion)
+        addAnswer(jpaSubject, jpaMember, answer, score)
+        addNextQuestion(jpaSubject, jpaMember, nextQuestion)
     }
 
     private fun addNextQuestion(
-        subject: Subject,
-        member: Member,
+        jpaSubject: JpaSubject,
+        jpaMember: JpaMember,
         nextQuestion: String,
     ) {
-        val question = Chat.createQuestion(subject, member, nextQuestion)
+        val question = JpaChat.createQuestion(jpaSubject, jpaMember, nextQuestion)
         chatCommandRepository.save(question)
     }
 
     private fun addFirstQuestion(
-        subject: Subject,
-        member: Member,
+        jpaSubject: JpaSubject,
+        jpaMember: JpaMember,
     ) {
-        val firstQuestion = Chat.createFirstQuestion(subject, member)
+        val firstQuestion = JpaChat.createFirstQuestion(jpaSubject, jpaMember)
         chatCommandRepository.save(firstQuestion)
     }
 
     private fun addAnswer(
-        subject: Subject,
-        member: Member,
+        jpaSubject: JpaSubject,
+        jpaMember: JpaMember,
         message: String,
         score: Int,
     ) {
-        val answer = Chat.createAnswer(subject, member, message, score)
+        val answer = JpaChat.createAnswer(jpaSubject, jpaMember, message, score)
         chatCommandRepository.save(answer)
     }
 }

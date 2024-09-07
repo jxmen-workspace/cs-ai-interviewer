@@ -1,7 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.common.utils
 
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage
@@ -35,7 +35,7 @@ class PromptMessageFactory {
         fun create(command: CreateSubjectAnswerCommand): List<Message> {
             val userAnswerMessage = UserMessage(command.answer) // 멤버가 제공한 답변
 
-            return createInitialMessages(command) + createMessagesFromBeforeChats(command.chats) + userAnswerMessage
+            return createInitialMessages(command) + createMessagesFromBeforeChats(command.jpaChats) + userAnswerMessage
         }
 
         /**
@@ -55,17 +55,17 @@ class PromptMessageFactory {
         private fun createInitialMessages(command: CreateSubjectAnswerCommand): List<Message> =
             listOf(
                 UserMessage(grantInterviewerRoleMessage), // 면접관 역할 부여
-                AssistantMessage(getAiAnswerContentFromQuestion(command.subject.question)), // 면접관 질문
+                AssistantMessage(getAiAnswerContentFromQuestion(command.jpaSubject.question)), // 면접관 질문
             )
 
         /**
          * 기존 채팅 기반으로 메시지 생성
          */
-        private fun createMessagesFromBeforeChats(chats: List<Chat>): List<Message> {
+        private fun createMessagesFromBeforeChats(jpaChats: List<JpaChat>): List<Message> {
             /**
              * 첫 번째 채팅은 질문을 그대로 저장하므로 제외
              */
-            return chats.drop(1).map {
+            return jpaChats.drop(1).map {
                 when {
                     it.isAnswer() -> UserMessage(it.content.message)
                     it.isQuestion() -> AssistantMessage(it.content.message)

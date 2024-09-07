@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.domain
+package dev.jxmen.cs.ai.interviewer.persistence.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.GeneratedValue

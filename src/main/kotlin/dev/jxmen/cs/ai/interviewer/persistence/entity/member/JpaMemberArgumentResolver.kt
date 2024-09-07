@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.domain.member
+package dev.jxmen.cs.ai.interviewer.persistence.entity.member
 
 import dev.jxmen.cs.ai.interviewer.common.enum.ErrorType
 import dev.jxmen.cs.ai.interviewer.common.exceptions.ServerError
@@ -12,17 +12,17 @@ import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 
-class MemberArgumentResolver(
+class JpaMemberArgumentResolver(
     private val memberQueryRepository: MemberQueryRepository,
 ) : HandlerMethodArgumentResolver {
-    override fun supportsParameter(parameter: MethodParameter): Boolean = parameter.parameterType == Member::class.java
+    override fun supportsParameter(parameter: MethodParameter): Boolean = parameter.parameterType == JpaMember::class.java
 
     override fun resolveArgument(
         parameter: MethodParameter,
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?,
-    ): Member {
+    ): JpaMember {
         val authentication = SecurityContextHolder.getContext().authentication
         require(authentication != null) { throw UnAuthorizedException(ErrorType.REQUIRE_LOGIN) }
         require(authentication.principal != "anonymous") { throw UnAuthorizedException(ErrorType.REQUIRE_LOGIN) }
@@ -36,5 +36,5 @@ class MemberArgumentResolver(
         return memberQueryRepository.findByEmailOrNull(email) ?: throw ServerError(ErrorType.UNREGISTERED_MEMBER)
     }
 
-    fun MemberQueryRepository.findByEmailOrNull(email: String): Member? = findByEmail(email).orElse(null)
+    private fun MemberQueryRepository.findByEmailOrNull(email: String): JpaMember? = findByEmail(email).orElse(null)
 }

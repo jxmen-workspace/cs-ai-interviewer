@@ -1,5 +1,6 @@
-package dev.jxmen.cs.ai.interviewer.domain.member
+package dev.jxmen.cs.ai.interviewer.persistence.entity.member
 
+import dev.jxmen.cs.ai.interviewer.domain.member.MemberLoginType
 import org.springframework.core.MethodParameter
 import org.springframework.web.bind.support.WebDataBinderFactory
 import org.springframework.web.context.request.NativeWebRequest
@@ -8,8 +9,8 @@ import org.springframework.web.method.support.ModelAndViewContainer
 
 class MockMemberArgumentResolver : HandlerMethodArgumentResolver {
     companion object {
-        val member =
-            Member.createWithId(
+        val jpaMember =
+            JpaMember.createWithId(
                 id = 1L,
                 name = "박주영",
                 email = "me@jxmen.dev",
@@ -17,12 +18,12 @@ class MockMemberArgumentResolver : HandlerMethodArgumentResolver {
             )
     }
 
-    override fun supportsParameter(parameter: MethodParameter): Boolean = parameter.parameterType == Member::class.java
+    override fun supportsParameter(parameter: MethodParameter): Boolean = parameter.parameterType == JpaMember::class.java
 
     override fun resolveArgument(
         parameter: MethodParameter,
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?,
-    ): Member = member
+    ): JpaMember = jpaMember
 }

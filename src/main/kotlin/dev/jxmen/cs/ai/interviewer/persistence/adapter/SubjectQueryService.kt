@@ -1,10 +1,10 @@
 
 package dev.jxmen.cs.ai.interviewer.persistence.adapter
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectQueryRepository
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
 import org.springframework.stereotype.Service
@@ -17,7 +17,7 @@ class SubjectQueryService(
 ) : SubjectQuery {
     // 그냥 조회 - 얘도 usecase?
     // class GetSubjectsByCategoryNameService(
-    override fun findByCategory(category: String): List<Subject> {
+    override fun findByCategory(category: String): List<JpaSubject> {
         val subjectCategory = SubjectCategory.valueOf(category.uppercase())
 
         return this.subjectQueryRepository.findByCategory(subjectCategory)
@@ -25,14 +25,15 @@ class SubjectQueryService(
 
     // useCase 만들때 먼저 조회 - persistence adapter
     override fun findWithMember(
-        member: Member,
+        jpaMember: JpaMember,
         category: String?,
     ): List<MemberSubjectResponse> {
         val categoryEnum = category?.uppercase()?.let { SubjectCategory.valueOf(it) }
 
-        return subjectQueryRepository.findWithMember(member, categoryEnum)
+        return subjectQueryRepository.findWithMember(jpaMember, categoryEnum)
     }
 
     // persistence adapter
-    override fun findByIdOrThrow(id: Long): Subject = this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundException(id)
+    override fun findByIdOrThrow(id: Long): JpaSubject =
+        this.subjectQueryRepository.findByIdOrNull(id) ?: throw SubjectNotFoundException(id)
 }

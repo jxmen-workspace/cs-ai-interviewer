@@ -4,9 +4,9 @@ import com.navercorp.fixturemonkey.FixtureMonkey
 import com.navercorp.fixturemonkey.kotlin.KotlinPlugin
 import com.navercorp.fixturemonkey.kotlin.giveMeOne
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatAnswerUseCase
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatAppender
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatArchiveContentQueryRepository
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatArchiveQueryRepository
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberCommandRepository
@@ -70,7 +70,7 @@ class MemberScenarioTest(
         }
 
         describe("MemberScenarioTest") {
-            val subject = subjectCommandRepository.save(fixtureMonkey.giveMeOne<Subject>())
+            val jpaSubject = subjectCommandRepository.save(fixtureMonkey.giveMeOne<JpaSubject>())
 
             context("인증되지 않은 사용자는") {
 
@@ -78,28 +78,28 @@ class MemberScenarioTest(
                     assertAll(
                         {
                             mockMvc
-                                .get("/api/v1/subjects") { param("category", subject.category.name) }
+                                .get("/api/v1/subjects") { param("category", jpaSubject.category.name) }
                                 .andExpect {
                                     status { isOk() }
                                     jsonPath("$.success") { value(true) }
                                     jsonPath("$.data") { isArray() }
                                     jsonPath("$.data.length()") { value(1) }
-                                    jsonPath("$.data[0].id") { value(subject.id) }
-                                    jsonPath("$.data[0].title") { value(subject.title) }
-                                    jsonPath("$.data[0].category") { value(subject.category.name) }
+                                    jsonPath("$.data[0].id") { value(jpaSubject.id) }
+                                    jsonPath("$.data[0].title") { value(jpaSubject.title) }
+                                    jsonPath("$.data[0].category") { value(jpaSubject.category.name) }
                                     jsonPath("$.error") { value(null) }
                                 }
                         },
                         {
                             mockMvc
-                                .get("/api/v1/subjects/${subject.id}")
+                                .get("/api/v1/subjects/${jpaSubject.id}")
                                 .andExpect {
                                     status { isOk() }
                                     jsonPath("$.success") { value(true) }
-                                    jsonPath("$.data.id") { value(subject.id) }
-                                    jsonPath("$.data.title") { value(subject.title) }
-                                    jsonPath("$.data.question") { value(subject.question) }
-                                    jsonPath("$.data.category") { value(subject.category.name) }
+                                    jsonPath("$.data.id") { value(jpaSubject.id) }
+                                    jsonPath("$.data.title") { value(jpaSubject.title) }
+                                    jsonPath("$.data.question") { value(jpaSubject.question) }
+                                    jsonPath("$.data.category") { value(jpaSubject.category.name) }
                                     jsonPath("$.error") { value(null) }
                                 }
                         },
@@ -110,9 +110,9 @@ class MemberScenarioTest(
                     val apis =
                         listOf(
                             Pair(HttpMethod.GET, "/api/v1/subjects/my"),
-                            Pair(HttpMethod.GET, "/api/v1/subjects/${subject.id}/chats"),
-                            Pair(HttpMethod.POST, "/api/v2/subjects/${subject.id}/chats/archive"),
-                            Pair(HttpMethod.GET, "/api/v5/subjects/${subject.id}/answer"),
+                            Pair(HttpMethod.GET, "/api/v1/subjects/${jpaSubject.id}/chats"),
+                            Pair(HttpMethod.POST, "/api/v2/subjects/${jpaSubject.id}/chats/archive"),
+                            Pair(HttpMethod.GET, "/api/v5/subjects/${jpaSubject.id}/answer"),
                         )
 
                     apis.forEach { (method, url) ->
@@ -130,12 +130,12 @@ class MemberScenarioTest(
                 val answer = "잘 모르겠습니다."
                 val nextQuestion = "답변에 대한 점수: ${score}점"
 
-                lateinit var member: Member
+                lateinit var jpaMember: JpaMember
 
                 beforeEach {
-                    member = fixtureMonkey.giveMeOne()
-                    memberCommandRepository.save(member)
-                    setAuthentication(member)
+                    jpaMember = fixtureMonkey.giveMeOne()
+                    memberCommandRepository.save(jpaMember)
+                    setAuthentication(jpaMember)
 
                     given { chatAnswerUseCase.answer(any()) }.willReturn {
                         Flux
@@ -145,10 +145,10 @@ class MemberScenarioTest(
                             }.publishOn(Schedulers.boundedElastic())
                             .doOnComplete {
                                 chatAppender.addAnswerAndNextQuestion(
-                                    subject = subject,
-                                    member = member,
+                                    jpaSubject = jpaSubject,
+                                    jpaMember = jpaMember,
                                     answer = answer,
-                                    chats = emptyList(),
+                                    jpaChats = emptyList(),
                                     nextQuestion = nextQuestion,
                                 )
                             }
@@ -156,25 +156,25 @@ class MemberScenarioTest(
                 }
 
                 it("멤버가 채팅을 하면 채팅이 저장된다") {
-                    validateMySubjectHasValues(subject)
-                    validateChatIsEmpty(subject)
+                    validateMySubjectHasValues(jpaSubject)
+                    validateChatIsEmpty(jpaSubject)
 
-                    answer(subject, answer)
+                    answer(jpaSubject, answer)
 
-                    validateChatSaved(subject, answer, nextQuestion, score)
+                    validateChatSaved(jpaSubject, answer, nextQuestion, score)
                     validateMySubjectHasMaxScore(score)
                 }
 
                 it("멤버가 채팅을 초기화(아카이브)하면 채팅 내역이 지워지고, 아카이브에 저장된다") {
-                    answer(subject, "test answer")
+                    answer(jpaSubject, "test answer")
 
-                    archive(subject)
+                    archive(jpaSubject)
 
-                    validateChatIsEmpty(subject)
+                    validateChatIsEmpty(jpaSubject)
                     validateMySubjectHasNoMaxScore()
 
                     // NOTE: 추후 API 개발 시 아카이브 내용을 확인하는 API를 추가해야 한다.
-                    val archives = chatArchiveQueryRepository.findBySubjectAndMember(subject, member)
+                    val archives = chatArchiveQueryRepository.findBySubjectAndMember(jpaSubject, jpaMember)
                     archives.size shouldBe 1
 
                     val archiveContents = chatArchiveContentQueryRepository.findByArchive(archives[0])
@@ -185,19 +185,19 @@ class MemberScenarioTest(
     }
 
     private fun validateChatSaved(
-        subject: Subject,
+        jpaSubject: JpaSubject,
         answer: String,
         nextQuestion: String,
         score: Int,
     ) {
         val now = LocalDateTime.now()
         mockMvc
-            .get("/api/v1/subjects/${subject.id}/chats")
+            .get("/api/v1/subjects/${jpaSubject.id}/chats")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.data") { haveLength(3) }
                 jsonPath("$.data[0].type") { value("question") }
-                jsonPath("$.data[0].message") { value(subject.question) }
+                jsonPath("$.data[0].message") { value(jpaSubject.question) }
                 jsonPath("$.data[0].score") { value(null) }
                 jsonPath("$.data[0].createdAt") { value(null) }
                 jsonPath("$.data[1].type") { value("answer") }
@@ -220,16 +220,16 @@ class MemberScenarioTest(
             }
     }
 
-    private fun validateMySubjectHasValues(subject: Subject) {
+    private fun validateMySubjectHasValues(jpaSubject: JpaSubject) {
         mockMvc
             .get("/api/v1/subjects/my")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.success") { value(true) }
                 jsonPath("$.data") { haveLength(1) }
-                jsonPath("$.data[0].id") { value(subject.id) }
-                jsonPath("$.data[0].title") { value(subject.title) }
-                jsonPath("$.data[0].category") { value(subject.category.name) }
+                jsonPath("$.data[0].id") { value(jpaSubject.id) }
+                jsonPath("$.data[0].title") { value(jpaSubject.title) }
+                jsonPath("$.data[0].category") { value(jpaSubject.category.name) }
                 jsonPath("$.data[0].maxScore") { value(null) }
                 jsonPath("$.error") { value(null) }
             }
@@ -244,9 +244,9 @@ class MemberScenarioTest(
             }
     }
 
-    private fun archive(subject: Subject) {
+    private fun archive(jpaSubject: JpaSubject) {
         mockMvc
-            .post("/api/v2/subjects/${subject.id}/chats/archive")
+            .post("/api/v2/subjects/${jpaSubject.id}/chats/archive")
             .andExpect {
                 status { isCreated() }
                 jsonPath("$.success") { value(true) }
@@ -256,20 +256,20 @@ class MemberScenarioTest(
     }
 
     private fun answer(
-        subject: Subject,
+        jpaSubject: JpaSubject,
         answer: String,
     ) {
         webTestClient
             .get()
-            .uri("/api/v5/subjects/{subjectId}/answer?message={message}", subject.id, answer)
+            .uri("/api/v5/subjects/{subjectId}/answer?message={message}", jpaSubject.id, answer)
             .exchange()
             .expectStatus()
             .isOk
     }
 
-    private fun validateChatIsEmpty(subject: Subject) {
+    private fun validateChatIsEmpty(jpaSubject: JpaSubject) {
         mockMvc
-            .get("/api/v1/subjects/${subject.id}/chats")
+            .get("/api/v1/subjects/${jpaSubject.id}/chats")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.success") { value(true) }
@@ -278,8 +278,8 @@ class MemberScenarioTest(
             }
     }
 
-    private fun setAuthentication(member: Member) {
-        val oauth2User = createOAuth2User(member)
+    private fun setAuthentication(jpaMember: JpaMember) {
+        val oauth2User = createOAuth2User(jpaMember)
         val authentication = createOAuth2AuthenticationToken(oauth2User)
         SecurityContextHolder.getContext().authentication = authentication
     }
@@ -294,13 +294,13 @@ class MemberScenarioTest(
             provider,
         )
 
-    private fun createOAuth2User(createdMember: Member): DefaultOAuth2User =
+    private fun createOAuth2User(createdJpaMember: JpaMember): DefaultOAuth2User =
         DefaultOAuth2User(
             emptyList<GrantedAuthority>(),
             mapOf(
-                "sub" to createdMember.id,
-                "name" to createdMember.name,
-                "email" to createdMember.email,
+                "sub" to createdJpaMember.id,
+                "name" to createdJpaMember.name,
+                "email" to createdJpaMember.email,
             ),
             "sub",
         )

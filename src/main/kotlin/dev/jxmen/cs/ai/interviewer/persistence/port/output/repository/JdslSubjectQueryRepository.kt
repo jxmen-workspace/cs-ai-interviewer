@@ -3,11 +3,11 @@ package dev.jxmen.cs.ai.interviewer.persistence.port.output.repository
 import com.linecorp.kotlinjdsl.dsl.jpql.jpql
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderer
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatContent
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChatContent
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectQueryRepository
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
 import jakarta.persistence.EntityManager
@@ -20,26 +20,26 @@ class JdslSubjectQueryRepository(
 ) : SubjectQueryRepository {
     private val renderer = JpqlRenderer()
 
-    override fun findByCategory(category: SubjectCategory): List<Subject> {
+    override fun findByCategory(category: SubjectCategory): List<JpaSubject> {
         val rendered =
             renderer.render(
                 jpql {
-                    selectNew<Subject>(
-                        path(Subject::id),
-                        path(Subject::title),
-                        path(Subject::question),
-                        path(Subject::category),
+                    selectNew<JpaSubject>(
+                        path(JpaSubject::id),
+                        path(JpaSubject::title),
+                        path(JpaSubject::question),
+                        path(JpaSubject::category),
                     ).from(
-                        entity(Subject::class),
+                        entity(JpaSubject::class),
                     ).where(
-                        path(Subject::category).eq(category),
+                        path(JpaSubject::category).eq(category),
                     )
                 },
                 jpqlRenderContext,
             )
 
         return entityManager
-            .createQuery(rendered.query, Subject::class.java)
+            .createQuery(rendered.query, JpaSubject::class.java)
             .apply {
                 rendered.params.forEach { (name, value) ->
                     setParameter(name, value)
@@ -47,33 +47,33 @@ class JdslSubjectQueryRepository(
             }.resultList
     }
 
-    override fun findByIdOrNull(id: Long): Subject? = entityManager.find(Subject::class.java, id)
+    override fun findByIdOrNull(id: Long): JpaSubject? = entityManager.find(JpaSubject::class.java, id)
 
     override fun findWithMember(
-        member: Member,
+        jpaMember: JpaMember,
         category: SubjectCategory?,
     ): List<MemberSubjectResponse> {
         val jpql =
             jpql {
                 selectNew<MemberSubjectResponse>(
-                    path(Subject::id),
-                    path(Subject::title),
-                    path(Subject::category),
-                    max(path(Chat::content).path(ChatContent::score)),
+                    path(JpaSubject::id),
+                    path(JpaSubject::title),
+                    path(JpaSubject::category),
+                    max(path(JpaChat::content).path(JpaChatContent::score)),
                 ).from(
-                    entity(Subject::class),
-                    leftJoin(Chat::class).on(
+                    entity(JpaSubject::class),
+                    leftJoin(JpaChat::class).on(
                         and(
-                            path(Subject::id).eq(path(Chat::subject).path(Subject::id)),
-                            path(Chat::member).eq(member),
+                            path(JpaSubject::id).eq(path(JpaChat::jpaSubject).path(JpaSubject::id)),
+                            path(JpaChat::jpaMember).eq(jpaMember),
                         ),
                     ),
                 ).where(
-                    category?.let { path(Subject::category).eq(it) },
+                    category?.let { path(JpaSubject::category).eq(it) },
                 ).groupBy(
-                    path(Subject::id),
+                    path(JpaSubject::id),
                 ).orderBy(
-                    path(Subject::id).asc(),
+                    path(JpaSubject::id).asc(),
                 )
             }
         val rendered = renderer.render(jpql, jpqlRenderContext)

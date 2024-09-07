@@ -6,9 +6,9 @@ import com.navercorp.fixturemonkey.kotlin.giveMeBuilder
 import com.navercorp.fixturemonkey.kotlin.into
 import com.navercorp.fixturemonkey.kotlin.setExp
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatContent
 import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChatContent
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -30,7 +30,7 @@ class PromptMessageFactoryTest :
                     val command =
                         fixtureMonkey
                             .giveMeBuilder<CreateSubjectAnswerCommand>()
-                            .setExp(CreateSubjectAnswerCommand::chats, emptyList<Chat>())
+                            .setExp(CreateSubjectAnswerCommand::jpaChats, emptyList<JpaChat>())
                             .sample()
 
                     // when
@@ -39,7 +39,7 @@ class PromptMessageFactoryTest :
                     // then
                     result shouldHaveSize 3
                     result[0] shouldBe UserMessage(PromptMessageFactory.grantInterviewerRoleMessage)
-                    result[1] shouldBe AssistantMessage(PromptMessageFactory.getAiAnswerContentFromQuestion(command.subject.question))
+                    result[1] shouldBe AssistantMessage(PromptMessageFactory.getAiAnswerContentFromQuestion(command.jpaSubject.question))
                     result[2] shouldBe UserMessage(command.answer)
                 }
 
@@ -51,7 +51,7 @@ class PromptMessageFactoryTest :
                     val command =
                         fixtureMonkey
                             .giveMeBuilder<CreateSubjectAnswerCommand>()
-                            .setExp(CreateSubjectAnswerCommand::chats, listOf(firstQuestionChat, answerChat, questionChat))
+                            .setExp(CreateSubjectAnswerCommand::jpaChats, listOf(firstQuestionChat, answerChat, questionChat))
                             .sample()
 
                     // when
@@ -60,7 +60,7 @@ class PromptMessageFactoryTest :
                     // then
                     result shouldHaveSize 5
                     result[0] shouldBe UserMessage(PromptMessageFactory.grantInterviewerRoleMessage)
-                    result[1] shouldBe AssistantMessage(PromptMessageFactory.getAiAnswerContentFromQuestion(command.subject.question))
+                    result[1] shouldBe AssistantMessage(PromptMessageFactory.getAiAnswerContentFromQuestion(command.jpaSubject.question))
                     result[2] shouldBe UserMessage(answerChat.content.message)
                     result[3] shouldBe AssistantMessage(questionChat.content.message)
                     result[4] shouldBe UserMessage(command.answer)
@@ -69,16 +69,16 @@ class PromptMessageFactoryTest :
         }
     })
 
-private fun createAnswerChat(fixtureMonkey: FixtureMonkey): Chat =
+private fun createAnswerChat(fixtureMonkey: FixtureMonkey): JpaChat =
     fixtureMonkey
-        .giveMeBuilder<Chat>()
-        .setExp(Chat::content into ChatContent::chatType, ChatType.ANSWER)
+        .giveMeBuilder<JpaChat>()
+        .setExp(JpaChat::content into JpaChatContent::chatType, ChatType.ANSWER)
         .setPostCondition { it.content.score in 0..100 }
         .sample()
 
-private fun createQuestionChat(fixtureMonkey: FixtureMonkey): Chat =
+private fun createQuestionChat(fixtureMonkey: FixtureMonkey): JpaChat =
     fixtureMonkey
-        .giveMeBuilder<Chat>()
-        .setExp(Chat::content into ChatContent::chatType, ChatType.QUESTION)
-        .setExp(Chat::content into ChatContent::score, null)
+        .giveMeBuilder<JpaChat>()
+        .setExp(JpaChat::content into JpaChatContent::chatType, ChatType.QUESTION)
+        .setExp(JpaChat::content into JpaChatContent::score, null)
         .sample()

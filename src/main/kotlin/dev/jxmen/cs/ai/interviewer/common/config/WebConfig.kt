@@ -1,6 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.common.config
 
-import dev.jxmen.cs.ai.interviewer.domain.member.MemberArgumentResolver
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberQueryRepository
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
@@ -25,7 +25,7 @@ class WebConfig(
 
     override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
         resolvers.add(
-            MemberArgumentResolver(memberQueryRepository = memberQueryRepository),
+            JpaMemberArgumentResolver(memberQueryRepository = memberQueryRepository),
         )
     }
 }
