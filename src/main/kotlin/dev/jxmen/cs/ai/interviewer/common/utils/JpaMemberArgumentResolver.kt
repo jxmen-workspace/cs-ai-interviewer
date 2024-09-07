@@ -1,8 +1,9 @@
-package dev.jxmen.cs.ai.interviewer.persistence.entity.member
+package dev.jxmen.cs.ai.interviewer.common.utils
 
 import dev.jxmen.cs.ai.interviewer.common.enum.ErrorType
 import dev.jxmen.cs.ai.interviewer.common.exceptions.ServerError
 import dev.jxmen.cs.ai.interviewer.common.exceptions.UnAuthorizedException
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberQueryRepository
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.context.SecurityContextHolder

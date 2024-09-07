@@ -1,6 +1,8 @@
 package dev.jxmen.cs.ai.interviewer.common.utils
 
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
+import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
+import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
@@ -31,6 +33,8 @@ class PromptMessageFactory {
 
         /**
          * @param command CreateSubjectAnswerCommand 멤버가 제공한 답변을 기반으로 채팅 목록을 만들어 반환
+         *
+         * @Deprecated
          */
         fun create(command: CreateSubjectAnswerCommand): List<Message> {
             val userAnswerMessage = UserMessage(command.answer) // 멤버가 제공한 답변
@@ -73,5 +77,30 @@ class PromptMessageFactory {
                 }
             }
         }
+
+        fun create(
+            answer: String,
+            chats: Chats,
+            subject: Subject,
+        ): List<Message> {
+            val userAnswerMessage = UserMessage(answer) // 멤버가 제공한 답변
+
+            return createInitialMessages(subject.question) + createMessagesFromBeforeChats(chats) + userAnswerMessage
+        }
+
+        private fun createMessagesFromBeforeChats(chats: Chats): List<Message> =
+            chats.chats.drop(1).map {
+                when {
+                    it.isAnswer() -> UserMessage(it.message)
+                    it.isQuestion() -> AssistantMessage(it.message)
+                    else -> throw IllegalArgumentException("Unknown chat type")
+                }
+            }
+
+        private fun createInitialMessages(firstQuestion: String): List<Message> =
+            listOf(
+                UserMessage(grantInterviewerRoleMessage), // 면접관 역할 부여
+                AssistantMessage(getAiAnswerContentFromQuestion(firstQuestion)), // 면접관 질문
+            )
     }
 }

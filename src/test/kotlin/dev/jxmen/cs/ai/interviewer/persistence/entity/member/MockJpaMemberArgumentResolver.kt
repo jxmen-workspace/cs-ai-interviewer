@@ -7,7 +7,7 @@ import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 
-class MockMemberArgumentResolver : HandlerMethodArgumentResolver {
+class MockJpaMemberArgumentResolver : HandlerMethodArgumentResolver {
     companion object {
         val jpaMember =
             JpaMember.createWithId(

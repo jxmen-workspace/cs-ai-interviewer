@@ -5,9 +5,11 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.ChatArchiveUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
+import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand2
 import dev.jxmen.cs.ai.interviewer.common.RequireLoginApi
 import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.common.dto.ListDataResponse
+import dev.jxmen.cs.ai.interviewer.domain.member.Member
 import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.ChatMessageResponse
@@ -125,11 +127,31 @@ class SubjectApi(
     }
 
     /**
+     * 답변 등록 (비동기)
+     */
+    @GetMapping("/api/v6/subjects/{subjectId}/answer")
+    @RequireLoginApi
+    fun answerSubjectV6Async(
+        member: Member,
+        @PathVariable("subjectId") subjectId: String,
+        @Param("message") message: String,
+    ): Flux<ChatResponse> {
+        val command =
+            CreateSubjectAnswerCommand2(
+                subjectId = subjectId.toLong(),
+                answer = message,
+                member = member,
+            )
+
+        return chatAnswerUseCase.answerV6(command)
+    }
+
+    /**
      * 로그인한 회원의 주제 목록 조회 (회원 관련 정보 포함 - ex)채팅 최대 점수)
      */
     @GetMapping("/api/v1/subjects/my")
     @RequireLoginApi
-    fun getMemberSubjects(
+    fun getMySubjects(
         jpaMember: JpaMember,
         @Param("category") category: String?,
     ): ResponseEntity<ApiResponse<List<MemberSubjectResponse>>> {
@@ -143,7 +165,7 @@ class SubjectApi(
      */
     @PostMapping("/api/v2/subjects/{subjectId}/chats/archive")
     @RequireLoginApi
-    fun deleteMessages(
+    fun archiveMessages(
         jpaMember: JpaMember,
         @PathVariable("subjectId") subjectId: String,
     ): ResponseEntity<ApiResponse<Nothing>> {
