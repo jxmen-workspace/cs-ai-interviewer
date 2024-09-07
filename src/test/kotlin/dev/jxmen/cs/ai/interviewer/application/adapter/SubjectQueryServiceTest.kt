@@ -1,10 +1,10 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.persistence.adapter.SubjectQueryService
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectQueryRepository
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
 import io.kotest.assertions.throwables.shouldNotThrow
@@ -60,7 +60,7 @@ class SubjectQueryServiceTest :
                 ) { tc ->
                     every { subjectQueryRepository.findByCategory(any()) } returns
                         listOf(
-                            Subject(
+                            JpaSubject(
                                 title = tc.input.uppercase(),
                                 question = "What is ${tc.input.uppercase()}?",
                                 category = SubjectCategory.valueOf(tc.input.uppercase()),
@@ -71,7 +71,9 @@ class SubjectQueryServiceTest :
                     subjectsByCategory.size shouldBe 1
                     with(subjectsByCategory[0]) {
                         title shouldBe tc.input.uppercase()
-                        category shouldBe SubjectCategory.valueOf(tc.input.uppercase())
+                        category shouldBe
+                            SubjectCategory
+                                .valueOf(tc.input.uppercase())
                     }
                 }
             }
@@ -81,7 +83,7 @@ class SubjectQueryServiceTest :
             context("존재하는 id라면") {
                 it("발견한 주제를 리턴한다.") {
                     every { subjectQueryRepository.findByIdOrNull(1L) } returns
-                        Subject(
+                        JpaSubject(
                             title = "OS",
                             question = "What is OS?",
                             category = SubjectCategory.OS,
@@ -119,8 +121,8 @@ class SubjectQueryServiceTest :
                         ),
                     )
 
-                val member = Member.createGoogleMember("박주영", "me@jxmen.dev")
-                val memberSubjects: List<MemberSubjectResponse> = subjectQueryService.findWithMember(member)
+                val jpaMember = JpaMember.createGoogleMember("박주영", "me@jxmen.dev")
+                val memberSubjects: List<MemberSubjectResponse> = subjectQueryService.findWithMember(jpaMember)
 
                 memberSubjects.size shouldBe 1
                 with(memberSubjects[0]) {

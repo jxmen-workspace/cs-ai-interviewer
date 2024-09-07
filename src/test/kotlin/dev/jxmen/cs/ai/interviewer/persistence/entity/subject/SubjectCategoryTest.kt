@@ -1,5 +1,6 @@
-package dev.jxmen.cs.ai.interviewer.domain.subject
+package dev.jxmen.cs.ai.interviewer.persistence.entity.subject
 
+import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe

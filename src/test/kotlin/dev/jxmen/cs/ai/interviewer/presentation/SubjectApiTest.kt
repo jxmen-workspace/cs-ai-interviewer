@@ -11,15 +11,15 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswe
 import dev.jxmen.cs.ai.interviewer.common.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.common.dto.ListDataResponse
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
 import dev.jxmen.cs.ai.interviewer.domain.chat.exceptions.NoAnswerException
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.member.MockMemberArgumentResolver
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChats
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.MockMemberArgumentResolver
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectDetailResponse
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectResponse
@@ -637,11 +637,11 @@ class SubjectApiTest :
 
     class StubChatArchiveUseCase : ChatArchiveUseCase {
         override fun archive(
-            chats: List<Chat>,
-            member: Member,
-            subject: Subject,
+            jpaChats: List<JpaChat>,
+            jpaMember: JpaMember,
+            jpaSubject: JpaSubject,
         ): Long {
-            val answerChatCount = chats.count { it.isAnswer() }
+            val answerChatCount = jpaChats.count { it.isAnswer() }
             return when (answerChatCount) {
                 0 -> throw NoAnswerException()
                 else -> 1
@@ -651,8 +651,8 @@ class SubjectApiTest :
 
     class StubChatAnswerUseCase : ChatAnswerUseCase {
         override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
-            Chats(command.chats).validateNotUseAllAnswers()
-            Chats(command.chats).validateMatchMember(command.member)
+            JpaChats(command.jpaChats).validateNotUseAllAnswers()
+            JpaChats(command.jpaChats).validateMatchMember(command.jpaMember)
 
             return Flux.just(
                 ChatResponse(
@@ -663,33 +663,34 @@ class SubjectApiTest :
     }
 
     abstract class StubSubjectQuery : SubjectQuery {
-        override fun findByCategory(category: String): List<Subject> = throw NotImplementedError()
+        override fun findByCategory(category: String): List<JpaSubject> = throw NotImplementedError()
 
         override fun findWithMember(
-            member: Member,
+            jpaMember: JpaMember,
             category: String?,
         ): List<MemberSubjectResponse> = throw NotImplementedError()
 
-        override fun findByIdOrThrow(id: Long): Subject = throw NotImplementedError()
+        override fun findByIdOrThrow(id: Long): JpaSubject = throw NotImplementedError()
     }
 
     class ExistIdSubjectQuery : StubSubjectQuery() {
-        override fun findByIdOrThrow(id: Long): Subject = Subject.createOS(id = id, title = "test subject", question = "test question")
+        override fun findByIdOrThrow(id: Long): JpaSubject =
+            JpaSubject.createOS(id = id, title = "test subject", question = "test question")
     }
 
     class ExistCategorySubjectQueryStub : StubSubjectQuery() {
-        override fun findByCategory(category: String): List<Subject> =
+        override fun findByCategory(category: String): List<JpaSubject> =
             when (category) {
-                "os" -> listOf(Subject.createOS(id = 1, title = "OS", question = "What is OS?"))
+                "os" -> listOf(JpaSubject.createOS(id = 1, title = "OS", question = "What is OS?"))
                 else -> throw SubjectCategoryNotFoundException("No such enum constant $category")
             }
     }
 
     class DummyChatQuery : ChatQuery {
         override fun findBySubjectAndMember(
-            subject: Subject,
-            member: Member,
-        ): List<Chat> = throw NotImplementedError()
+            jpaSubject: JpaSubject,
+            jpaMember: JpaMember,
+        ): List<JpaChat> = throw NotImplementedError()
     }
 
     class NotExistCategorySubjectQuery : StubSubjectQuery() {
@@ -697,18 +698,18 @@ class SubjectApiTest :
     }
 
     class NotExistIdSubjectQuery : StubSubjectQuery() {
-        override fun findByIdOrThrow(id: Long): Subject = throw SubjectNotFoundException(id)
+        override fun findByIdOrThrow(id: Long): JpaSubject = throw SubjectNotFoundException(id)
     }
 
     class ExistSubjectIdChatQuery : ChatQuery {
         override fun findBySubjectAndMember(
-            subject: Subject,
-            member: Member,
-        ): List<Chat> =
+            jpaSubject: JpaSubject,
+            jpaMember: JpaMember,
+        ): List<JpaChat> =
             listOf(
-                Chat.createQuestion(
-                    subject = subject,
-                    member = member,
+                JpaChat.createQuestion(
+                    jpaSubject = jpaSubject,
+                    jpaMember = jpaMember,
                     message = "What is OS?",
                 ),
             )
@@ -716,36 +717,36 @@ class SubjectApiTest :
 
     class UseAllAnswersChatQuery : ChatQuery {
         override fun findBySubjectAndMember(
-            subject: Subject,
-            member: Member,
-        ): List<Chat> {
-            val chats = mutableListOf<Chat>()
-            for (i in 1..Chat.MAX_ANSWER_COUNT * 2) {
+            jpaSubject: JpaSubject,
+            jpaMember: JpaMember,
+        ): List<JpaChat> {
+            val jpaChats = mutableListOf<JpaChat>()
+            for (i in 1..JpaChat.MAX_ANSWER_COUNT * 2) {
                 if (i % 2 == 0) {
-                    chats.add(Chat.createAnswer(subject = subject, member = member, answer = "hi", score = 0))
+                    jpaChats.add(JpaChat.createAnswer(jpaSubject = jpaSubject, jpaMember = jpaMember, answer = "hi", score = 0))
                 } else {
-                    chats.add(Chat.createQuestion(subject = subject, member = member, message = "What is OS?"))
+                    jpaChats.add(JpaChat.createQuestion(jpaSubject = jpaSubject, jpaMember = jpaMember, message = "What is OS?"))
                 }
             }
 
-            return chats
+            return jpaChats
         }
     }
 
     class DummySubjectQuery : SubjectQuery {
-        override fun findByCategory(category: String): List<Subject> = throw NotImplementedError()
+        override fun findByCategory(category: String): List<JpaSubject> = throw NotImplementedError()
 
         override fun findWithMember(
-            member: Member,
+            jpaMember: JpaMember,
             category: String?,
         ): List<MemberSubjectResponse> = throw NotImplementedError()
 
-        override fun findByIdOrThrow(id: Long): Subject = throw NotImplementedError()
+        override fun findByIdOrThrow(id: Long): JpaSubject = throw NotImplementedError()
     }
 
     class NoCategoryMemberSubjectQuery : StubSubjectQuery() {
         override fun findWithMember(
-            member: Member,
+            jpaMember: JpaMember,
             category: String?,
         ): List<MemberSubjectResponse> =
             listOf(
@@ -766,7 +767,7 @@ class SubjectApiTest :
 
     class WithCategoryMemberSubjectQuery : StubSubjectQuery() {
         override fun findWithMember(
-            member: Member,
+            jpaMember: JpaMember,
             category: String?,
         ): List<MemberSubjectResponse> =
             listOf(
@@ -781,18 +782,18 @@ class SubjectApiTest :
 
     class ExistingAnswerChatQuery : ChatQuery {
         override fun findBySubjectAndMember(
-            subject: Subject,
-            member: Member,
-        ): List<Chat> =
+            jpaSubject: JpaSubject,
+            jpaMember: JpaMember,
+        ): List<JpaChat> =
             listOf(
-                Chat.createQuestion(
-                    subject = subject,
-                    member = member,
+                JpaChat.createQuestion(
+                    jpaSubject = jpaSubject,
+                    jpaMember = jpaMember,
                     message = "스레드와 프로세스의 차이점은 무엇인가요?",
                 ),
-                Chat.createAnswer(
-                    subject = subject,
-                    member = member,
+                JpaChat.createAnswer(
+                    jpaSubject = jpaSubject,
+                    jpaMember = jpaMember,
                     answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
                     score = 100,
                 ),
@@ -800,18 +801,18 @@ class SubjectApiTest :
     }
 
     class NotExistingIdSubjectQuery : StubSubjectQuery() {
-        override fun findByIdOrThrow(id: Long): Subject = throw SubjectNotFoundException(id)
+        override fun findByIdOrThrow(id: Long): JpaSubject = throw SubjectNotFoundException(id)
     }
 
     class NoAnswerChatQuery : ChatQuery {
         override fun findBySubjectAndMember(
-            subject: Subject,
-            member: Member,
-        ): List<Chat> =
+            jpaSubject: JpaSubject,
+            jpaMember: JpaMember,
+        ): List<JpaChat> =
             listOf(
-                Chat.createQuestion(
-                    subject = subject,
-                    member = member,
+                JpaChat.createQuestion(
+                    jpaSubject = jpaSubject,
+                    jpaMember = jpaMember,
                     message = "스레드와 프로세스의 차이점은 무엇인가요?",
                 ),
             )
@@ -821,25 +822,25 @@ class SubjectApiTest :
         private val date: LocalDateTime? = null,
     ) : ChatQuery {
         override fun findBySubjectAndMember(
-            subject: Subject,
-            member: Member,
-        ): List<Chat> =
+            jpaSubject: JpaSubject,
+            jpaMember: JpaMember,
+        ): List<JpaChat> =
             listOf(
-                Chat.createQuestion(
-                    subject = subject,
-                    member = member,
+                JpaChat.createQuestion(
+                    jpaSubject = jpaSubject,
+                    jpaMember = jpaMember,
                     message = "스레드와 프로세스의 차이점은 무엇인가요?",
                 ),
-                Chat.createAnswer(
-                    subject = subject,
-                    member = member,
+                JpaChat.createAnswer(
+                    jpaSubject = jpaSubject,
+                    jpaMember = jpaMember,
                     answer = "스레드는 프로세스 내에서 실행되는 작업의 단위이고, 프로세스는 실행 중인 프로그램의 인스턴스입니다.",
                     score = 20,
                     createdAt = date,
                 ),
-                Chat.createQuestion(
-                    subject = subject,
-                    member = member,
+                JpaChat.createQuestion(
+                    jpaSubject = jpaSubject,
+                    jpaMember = jpaMember,
                     message = "그렇다면 멀티스레드와 멀티프로세스의 차이점은 무엇인가요?",
                 ),
             )

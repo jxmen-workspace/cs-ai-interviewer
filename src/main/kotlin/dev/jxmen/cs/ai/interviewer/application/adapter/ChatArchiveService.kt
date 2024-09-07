@@ -1,12 +1,12 @@
 package dev.jxmen.cs.ai.interviewer.application.adapter
 
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatArchiveUseCase
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatArchiveAppender
 import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatRemover
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChats
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,21 +21,21 @@ class ChatArchiveService(
      */
     @Transactional
     override fun archive(
-        chats: List<Chat>,
-        member: Member,
-        subject: Subject,
+        jpaChats: List<JpaChat>,
+        jpaMember: JpaMember,
+        jpaSubject: JpaSubject,
     ): Long {
         // validate chats and member
-        val chatsWrapper = Chats(chats)
-        chatsWrapper.validateHasAnswer()
-        chatsWrapper.validateMatchMember(member)
+        val jpaChatsWrapper = JpaChats(jpaChats)
+        jpaChatsWrapper.validateHasAnswer()
+        jpaChatsWrapper.validateMatchMember(jpaMember)
 
         // remove all chats
-        chatRemover.removeAll(chats)
+        chatRemover.removeAll(jpaChats)
 
         // add archive and contents
-        val archive = chatArchiveAppender.addArchive(subject, member)
-        chatArchiveAppender.addContents(archive, chats.map { it.content })
+        val archive = chatArchiveAppender.addArchive(jpaSubject, jpaMember)
+        chatArchiveAppender.addContents(archive, jpaChats.map { it.content })
 
         return archive.id
     }

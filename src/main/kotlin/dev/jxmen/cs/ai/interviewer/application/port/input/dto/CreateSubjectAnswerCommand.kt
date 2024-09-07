@@ -1,12 +1,12 @@
 package dev.jxmen.cs.ai.interviewer.application.port.input.dto
 
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 
 data class CreateSubjectAnswerCommand(
-    val subject: Subject,
+    val jpaSubject: JpaSubject,
     val answer: String,
-    val member: Member,
-    val chats: List<Chat>,
+    val jpaMember: JpaMember,
+    val jpaChats: List<JpaChat>,
 )

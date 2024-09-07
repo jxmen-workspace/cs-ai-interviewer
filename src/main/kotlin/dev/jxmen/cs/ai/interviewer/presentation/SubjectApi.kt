@@ -8,7 +8,7 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswe
 import dev.jxmen.cs.ai.interviewer.common.RequireLoginApi
 import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.common.dto.ListDataResponse
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
 import dev.jxmen.cs.ai.interviewer.presentation.dto.request.MemberSubjectResponse
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.ChatMessageResponse
 import dev.jxmen.cs.ai.interviewer.presentation.dto.response.SubjectDetailResponse
@@ -77,11 +77,11 @@ class SubjectApi(
     @GetMapping("/api/v1/subjects/{subjectId}/chats")
     @RequireLoginApi
     fun getChats(
-        member: Member,
+        jpaMember: JpaMember,
         @PathVariable("subjectId") subjectId: String,
     ): ResponseEntity<ApiResponse<List<ChatMessageResponse>>> {
         val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
-        val messages = chatQuery.findBySubjectAndMember(subject = subject, member = member)
+        val messages = chatQuery.findBySubjectAndMember(jpaSubject = subject, jpaMember = jpaMember)
 
         val list =
             messages.map {
@@ -106,19 +106,19 @@ class SubjectApi(
     @GetMapping("/api/v5/subjects/{subjectId}/answer")
     @RequireLoginApi
     fun answerSubjectV5Async(
-        member: Member,
+        jpaMember: JpaMember,
         @PathVariable("subjectId") subjectId: String,
         @Param("message") message: String,
     ): Flux<ChatResponse> {
         val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
-        val chats = chatQuery.findBySubjectAndMember(subject, member)
+        val chats = chatQuery.findBySubjectAndMember(subject, jpaMember)
 
         val command =
             CreateSubjectAnswerCommand(
-                subject = subject,
+                jpaSubject = subject,
                 answer = message,
-                member = member,
-                chats = chats,
+                jpaMember = jpaMember,
+                jpaChats = chats,
             )
 
         return chatAnswerUseCase.answer(command)
@@ -130,10 +130,10 @@ class SubjectApi(
     @GetMapping("/api/v1/subjects/my")
     @RequireLoginApi
     fun getMemberSubjects(
-        member: Member,
+        jpaMember: JpaMember,
         @Param("category") category: String?,
     ): ResponseEntity<ApiResponse<List<MemberSubjectResponse>>> {
-        val response = ListDataResponse(subjectQuery.findWithMember(member, category))
+        val response = ListDataResponse(subjectQuery.findWithMember(jpaMember, category))
 
         return ResponseEntity.ok(ApiResponse.success(response))
     }
@@ -144,13 +144,13 @@ class SubjectApi(
     @PostMapping("/api/v2/subjects/{subjectId}/chats/archive")
     @RequireLoginApi
     fun deleteMessages(
-        member: Member,
+        jpaMember: JpaMember,
         @PathVariable("subjectId") subjectId: String,
     ): ResponseEntity<ApiResponse<Nothing>> {
         val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
-        val chats = chatQuery.findBySubjectAndMember(subject, member)
+        val chats = chatQuery.findBySubjectAndMember(subject, jpaMember)
 
-        val id = chatArchiveUseCase.archive(chats, member, subject)
+        val id = chatArchiveUseCase.archive(chats, jpaMember, subject)
 
         return ResponseEntity
             .created(URI("/api/v1/chat/archives/$id"))

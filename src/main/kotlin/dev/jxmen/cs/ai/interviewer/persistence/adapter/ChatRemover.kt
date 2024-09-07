@@ -1,6 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.persistence.adapter
 
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatCommandRepository
 import org.springframework.stereotype.Component
 
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 class ChatRemover(
     private val chatCommandRepository: ChatCommandRepository,
 ) {
-    fun removeAll(chats: List<Chat>) {
-        chatCommandRepository.deleteAllInBatch(chats)
+    fun removeAll(jpaChats: List<JpaChat>) {
+        chatCommandRepository.deleteAllInBatch(jpaChats)
     }
 }

@@ -1,7 +1,7 @@
 package dev.jxmen.cs.ai.interviewer.common.config.security
 
 import dev.jxmen.cs.ai.interviewer.common.config.security.RefererCaptureFilter.Companion.PREV_PAGE_ATTRIBUTE
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberCommandRepository
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberQueryRepository
 import jakarta.servlet.http.HttpServletRequest
@@ -42,15 +42,15 @@ class OAuth2LoginSuccessHandler(
         } ?: response.sendRedirect("/")
     }
 
-    private fun findOrCreateMember(attributes: Map<String, Any>): Member {
+    private fun findOrCreateMember(attributes: Map<String, Any>): JpaMember {
         val email = attributes["email"].toString()
         val name = attributes["name"].toString()
 
         return (
             memberQueryRepository.findByEmailOrNull(email)
-                ?: memberCommandRepository.save(Member.createGoogleMember(name, email))
+                ?: memberCommandRepository.save(JpaMember.createGoogleMember(name, email))
         )
     }
 
-    fun MemberQueryRepository.findByEmailOrNull(email: String): Member? = findByEmail(email).orElse(null)
+    fun MemberQueryRepository.findByEmailOrNull(email: String): JpaMember? = findByEmail(email).orElse(null)
 }

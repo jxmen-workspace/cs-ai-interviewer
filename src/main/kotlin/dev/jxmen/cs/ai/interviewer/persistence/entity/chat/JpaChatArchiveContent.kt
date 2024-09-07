@@ -1,7 +1,6 @@
 package dev.jxmen.cs.ai.interviewer.persistence.entity.chat
 
-import dev.jxmen.cs.ai.interviewer.domain.BaseEntity
-import dev.jxmen.cs.ai.interviewer.domain.chat.ChatContent
+import dev.jxmen.cs.ai.interviewer.persistence.entity.BaseEntity
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -30,5 +29,5 @@ class JpaChatArchiveContent(
     val archive: JpaChatArchive,
 
     @Embedded
-    val content: ChatContent,
+    val content: JpaChatContent,
 ) : BaseEntity()

@@ -1,6 +1,7 @@
-package dev.jxmen.cs.ai.interviewer.domain.subject
+package dev.jxmen.cs.ai.interviewer.persistence.entity.subject
 
-import dev.jxmen.cs.ai.interviewer.domain.BaseEntity
+import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
+import dev.jxmen.cs.ai.interviewer.persistence.entity.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
@@ -20,7 +21,7 @@ import org.hibernate.annotations.Comment
         UniqueConstraint(columnNames = ["title", "question"]),
     ],
 )
-class Subject(
+class JpaSubject(
 
     @Column(nullable = false, unique = true)
     @Comment("제목")
@@ -32,7 +33,7 @@ class Subject(
 
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
-    @Convert(converter = SubjectCategoryConverter::class)
+    @Convert(converter = JpaSubjectCategoryConverter::class)
     @Comment("카테고리")
     val category: SubjectCategory,
 ) : BaseEntity() {
@@ -49,6 +50,6 @@ class Subject(
             id: Long,
             title: String,
             question: String,
-        ): Subject = Subject(id, title, question, SubjectCategory.OS)
+        ): JpaSubject = JpaSubject(id, title, question, SubjectCategory.OS)
     }
 }

@@ -1,10 +1,11 @@
-package dev.jxmen.cs.ai.interviewer.domain.subject
+package dev.jxmen.cs.ai.interviewer.persistence.entity.subject
 
+import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
 
 @Converter
-class SubjectCategoryConverter : AttributeConverter<SubjectCategory, String> {
+class JpaSubjectCategoryConverter : AttributeConverter<SubjectCategory, String> {
     /**
      * SubjectCategory -> String
      */

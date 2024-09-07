@@ -1,8 +1,8 @@
 package dev.jxmen.cs.ai.interviewer.persistence.entity.chat
 
-import dev.jxmen.cs.ai.interviewer.domain.BaseEntity
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
+import dev.jxmen.cs.ai.interviewer.persistence.entity.BaseEntity
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.Index
@@ -29,17 +29,17 @@ class JpaChatArchive(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id")
-    val subject: Subject,
+    val jpaSubject: JpaSubject,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
-    val member: Member,
+    val jpaMember: JpaMember,
 ) : BaseEntity() {
     /**
      * NOTE: Kotlin JDSL에서 사용하기 위해 추가한 생성자
      */
     @Suppress("unused")
-    private constructor(id: Long, subject: Subject, member: Member) : this(subject, member) {
+    private constructor(id: Long, jpaSubject: JpaSubject, jpaMember: JpaMember) : this(jpaSubject, jpaMember) {
         this.id = id
     }
 }

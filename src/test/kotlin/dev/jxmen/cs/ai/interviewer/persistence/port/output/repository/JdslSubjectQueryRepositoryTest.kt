@@ -2,10 +2,10 @@ package dev.jxmen.cs.ai.interviewer.persistence.port.output.repository
 
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
 import dev.jxmen.cs.ai.interviewer.common.config.KotlinJdslConfig
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberCommandRepository
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectCommandRepository
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectQueryRepository
@@ -30,40 +30,40 @@ class JdslSubjectQueryRepositoryTest(
     private val context: JpqlRenderContext,
 ) {
     private lateinit var subjectQueryRepository: SubjectQueryRepository
-    private lateinit var subject1: Subject
-    private lateinit var subject2: Subject
-    private lateinit var member: Member
+    private lateinit var jpaSubject1: JpaSubject
+    private lateinit var jpaSubject2: JpaSubject
+    private lateinit var jpaMember: JpaMember
 
     @BeforeEach
     fun setUp() {
         subjectQueryRepository = JdslSubjectQueryRepository(entityManager, context)
 
-        subject1 =
+        jpaSubject1 =
             subjectCommandRepository.save(
-                Subject(
+                JpaSubject(
                     title = "test1",
                     question = "test1",
                     category = SubjectCategory.OS,
                 ),
             )
-        subject2 =
+        jpaSubject2 =
             subjectCommandRepository.save(
-                Subject(
+                JpaSubject(
                     title = "test2",
                     question = "test2",
                     category = SubjectCategory.NETWORK,
                 ),
             )
 
-        member = memberCommandRepository.save(Member.createGoogleMember(name = "박주영", email = "me@jxmen.dev"))
+        jpaMember = memberCommandRepository.save(JpaMember.createGoogleMember(name = "박주영", email = "me@jxmen.dev"))
         chatCommandRepository.saveAll(
             listOf(
                 // subject1
-                Chat.createAnswer(subject = subject1, member = member, answer = "test", score = 50),
-                Chat.createQuestion(subject = subject1, member = member, message = "test"),
-                Chat.createAnswer(subject = subject1, member = member, answer = "test", score = 100),
+                JpaChat.createAnswer(jpaSubject = jpaSubject1, jpaMember = jpaMember, answer = "test", score = 50),
+                JpaChat.createQuestion(jpaSubject = jpaSubject1, jpaMember = jpaMember, message = "test"),
+                JpaChat.createAnswer(jpaSubject = jpaSubject1, jpaMember = jpaMember, answer = "test", score = 100),
                 // subject2
-                Chat.createAnswer(subject = subject2, member = member, answer = "test", score = 70),
+                JpaChat.createAnswer(jpaSubject = jpaSubject2, jpaMember = jpaMember, answer = "test", score = 70),
             ),
         )
     }
@@ -73,7 +73,7 @@ class JdslSubjectQueryRepositoryTest(
         val findByCategory = subjectQueryRepository.findByCategory(SubjectCategory.OS)
 
         findByCategory.size shouldBe 1
-        findByCategory[0].id shouldBe subject1.id
+        findByCategory[0].id shouldBe jpaSubject1.id
         findByCategory[0].title shouldBe "test1"
         findByCategory[0].question shouldBe "test1"
         findByCategory[0].category shouldBe SubjectCategory.OS
@@ -90,8 +90,8 @@ class JdslSubjectQueryRepositoryTest(
 
     @Test
     fun findById() {
-        subjectQueryRepository.findByIdOrNull(subject1.id)?.let {
-            it.id shouldBe subject1.id
+        subjectQueryRepository.findByIdOrNull(jpaSubject1.id)?.let {
+            it.id shouldBe jpaSubject1.id
             it.title shouldBe "test1"
             it.category shouldBe SubjectCategory.OS
             it.question shouldBe "test1"
@@ -107,17 +107,17 @@ class JdslSubjectQueryRepositoryTest(
     @Test
     fun findWithMember() {
         val findWithMember =
-            subjectQueryRepository.findWithMember(member)
+            subjectQueryRepository.findWithMember(jpaMember)
 
         findWithMember.size shouldBe 2
         with(findWithMember[0]) {
-            id shouldBe subject1.id
+            id shouldBe jpaSubject1.id
             title shouldBe "test1"
             category shouldBe SubjectCategory.OS
             maxScore shouldBe 100
         }
         with(findWithMember[1]) {
-            id shouldBe subject2.id
+            id shouldBe jpaSubject2.id
             title shouldBe "test2"
             category shouldBe SubjectCategory.NETWORK
             maxScore shouldBe 70
@@ -128,13 +128,13 @@ class JdslSubjectQueryRepositoryTest(
     fun findWithMemberCategory() {
         val findWithMember =
             subjectQueryRepository.findWithMember(
-                member,
+                jpaMember,
                 SubjectCategory.OS,
             )
 
         findWithMember.size shouldBe 1
         with(findWithMember[0]) {
-            id shouldBe subject1.id
+            id shouldBe jpaSubject1.id
             title shouldBe "test1"
             category shouldBe SubjectCategory.OS
             maxScore shouldBe 100

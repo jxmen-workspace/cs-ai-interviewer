@@ -3,9 +3,9 @@ package dev.jxmen.cs.ai.interviewer.persistence.port.output.repository
 import com.linecorp.kotlinjdsl.dsl.jpql.jpql
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderer
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChatArchive
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatArchiveQueryRepository
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Repository
@@ -18,22 +18,22 @@ class JdslChatArchiveQueryRepository(
     private val renderer = JpqlRenderer()
 
     override fun findBySubjectAndMember(
-        subject: Subject,
-        member: Member,
+        jpaSubject: JpaSubject,
+        jpaMember: JpaMember,
     ): List<JpaChatArchive> {
         val rendered =
             renderer.render(
                 jpql {
                     selectNew<JpaChatArchive>(
                         path(JpaChatArchive::id),
-                        path(JpaChatArchive::subject),
-                        path(JpaChatArchive::member),
+                        path(JpaChatArchive::jpaSubject),
+                        path(JpaChatArchive::jpaMember),
                     ).from(
                         entity(JpaChatArchive::class),
                     ).where(
                         and(
-                            path(JpaChatArchive::subject).eq(subject),
-                            path(JpaChatArchive::member).eq(member),
+                            path(JpaChatArchive::jpaSubject).eq(jpaSubject),
+                            path(JpaChatArchive::jpaMember).eq(jpaMember),
                         ),
                     )
                 },

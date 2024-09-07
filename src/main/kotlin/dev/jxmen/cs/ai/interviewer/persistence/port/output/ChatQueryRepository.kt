@@ -1,12 +1,12 @@
 package dev.jxmen.cs.ai.interviewer.persistence.port.output
 
-import dev.jxmen.cs.ai.interviewer.domain.chat.Chat
-import dev.jxmen.cs.ai.interviewer.domain.member.Member
-import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
+import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
+import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
+import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
 
 interface ChatQueryRepository {
     fun findBySubjectAndMember(
-        subject: Subject,
-        member: Member,
-    ): List<Chat>
+        jpaSubject: JpaSubject,
+        jpaMember: JpaMember,
+    ): List<JpaChat>
 }

@@ -1,6 +1,7 @@
-package dev.jxmen.cs.ai.interviewer.domain.member
+package dev.jxmen.cs.ai.interviewer.persistence.entity.member
 
-import dev.jxmen.cs.ai.interviewer.domain.BaseEntity
+import dev.jxmen.cs.ai.interviewer.domain.member.MemberLoginType
+import dev.jxmen.cs.ai.interviewer.persistence.entity.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
@@ -15,7 +16,7 @@ import java.io.Serializable
     // TODO: 구글 외 다른 소셜 로그인을 지원한다면 email unique 제약조건을 제거할지 검토 필요
     uniqueConstraints = [UniqueConstraint(columnNames = ["email"])],
 )
-class Member(
+class JpaMember(
 
     @Column(nullable = false)
     @Comment("이름")
@@ -27,7 +28,7 @@ class Member(
     val email: String,
 
     @Column(nullable = false)
-    @Convert(converter = MemberLoginTypeConverter::class)
+    @Convert(converter = JpaMemberLoginTypeConverter::class)
     @Comment("로그인 타입")
     val loginType: MemberLoginType,
 
@@ -37,8 +38,8 @@ class Member(
         fun createGoogleMember(
             name: String,
             email: String,
-        ): Member =
-            Member(
+        ): JpaMember =
+            JpaMember(
                 name = name,
                 email = email,
                 loginType = MemberLoginType.GOOGLE,
@@ -49,12 +50,12 @@ class Member(
             name: String,
             email: String,
             loginType: MemberLoginType,
-        ): Member {
-            val member = Member(name, email, loginType)
-            member.id = id
-            return member
+        ): JpaMember {
+            val jpaMember = JpaMember(name, email, loginType)
+            jpaMember.id = id
+            return jpaMember
         }
     }
 
-    fun equalsId(other: Member): Boolean = id == other.id
+    fun equalsId(other: JpaMember): Boolean = id == other.id
 }
