@@ -5,7 +5,6 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.ChatArchiveUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand2
 import dev.jxmen.cs.ai.interviewer.common.RequireLoginApi
 import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.common.dto.ListDataResponse
@@ -107,43 +106,19 @@ class SubjectApi(
      */
     @GetMapping("/api/v5/subjects/{subjectId}/answer")
     @RequireLoginApi
-    fun answerSubjectV5Async(
-        jpaMember: JpaMember,
-        @PathVariable("subjectId") subjectId: String,
-        @Param("message") message: String,
-    ): Flux<ChatResponse> {
-        val subject = subjectQuery.findByIdOrThrow(subjectId.toLong())
-        val chats = chatQuery.findBySubjectAndMember(subject, jpaMember)
-
-        val command =
-            CreateSubjectAnswerCommand(
-                jpaSubject = subject,
-                answer = message,
-                jpaMember = jpaMember,
-                jpaChats = chats,
-            )
-
-        return chatAnswerUseCase.answer(command)
-    }
-
-    /**
-     * 답변 등록 (비동기)
-     */
-    @GetMapping("/api/v6/subjects/{subjectId}/answer")
-    @RequireLoginApi
-    fun answerSubjectV6Async(
+    fun answer(
         member: Member,
         @PathVariable("subjectId") subjectId: String,
         @Param("message") message: String,
     ): Flux<ChatResponse> {
         val command =
-            CreateSubjectAnswerCommand2(
+            CreateSubjectAnswerCommand(
                 subjectId = subjectId.toLong(),
                 answer = message,
                 member = member,
             )
 
-        return chatAnswerUseCase.answerV6(command)
+        return chatAnswerUseCase.answer(command)
     }
 
     /**

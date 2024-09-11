@@ -37,11 +37,11 @@ class CsAiInterviewerApplicationTests(
                     Pair(HttpMethod.GET, "/api/v1/subjects/my"),
                     Pair(HttpMethod.GET, "/api/v5/subjects/1/answer"),
                     Pair(HttpMethod.POST, "/api/v2/subjects/1/chats/archive"),
-                ).forEach {
-                    when (it.first) {
-                        HttpMethod.GET -> mockMvc.get(it.second).andExpect { expectRequireLogin() }
-                        HttpMethod.POST -> mockMvc.post(it.second).andExpect { expectRequireLogin() }
-                        else -> throw IllegalArgumentException("Unsupported method: ${it.first}")
+                ).forEach { (method, url) ->
+                    when (method) {
+                        HttpMethod.GET -> mockMvc.get(url).andExpect { expectRequireLogin() }
+                        HttpMethod.POST -> mockMvc.post(url).andExpect { expectRequireLogin() }
+                        else -> throw IllegalArgumentException("Unsupported method: $url")
                     }
                 }
             }

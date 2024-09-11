@@ -20,33 +20,24 @@ class ChatAppender(
     private val subjectMapper: SubjectMapper,
     private val memberMapper: MemberMapper,
 ) {
-    /**
-     * 답변과 다음 질문을 추가한다. 이 작업은 원자성을 지켜야 한다.
-     */
     @Transactional
     fun addAnswerAndNextQuestion(
-        jpaSubject: JpaSubject,
-        jpaMember: JpaMember,
+        subject: Subject,
+        member: Member,
         answer: String,
-        jpaChats: List<JpaChat>,
+        chats: Chats,
         nextQuestion: String,
     ) {
-        if (jpaChats.isEmpty()) {
+        val jpaSubject = subjectMapper.toJpaEntity(subject)
+        val jpaMember = memberMapper.toJpaEntity(member)
+
+        if (chats.isEmpty()) {
             addFirstQuestion(jpaSubject, jpaMember)
         }
 
         val score = messageParser.parseScore(nextQuestion)
         addAnswer(jpaSubject, jpaMember, answer, score)
         addNextQuestion(jpaSubject, jpaMember, nextQuestion)
-    }
-
-    private fun addNextQuestion(
-        jpaSubject: JpaSubject,
-        jpaMember: JpaMember,
-        nextQuestion: String,
-    ) {
-        val question = JpaChat.createQuestion(jpaSubject, jpaMember, nextQuestion)
-        chatCommandRepository.save(question)
     }
 
     private fun addFirstQuestion(
@@ -67,22 +58,12 @@ class ChatAppender(
         chatCommandRepository.save(answer)
     }
 
-    fun addAnswerAndNextQuestion2(
-        subject: Subject,
-        member: Member,
-        answer: String,
-        chats: Chats,
+    private fun addNextQuestion(
+        jpaSubject: JpaSubject,
+        jpaMember: JpaMember,
         nextQuestion: String,
     ) {
-        val jpaSubject = subjectMapper.toJpaEntity(subject)
-        val jpaMember = memberMapper.toJpaEntity(member)
-
-        if (chats.isEmpty()) {
-            addFirstQuestion(jpaSubject, jpaMember)
-        }
-
-        val score = messageParser.parseScore(nextQuestion)
-        addAnswer(jpaSubject, jpaMember, answer, score)
-        addNextQuestion(jpaSubject, jpaMember, nextQuestion)
+        val question = JpaChat.createQuestion(jpaSubject, jpaMember, nextQuestion)
+        chatCommandRepository.save(question)
     }
 }

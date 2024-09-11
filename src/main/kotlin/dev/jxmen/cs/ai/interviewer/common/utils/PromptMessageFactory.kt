@@ -1,9 +1,8 @@
 package dev.jxmen.cs.ai.interviewer.common.utils
 
-import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
+import dev.jxmen.cs.ai.interviewer.domain.chat.ChatType
 import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
 import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
-import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage
@@ -31,15 +30,14 @@ class PromptMessageFactory {
                 꼬리 질문: ~~에 대해 더 깊게 설명해보세요.
             """.trimMargin().trim()
 
-        /**
-         * @param command CreateSubjectAnswerCommand 멤버가 제공한 답변을 기반으로 채팅 목록을 만들어 반환
-         *
-         * @Deprecated
-         */
-        fun create(command: CreateSubjectAnswerCommand): List<Message> {
-            val userAnswerMessage = UserMessage(command.answer) // 멤버가 제공한 답변
+        fun create(
+            answer: String,
+            chats: Chats,
+            subject: Subject,
+        ): List<Message> {
+            val userAnswerMessage = UserMessage(answer) // 멤버가 제공한 답변
 
-            return createInitialMessages(command) + createMessagesFromBeforeChats(command.jpaChats) + userAnswerMessage
+            return createInitialMessages(subject.question) + createMessagesFromBeforeChats(chats) + userAnswerMessage
         }
 
         /**
@@ -53,49 +51,18 @@ class PromptMessageFactory {
             질문: $question
             """.trimIndent().trim()
 
-        /**
-         * 초기 메시지 생성
-         */
-        private fun createInitialMessages(command: CreateSubjectAnswerCommand): List<Message> =
-            listOf(
-                UserMessage(grantInterviewerRoleMessage), // 면접관 역할 부여
-                AssistantMessage(getAiAnswerContentFromQuestion(command.jpaSubject.question)), // 면접관 질문
-            )
+        private fun createMessagesFromBeforeChats(chats: Chats): List<Message> {
+            if (chats.isEmpty()) return emptyList()
 
-        /**
-         * 기존 채팅 기반으로 메시지 생성
-         */
-        private fun createMessagesFromBeforeChats(jpaChats: List<JpaChat>): List<Message> {
-            /**
-             * 첫 번째 채팅은 질문을 그대로 저장하므로 제외
-             */
-            return jpaChats.drop(1).map {
-                when {
-                    it.isAnswer() -> UserMessage(it.content.message)
-                    it.isQuestion() -> AssistantMessage(it.content.message)
-                    else -> throw IllegalArgumentException("Unknown chat type")
+            require(chats.chats[0].isQuestion()) { "첫번째 채팅 내역은 질문이여야 합니다." }
+
+            return chats.chats.drop(1).map {
+                when (it.type) {
+                    ChatType.QUESTION -> AssistantMessage(it.message)
+                    ChatType.ANSWER -> UserMessage(it.message)
                 }
             }
         }
-
-        fun create(
-            answer: String,
-            chats: Chats,
-            subject: Subject,
-        ): List<Message> {
-            val userAnswerMessage = UserMessage(answer) // 멤버가 제공한 답변
-
-            return createInitialMessages(subject.question) + createMessagesFromBeforeChats(chats) + userAnswerMessage
-        }
-
-        private fun createMessagesFromBeforeChats(chats: Chats): List<Message> =
-            chats.chats.drop(1).map {
-                when {
-                    it.isAnswer() -> UserMessage(it.message)
-                    it.isQuestion() -> AssistantMessage(it.message)
-                    else -> throw IllegalArgumentException("Unknown chat type")
-                }
-            }
 
         private fun createInitialMessages(firstQuestion: String): List<Message> =
             listOf(

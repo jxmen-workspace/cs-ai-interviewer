@@ -2,8 +2,13 @@ package dev.jxmen.cs.ai.interviewer
 
 import com.navercorp.fixturemonkey.FixtureMonkey
 import com.navercorp.fixturemonkey.kotlin.KotlinPlugin
+import com.navercorp.fixturemonkey.kotlin.giveMeBuilder
 import com.navercorp.fixturemonkey.kotlin.giveMeOne
+import com.navercorp.fixturemonkey.kotlin.setExp
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatAnswerUseCase
+import dev.jxmen.cs.ai.interviewer.domain.chat.Chats
+import dev.jxmen.cs.ai.interviewer.domain.member.Member
+import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import dev.jxmen.cs.ai.interviewer.persistence.adapter.ChatAppender
 import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
 import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
@@ -145,10 +150,20 @@ class MemberScenarioTest(
                             }.publishOn(Schedulers.boundedElastic())
                             .doOnComplete {
                                 chatAppender.addAnswerAndNextQuestion(
-                                    jpaSubject = jpaSubject,
-                                    jpaMember = jpaMember,
+                                    subject =
+                                        fixtureMonkey
+                                            .giveMeBuilder<Subject>()
+                                            .setExp(Subject::id, jpaSubject.id)
+                                            .setExp(Subject::question, jpaSubject.question)
+                                            .sample(),
+                                    member =
+                                        fixtureMonkey
+                                            .giveMeBuilder<Member>()
+                                            .setExp(Member::id, jpaMember.id)
+                                            .setExp(Member::email, jpaMember.email) // argument resolver에서 email로 유저를 찾음
+                                            .sample(),
                                     answer = answer,
-                                    jpaChats = emptyList(),
+                                    chats = Chats(),
                                     nextQuestion = nextQuestion,
                                 )
                             }
