@@ -6,7 +6,9 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.Subject
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage
+import org.springframework.stereotype.Component
 
+@Component
 class PromptMessageFactory {
     companion object {
         /**
@@ -29,45 +31,48 @@ class PromptMessageFactory {
                 공부할 수 있는 키워드: ~~ / ~~ / ~~
                 꼬리 질문: ~~에 대해 더 깊게 설명해보세요.
             """.trimMargin().trim()
+    }
 
-        fun create(
-            answer: String,
-            chats: Chats,
-            subject: Subject,
-        ): List<Message> {
-            val userAnswerMessage = UserMessage(answer) // 멤버가 제공한 답변
+    fun create(
+        answer: String,
+        chats: Chats,
+        subject: Subject,
+    ): List<Message> {
+        val initialMessages = createInitialMessages(subject.question)
+        val userAnswerMessage = UserMessage(answer) // 멤버가 제공한 답변
 
-            return createInitialMessages(subject.question) + createMessagesFromBeforeChats(chats) + userAnswerMessage
+        return when (chats.isEmpty()) {
+            true -> initialMessages + userAnswerMessage
+            false -> initialMessages + createMessagesFromBeforeChats(chats) + userAnswerMessage
         }
+    }
 
-        /**
-         * AI가 답변 및 질문하는 내용 반환
-         */
-        fun getAiAnswerContentFromQuestion(question: String) =
-            """
-            네, 알겠습니다. 제공해주신 형식에 맞추어 답변하는 면접관 역할을 수행하고, 질문에 대한 답은 제공하지 않겠습니다. 
-            제가 면접관으로 질문드릴 내용은 다음과 같습니다.
-            
-            질문: $question
-            """.trimIndent().trim()
+    /**
+     * AI가 답변 및 질문하는 내용 반환
+     */
+    fun getAiAnswerContentFromQuestion(question: String) =
+        """
+        네, 알겠습니다. 제공해주신 형식에 맞추어 답변하는 면접관 역할을 수행하고, 질문에 대한 답은 제공하지 않겠습니다. 
+        제가 면접관으로 질문드릴 내용은 다음과 같습니다.
+        
+        질문: $question
+        """.trimIndent().trim()
 
-        private fun createMessagesFromBeforeChats(chats: Chats): List<Message> {
-            if (chats.isEmpty()) return emptyList()
+    private fun createInitialMessages(firstQuestion: String): List<Message> =
+        listOf(
+            UserMessage(grantInterviewerRoleMessage), // 면접관 역할 부여
+            AssistantMessage(getAiAnswerContentFromQuestion(firstQuestion)), // 면접관 질문
+        )
 
-            require(chats.chats[0].isQuestion()) { "첫번째 채팅 내역은 질문이여야 합니다." }
+    private fun createMessagesFromBeforeChats(chats: Chats): List<Message> {
+        require(!chats.isEmpty()) { "이전 채팅 내역이 존재해야 합니다." }
+        require(chats.chats[0].isQuestion()) { "첫번째 채팅 내역은 질문이여야 합니다." }
 
-            return chats.chats.drop(1).map {
-                when (it.type) {
-                    ChatType.QUESTION -> AssistantMessage(it.message)
-                    ChatType.ANSWER -> UserMessage(it.message)
-                }
+        return chats.chats.drop(1).map {
+            when (it.type) {
+                ChatType.QUESTION -> AssistantMessage(it.message)
+                ChatType.ANSWER -> UserMessage(it.message)
             }
         }
-
-        private fun createInitialMessages(firstQuestion: String): List<Message> =
-            listOf(
-                UserMessage(grantInterviewerRoleMessage), // 면접관 역할 부여
-                AssistantMessage(getAiAnswerContentFromQuestion(firstQuestion)), // 면접관 질문
-            )
     }
 }
