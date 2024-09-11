@@ -3,7 +3,7 @@ package dev.jxmen.cs.ai.interviewer.common.utils
 import org.springframework.stereotype.Component
 
 @Component
-class MessageParser {
+class PromptMessageParser {
     companion object {
         /**
          * @see PromptMessageFactory 프롬프트 메시지 생성 담당
