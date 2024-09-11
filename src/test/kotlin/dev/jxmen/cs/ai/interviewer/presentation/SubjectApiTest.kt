@@ -8,7 +8,6 @@ import dev.jxmen.cs.ai.interviewer.application.port.input.ChatArchiveUseCase
 import dev.jxmen.cs.ai.interviewer.application.port.input.ChatQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.SubjectQuery
 import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand
-import dev.jxmen.cs.ai.interviewer.application.port.input.dto.CreateSubjectAnswerCommand2
 import dev.jxmen.cs.ai.interviewer.common.GlobalControllerAdvice
 import dev.jxmen.cs.ai.interviewer.common.dto.ApiResponse
 import dev.jxmen.cs.ai.interviewer.common.dto.ListDataResponse
@@ -18,7 +17,6 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectCategoryNotFoundException
 import dev.jxmen.cs.ai.interviewer.domain.subject.exceptions.SubjectNotFoundException
 import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
-import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChats
 import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
 import dev.jxmen.cs.ai.interviewer.persistence.entity.member.MockJpaMemberArgumentResolver
 import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
@@ -241,137 +239,10 @@ class SubjectApiTest :
 
             context("존재하는 주제에 대한 답변 요청 시") {
                 val id = 1
-                subjectQuery = ExistIdSubjectQuery()
-                chatQuery = ExistSubjectIdChatQuery()
-
-                it("200을 응답한다") {
-                    webTestClient
-                        .get()
-                        .uri("/api/v5/subjects/$id/answer?message={message}", "answer")
-                        .header("Authorization", "Bearer token")
-                        .exchange()
-                        .expectStatus()
-                        .isOk
-                        .expectBody()
-                        .consumeWith(
-                            WebTestClientRestDocumentationWrapper
-                                .document(
-                                    identifier = "get-subject-answer",
-                                    description = "주제 답변 요청",
-                                    snippets =
-                                        arrayOf(
-                                            requestHeaders(
-                                                headerWithName("Authorization").description("Bearer 토큰"),
-                                            ),
-                                            responseFields(
-                                                fieldWithPath(
-                                                    "[].result.metadata.contentFilterMetadata",
-                                                ).type(JsonFieldType.NULL).description("Content filter metadata"),
-                                                fieldWithPath(
-                                                    "[].result.metadata.finishReason",
-                                                ).type(JsonFieldType.NULL).description("Finish reason"),
-                                                fieldWithPath(
-                                                    "[].result.output.messageType",
-                                                ).type(JsonFieldType.STRING).description("Message type"),
-                                                fieldWithPath("[].result.output.media").type(JsonFieldType.ARRAY).description("Media"),
-                                                fieldWithPath(
-                                                    "[].result.output.metadata.messageType",
-                                                ).type(JsonFieldType.STRING).description("Message type in metadata"),
-                                                fieldWithPath("[].result.output.content").type(JsonFieldType.STRING).description("답변 내용"),
-                                                fieldWithPath("[].metadata").type(JsonFieldType.OBJECT).description("Metadata"),
-                                                fieldWithPath(
-                                                    "[].results[].metadata.contentFilterMetadata",
-                                                ).type(JsonFieldType.NULL).description("Content filter metadata"),
-                                                fieldWithPath(
-                                                    "[].results[].metadata.finishReason",
-                                                ).type(JsonFieldType.NULL).description("Finish reason"),
-                                                fieldWithPath(
-                                                    "[].results[].output.messageType",
-                                                ).type(JsonFieldType.STRING).description("Message type"),
-                                                fieldWithPath("[].results[].output.media").type(JsonFieldType.ARRAY).description("Media"),
-                                                fieldWithPath(
-                                                    "[].results[].output.metadata.messageType",
-                                                ).type(JsonFieldType.STRING).description("Message type in metadata"),
-                                                fieldWithPath(
-                                                    "[].results[].output.content",
-                                                ).type(JsonFieldType.STRING).description("답변 내용"),
-                                            ),
-                                        ),
-                                ),
-                        )
-                }
-            }
-
-            context("답변을 모두 사용했을 경우") {
-                val id = 2
-                subjectQuery = ExistIdSubjectQuery()
-                chatQuery = UseAllAnswersChatQuery()
-
-                it("400을 응답한다") {
-                    webTestClient
-                        .get()
-                        .uri("/api/v5/subjects/$id/answer?message={message}", "answer")
-                        .header("Authorization", "Bearer token")
-                        .exchange()
-                        .expectStatus()
-                        .isBadRequest
-                        .expectBody()
-                        .consumeWith(
-                            WebTestClientRestDocumentationWrapper
-                                .document(
-                                    identifier = "get-subject-answer-bad-request",
-                                    description = "답변을 모두 사용했을 경우",
-                                    snippets =
-                                        arrayOf(
-                                            requestHeaders(
-                                                headerWithName("Authorization").description("Bearer 토큰"),
-                                            ),
-                                        ),
-                                ),
-                        )
-                }
-            }
-
-            context("존재하지 않는 주제에 대한 답변 요청 시") {
-                val id = 99999
-                subjectQuery = NotExistingIdSubjectQuery()
-
-                it("404를 응답한다") {
-                    webTestClient
-                        .get()
-                        .uri("/api/v5/subjects/$id/answer?message={message}", "answer")
-                        .header("Authorization", "Bearer token")
-                        .exchange()
-                        .expectStatus()
-                        .isNotFound
-                        .expectBody()
-                        .consumeWith(
-                            WebTestClientRestDocumentationWrapper
-                                .document(
-                                    identifier = "get-subject-answer-not-found",
-                                    description = "존재하지 않는 답변 요청",
-                                    snippets =
-                                        arrayOf(
-                                            requestHeaders(
-                                                headerWithName("Authorization").description("Bearer 토큰"),
-                                            ),
-                                        ),
-                                ),
-                        )
-                }
-            }
-        }
-
-        describe("GET /api/v6/subjects/{id}/answer 요청은") {
-
-            context("존재하는 주제에 대한 답변 요청 시") {
-                val id = 1
 
                 chatAnswerUseCase =
                     object : ChatAnswerUseCase {
-                        override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> = throw NotImplementedError()
-
-                        override fun answerV6(command: CreateSubjectAnswerCommand2): Flux<ChatResponse> =
+                        override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> =
                             Flux.just(
                                 ChatResponse(
                                     listOf(
@@ -384,7 +255,7 @@ class SubjectApiTest :
                 it("200을 응답한다") {
                     webTestClient
                         .get()
-                        .uri("/api/v6/subjects/$id/answer?message={message}", "answer")
+                        .uri("/api/v5/subjects/$id/answer?message={message}", "answer")
                         .header("Authorization", "Bearer token")
                         .exchange()
                         .expectStatus()
@@ -444,15 +315,13 @@ class SubjectApiTest :
 
                 chatAnswerUseCase =
                     object : ChatAnswerUseCase {
-                        override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> = throw NotImplementedError()
-
-                        override fun answerV6(command: CreateSubjectAnswerCommand2): Flux<ChatResponse> = Flux.error(NoAnswerException())
+                        override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> = Flux.error(NoAnswerException())
                     }
 
                 it("400을 응답한다") {
                     webTestClient
                         .get()
-                        .uri("/api/v6/subjects/$id/answer?message={message}", "answer")
+                        .uri("/api/v5/subjects/$id/answer?message={message}", "answer")
                         .header("Authorization", "Bearer token")
                         .exchange()
                         .expectStatus()
@@ -479,16 +348,14 @@ class SubjectApiTest :
 
                 chatAnswerUseCase =
                     object : ChatAnswerUseCase {
-                        override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> = throw NotImplementedError()
-
-                        override fun answerV6(command: CreateSubjectAnswerCommand2): Flux<ChatResponse> =
+                        override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> =
                             Flux.error(SubjectNotFoundException(id.toLong()))
                     }
 
                 it("404를 응답한다") {
                     webTestClient
                         .get()
-                        .uri("/api/v6/subjects/$id/answer?message={message}", "answer")
+                        .uri("/api/v5/subjects/$id/answer?message={message}", "answer")
                         .header("Authorization", "Bearer token")
                         .exchange()
                         .expectStatus()
@@ -806,18 +673,7 @@ class SubjectApiTest :
     }
 
     class StubChatAnswerUseCase : ChatAnswerUseCase {
-        override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> {
-            JpaChats(command.jpaChats).validateNotUseAllAnswers()
-            JpaChats(command.jpaChats).validateMatchMember(command.jpaMember)
-
-            return Flux.just(
-                ChatResponse(
-                    listOf(Generation("What is OS? (answer: ${command.answer})")),
-                ),
-            )
-        }
-
-        override fun answerV6(command: CreateSubjectAnswerCommand2): Flux<ChatResponse> =
+        override fun answer(command: CreateSubjectAnswerCommand): Flux<ChatResponse> =
             Flux.just(
                 ChatResponse(
                     listOf(Generation("What is OS? (answer: ${command.answer})")),
@@ -862,38 +718,6 @@ class SubjectApiTest :
 
     class NotExistIdSubjectQuery : StubSubjectQuery() {
         override fun findByIdOrThrow(id: Long): JpaSubject = throw SubjectNotFoundException(id)
-    }
-
-    class ExistSubjectIdChatQuery : ChatQuery {
-        override fun findBySubjectAndMember(
-            jpaSubject: JpaSubject,
-            jpaMember: JpaMember,
-        ): List<JpaChat> =
-            listOf(
-                JpaChat.createQuestion(
-                    jpaSubject = jpaSubject,
-                    jpaMember = jpaMember,
-                    message = "What is OS?",
-                ),
-            )
-    }
-
-    class UseAllAnswersChatQuery : ChatQuery {
-        override fun findBySubjectAndMember(
-            jpaSubject: JpaSubject,
-            jpaMember: JpaMember,
-        ): List<JpaChat> {
-            val jpaChats = mutableListOf<JpaChat>()
-            for (i in 1..JpaChat.MAX_ANSWER_COUNT * 2) {
-                if (i % 2 == 0) {
-                    jpaChats.add(JpaChat.createAnswer(jpaSubject = jpaSubject, jpaMember = jpaMember, answer = "hi", score = 0))
-                } else {
-                    jpaChats.add(JpaChat.createQuestion(jpaSubject = jpaSubject, jpaMember = jpaMember, message = "What is OS?"))
-                }
-            }
-
-            return jpaChats
-        }
     }
 
     class DummySubjectQuery : SubjectQuery {

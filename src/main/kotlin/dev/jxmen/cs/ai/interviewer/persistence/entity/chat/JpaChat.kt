@@ -39,11 +39,14 @@ class JpaChat(
 ) : BaseEntity() {
     fun isAnswer(): Boolean = content.isAnswer()
 
-    fun isQuestion(): Boolean = content.isQuestion()
-
     companion object {
         const val MAX_ANSWER_SCORE = 100
         const val MAX_ANSWER_COUNT = 10
+
+        fun createFirstQuestion(
+            jpaSubject: JpaSubject,
+            jpaMember: JpaMember,
+        ): JpaChat = createQuestion(jpaSubject, jpaMember, jpaSubject.question)
 
         fun createQuestion(
             jpaSubject: JpaSubject,
@@ -67,16 +70,6 @@ class JpaChat(
             val jpaChat = JpaChat(jpaSubject = jpaSubject, jpaMember = jpaMember, content = content)
 
             createdAt?.let { jpaChat.createdAt = it }
-            return jpaChat
-        }
-
-        fun createFirstQuestion(
-            jpaSubject: JpaSubject,
-            jpaMember: JpaMember,
-        ): JpaChat {
-            val content = JpaChatContent.createQuestion(jpaSubject.question)
-            val jpaChat = JpaChat(jpaSubject = jpaSubject, jpaMember = jpaMember, content = content)
-
             return jpaChat
         }
     }
