@@ -17,6 +17,7 @@ import reactor.core.scheduler.Schedulers
 class ChatAnswerService(
     private val subjectReader: SubjectReader,
     private val chatReader: ChatReader,
+    private val promptMessageFactory: PromptMessageFactory,
     private val chatModel: ChatModel,
     private val chatAppender: ChatAppender,
 ) : ChatAnswerUseCase {
@@ -28,7 +29,7 @@ class ChatAnswerService(
         chats.validateNotUseAllAnswers()
 
         // 2. 기존 채팅 목록으로 Message 리스트 만들기
-        val messages = PromptMessageFactory.create(command.answer, chats, subject)
+        val messages = promptMessageFactory.create(command.answer, chats, subject)
 
         // 3. 챗 모델 호출하고 마지막 결과 저장
         val answerMessageBuilder = StringBuilder()

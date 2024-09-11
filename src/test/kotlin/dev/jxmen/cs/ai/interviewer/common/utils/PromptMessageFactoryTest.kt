@@ -24,6 +24,8 @@ class PromptMessageFactoryTest :
                     .apply { plugin(KotlinPlugin()) }
                     .build()
 
+            val promptMessageFactory = PromptMessageFactory()
+
             context("create") {
                 it("이전 채팅이 없을 때 권한 부여, 질문에 대한 답변, 사용자 답변 메시지 목록을 반환해야 합니다") {
                     // given
@@ -31,12 +33,12 @@ class PromptMessageFactoryTest :
                     val subject: Subject = fixtureMonkey.giveMeOne()
 
                     // when
-                    val result = PromptMessageFactory.create(answer, Chats(), subject)
+                    val result = promptMessageFactory.create(answer, Chats(), subject)
 
                     // then
                     result shouldHaveSize 3
                     result[0] shouldBe UserMessage(PromptMessageFactory.grantInterviewerRoleMessage)
-                    result[1] shouldBe AssistantMessage(PromptMessageFactory.getAiAnswerContentFromQuestion(subject.question))
+                    result[1] shouldBe AssistantMessage(promptMessageFactory.getAiAnswerContentFromQuestion(subject.question))
                     result[2] shouldBe UserMessage(answer)
                 }
 
@@ -48,12 +50,12 @@ class PromptMessageFactoryTest :
                         Chats(listOf(createQuestionChat(fixtureMonkey), createAnswerChat(fixtureMonkey), createQuestionChat(fixtureMonkey)))
 
                     // when
-                    val result = PromptMessageFactory.create(answer, chats, subject)
+                    val result = promptMessageFactory.create(answer, chats, subject)
 
                     // then
                     result shouldHaveSize 5
                     result[0] shouldBe UserMessage(PromptMessageFactory.grantInterviewerRoleMessage)
-                    result[1] shouldBe AssistantMessage(PromptMessageFactory.getAiAnswerContentFromQuestion(subject.question))
+                    result[1] shouldBe AssistantMessage(promptMessageFactory.getAiAnswerContentFromQuestion(subject.question))
                     result[2] shouldBe UserMessage(chats.chats[1].message)
                     result[3] shouldBe AssistantMessage(chats.chats[2].message)
                     result[4] shouldBe UserMessage(answer)
