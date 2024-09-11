@@ -12,7 +12,7 @@ class PromptMessageFactory {
         /**
          * AI에게 면졉관 역할을 부여하는 메시지
          *
-         * @see MessageParser 점수 파싱 담당
+         * @see PromptMessageParser 점수 파싱 담당
          */
         val grantInterviewerRoleMessage =
             """

@@ -7,12 +7,12 @@ import io.kotest.data.row
 import io.kotest.data.table
 import io.kotest.matchers.shouldBe
 
-class MessageParserTest :
+class PromptMessageParserTest :
     DescribeSpec({
         describe("MessageParser") {
             context("parseScore") {
                 it("점수가 포함된 문자열을 처리할 때 올바른 점수를 반환해야 합니다") {
-                    val messageParser = MessageParser()
+                    val promptMessageParser = PromptMessageParser()
 
                     val testCases =
                         table(
@@ -25,13 +25,13 @@ class MessageParserTest :
                         )
 
                     forAll(testCases) { input, expectedScore ->
-                        val score = messageParser.parseScore(input)
+                        val score = promptMessageParser.parseScore(input)
                         score shouldBe expectedScore
                     }
                 }
 
                 it("점수가 포함되지 은 문자열을 처리할 때 0을 반환해야 합니다") {
-                    val messageParser = MessageParser()
+                    val promptMessageParser = PromptMessageParser()
 
                     val testCases =
                         table(
@@ -45,7 +45,7 @@ class MessageParserTest :
                         )
 
                     forAll(testCases) { input, expectedScore ->
-                        val score = messageParser.parseScore(input)
+                        val score = promptMessageParser.parseScore(input)
                         score shouldBe expectedScore
                     }
                 }
