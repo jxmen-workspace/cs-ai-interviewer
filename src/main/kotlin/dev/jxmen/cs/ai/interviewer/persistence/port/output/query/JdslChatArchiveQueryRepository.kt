@@ -1,4 +1,4 @@
-package dev.jxmen.cs.ai.interviewer.persistence.port.output.repository
+package dev.jxmen.cs.ai.interviewer.persistence.port.output.query
 
 import com.linecorp.kotlinjdsl.dsl.jpql.jpql
 import com.linecorp.kotlinjdsl.render.jpql.JpqlRenderContext
