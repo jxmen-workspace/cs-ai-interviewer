@@ -6,6 +6,7 @@ import dev.jxmen.cs.ai.interviewer.domain.subject.SubjectCategory
 import dev.jxmen.cs.ai.interviewer.persistence.entity.chat.JpaChat
 import dev.jxmen.cs.ai.interviewer.persistence.entity.member.JpaMember
 import dev.jxmen.cs.ai.interviewer.persistence.entity.subject.JpaSubject
+import dev.jxmen.cs.ai.interviewer.persistence.port.output.ChatCommandRepository
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.MemberCommandRepository
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectCommandRepository
 import dev.jxmen.cs.ai.interviewer.persistence.port.output.SubjectQueryRepository
@@ -25,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional
 class JdslSubjectQueryRepositoryTest(
     private val entityManager: EntityManager,
     private val subjectCommandRepository: SubjectCommandRepository,
-    private val chatCommandRepository: JpaChatCommandRepository,
+    private val chatCommandRepository: ChatCommandRepository,
     private val memberCommandRepository: MemberCommandRepository,
     private val context: JpqlRenderContext,
 ) {
