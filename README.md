@@ -2,6 +2,10 @@
 
 CS 면접을 준비하는 사람들을 위한 인터뷰 질문을 제공하는 서비스입니다.
 
+### 영상
+
+https://github.com/user-attachments/assets/348d9585-3fa1-4369-9d97-921f5fbf2ef4
+
 ### 이미지
 
 ![](.README_images/2e271b7c.png)
